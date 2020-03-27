@@ -1,0 +1,44 @@
+{
+    "rsid": "vrs_schibs1_jobsinfojobs",
+    "globalFilters": [
+        {
+            "type": "dateRange",
+            "dateRange": "2020-03-19T00:00:00.000/2020-03-26T00:00:00.000"
+        }
+    ],
+    "metricContainer": {
+        "metrics": [
+            {
+                "columnId": "1",
+                "id": "metrics/visitors",
+                "sort": "desc",
+                "filters": [
+                    "0"
+                ]
+            }
+        ],
+        "metricFilters": [
+            {
+                "id": "0",
+                "type": "segment",
+                "segmentId": "s2165_5ce2aa77c0fdcb1990ad2326"
+            }
+        ]
+    },
+    "dimension": "variables/mcaudiences.1",
+    "search": {
+        "clause": "( CONTAINS 'web' ) AND ( CONTAINS 'Users_logged' )"
+    },
+    "settings": {
+        "countRepeatInstances": true,
+        "limit": 50,
+        "page": 0,
+        "nonesBehavior": "exclude-nones"
+    },
+    "statistics": {
+        "functions": [
+            "col-max",
+            "col-min"
+        ]
+    }
+}
