@@ -13,6 +13,8 @@ import sys
 import os
 import pandas as pd
 import pyarrow.parquet as pq
+import shutil
+import re
 
 class BearerAuth(r.auth.AuthBase):
     """
@@ -111,6 +113,10 @@ class OptimizelyS3Client(object):
 
 
 def main():
+    EXPERIMENT_ID = '20017240378'
+    DATE_START = '2021-03-12'
+    DATE_END = '2021-03-15'
+    DIR_EXPORT = './export_optimizely'
     EVENT_EXPORT_BUCKET_NAME = 'optimizely-events-data'
     OPTIMIZELY_ACCOUNT_ID = '2001130706'
     OPTIMIZELY_PERSONAL_ACCESS_TOKEN = '2:oJVKE5YeozQX-nsgp-1AzRzTC4nMbf9ioYw3PtgrZs99rBVccGiQ'
@@ -118,53 +124,68 @@ def main():
     optimizely_s3_client = OptimizelyS3Client(OPTIMIZELY_PERSONAL_ACCESS_TOKEN)
     s3_client = optimizely_s3_client.as_boto3_s3_client()
 
-
-    #luis
-    # path = optimizely_s3_client.get_bucket_prefix(OPTIMIZELY_ACCOUNT_ID)
+    path = optimizely_s3_client.get_bucket_prefix(OPTIMIZELY_ACCOUNT_ID)+"type=decisions/"
+    # path = optimizely_s3_client.get_bucket_prefix(OPTIMIZELY_ACCOUNT_ID)+"type=decisions/date=2021-"
     # path = optimizely_s3_client.get_bucket_prefix(OPTIMIZELY_ACCOUNT_ID)+"type=decisions/date=2021-02-01/"
     # path = optimizely_s3_client.get_bucket_prefix(OPTIMIZELY_ACCOUNT_ID)+"type=decisions/date=2021-02-01/experiment=10135051401"
-    path = optimizely_s3_client.get_bucket_prefix(OPTIMIZELY_ACCOUNT_ID)+"type=decisions/date=2021"
-    print(path)
+
+# =============================================================================
+#     download s3 files to localstorage
+# =============================================================================
+    bucket_object_list = []
     
-    all_objects = s3_client.list_objects(
-        Delimiter="/experiment=10135051401",
-        Bucket=EVENT_EXPORT_BUCKET_NAME,
-        Prefix=path,
-        MaxKeys=10000
-    )
-    # s3 = s3_client.bucket(EVENT_EXPORT_BUCKET_NAME)
-    # all_objects2 = s3.bucket.
-    # print(all_objects2)
-    
-    
-    # print(all_objects)
-    creds = optimizely_s3_client.get_creds()
-    print('============')
-    print('export AWS_ACCESS_KEY_ID=' + creds['accessKeyId'])
-    print('export AWS_SECRET_ACCESS_KEY=' + creds['secretAccessKey'])
-    print('export AWS_SESSION_TOKEN=' + creds['sessionToken'])
-    print('============')
-    
-    # s3 = boto3.client('s3')
-    # print(all_objects)
-    for file in all_objects['Contents']:
-        # file = 's3://optimizely-events-data/' + file['Key']
-        s3_file = file['Key']
-        # print('path > ' + s3_file)
-        file = os.path.split(s3_file)[1]
-        # print('file > ' + file)
-        # s3_client.download_file(EVENT_EXPORT_BUCKET_NAME, s3_file, 'temp/'+file)
+    # delete export directory
+    if os.path.isdir(DIR_EXPORT):
+        shutil.rmtree(DIR_EXPORT)
         
-        # s3_client.download_dir(EVENT_EXPORT_BUCKET_NAME, file['Key'], '~luis.salamo/Downloads/temp/'+file['Key'])
-        # s3_client.download_file(EVENT_EXPORT_BUCKET_NAME, s3_file, file)
-        # pd.read_parquet(file, engine='pyarrow')
+    paginator = s3_client.get_paginator('list_objects')
+    operation_parameters = {
+        'Bucket': EVENT_EXPORT_BUCKET_NAME,
+        'Prefix': path
+    }
+    page_iterator = paginator.paginate(**operation_parameters)
+    for page in page_iterator:
+        if "Contents" in page:
+            for key in page["Contents"]:
+                s3_key = key["Key"]
+                date_path = re.search('date=(.+?)/', s3_key)
+                if date_path:
+                    current_date = datetime.strptime(date_path.group(1), '%Y-%m-%d').date()
+                    date_start = datetime.strptime(DATE_START, '%Y-%m-%d').date()
+                    date_end = datetime.strptime(DATE_END, '%Y-%m-%d').date()
+                    if (current_date - date_start).days >= 0 and (current_date - date_end).days <= 0:
+                        if 'experiment='+EXPERIMENT_ID in s3_key:   
+                            # donwload s3 file to localstorage
+                            filename = os.path.basename(s3_key) 
+                            foldername = os.path.dirname(s3_key)
+                            s3_file = 's3://'+EVENT_EXPORT_BUCKET_NAME+'/'+s3_key
+                            print('s3_file > ' + s3_file)
+                            s3_key_download = DIR_EXPORT + s3_key.replace('v1/account_id='+ OPTIMIZELY_ACCOUNT_ID+'/type=decisions','')
+                            os.makedirs(os.path.dirname(s3_key_download))
+                            s3_client.download_file(EVENT_EXPORT_BUCKET_NAME, s3_key, s3_key_download)
+                            # append experiment into list
+                            bucket_object_list.append(s3_key_download)   
+                    
+    print('finish donwload files s3 for experiment ' + EXPERIMENT_ID)
+    
+# =============================================================================
+#     save dataframe
+# =============================================================================
+    df = pd.DataFrame();
+    for item in bucket_object_list:
+        print(item)
+        df = df.append(pd.read_parquet(item, engine='pyarrow'))
+    df.head(10)
     
     
-    return all_objects
+# =============================================================================
+#     result
+# =============================================================================
+    result = { 'bucket_object_list': bucket_object_list, 'dataframe': df }
+    return result
 
 
 if __name__ == '__main__':
-    a = main()
-    # b = pd.read_parquet('s3://optimizely-events-data/v1/account_id=2001130706/type=decisions/date=2021-02-01/experiment=8801702869/part-00000-f58956e2-7fff-4092-92db-65a06fbc7136.c000.snappy.parquet', engine='pyarrow')
-    b = pd.read_parquet('temp/part-00000-a8ae7344-657f-4da3-b023-61e3786ce74b.c000.snappy.parquet', engine='pyarrow')
-# df = pq.read_table('dataset.parq').to_pandas()
+    result = main()
+
+    
