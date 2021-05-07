@@ -113,9 +113,9 @@ class OptimizelyS3Client(object):
 
 
 def main():
-    EXPERIMENT_ID = '20017240378'
-    DATE_START = '2021-03-12'
-    DATE_END = '2021-03-15'
+    EXPERIMENT_ID = '20212520676'
+    DATE_START = '2021-05-01'
+    DATE_END = '2021-05-07'
     DIR_EXPORT = './export_optimizely'
     EVENT_EXPORT_BUCKET_NAME = 'optimizely-events-data'
     OPTIMIZELY_ACCOUNT_ID = '2001130706'
@@ -175,7 +175,6 @@ def main():
     for item in bucket_object_list:
         print(item)
         df = df.append(pd.read_parquet(item, engine='pyarrow'))
-    df.head(10)
     
     
 # =============================================================================
@@ -188,4 +187,5 @@ def main():
 if __name__ == '__main__':
     result = main()
 
+result1000 = result["dataframe"].head(1000)
     
