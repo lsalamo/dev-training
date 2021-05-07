@@ -116,7 +116,7 @@ def main():
     EXPERIMENT_ID = '20212520676'
     DATE_START = '2021-05-01'
     DATE_END = '2021-05-07'
-    DIR_EXPORT = './export_optimizely'
+    DIR_EXPORT = './export'
     EVENT_EXPORT_BUCKET_NAME = 'optimizely-events-data'
     OPTIMIZELY_ACCOUNT_ID = '2001130706'
     OPTIMIZELY_PERSONAL_ACCESS_TOKEN = '2:oJVKE5YeozQX-nsgp-1AzRzTC4nMbf9ioYw3PtgrZs99rBVccGiQ'
