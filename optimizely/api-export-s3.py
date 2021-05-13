@@ -169,18 +169,19 @@ def main():
     print('finish donwload files s3 for experiment ' + EXPERIMENT_ID)
     
 # =============================================================================
-#     save dataframe
+#   EXPORT CSV
 # =============================================================================
+
     df = pd.DataFrame();
     for item in bucket_object_list:
         print(item)
         df = df.append(pd.read_parquet(item, engine='pyarrow'))
     
-    
 # =============================================================================
-#     result
+#   RESULT
 # =============================================================================
-    result = { 'bucket_object_list': bucket_object_list, 'dataframe': df }
+   
+    result = { 'bucket_object_list': bucket_object_list, 'df': df }
     return result
 
 
