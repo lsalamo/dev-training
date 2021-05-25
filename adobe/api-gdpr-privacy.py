@@ -6,9 +6,9 @@ import shutil
 # =============================================================================
 # VARIABLES
 # =============================================================================
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjA4MTYyNDE1MjBfMmE0MGFhYjUtYzJmYy00ZjZmLWFkZDQtZmRiOGY5ZjdlYTk0X3VlMSIsImNsaWVudF9pZCI6IjVlOWZkNTVmYTkyYzRhMGE4MmIzZjJhNzRjMDg4ZTYwIiwidXNlcl9pZCI6IkFENEE3QTFENjA4OEY5RjQwQTQ5NUM2OEB0ZWNoYWNjdC5hZG9iZS5jb20iLCJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWTllNSTdWWEZMUDU1SFVDQ01aTFJIUUFJST09PT09PSIsIm1vaSI6ImUxNDNkZmM2IiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwiY3JlYXRlZF9hdCI6IjE2MjA4MTYyNDE1MjAiLCJzY29wZSI6Im9wZW5pZCxBZG9iZUlELHJlYWRfb3JnYW5pemF0aW9ucyxhZGRpdGlvbmFsX2luZm8ucHJvamVjdGVkUHJvZHVjdENvbnRleHQifQ.GiTPTA2tAeqlyF2EfNzUpZqh8uPaBImzElGNTcwW6ZFLHVs4i9NVXZIt6cEPEit84z3l1UqALsA-dsMJo-mh85kRNZfMdDFrvajoxLfjeuHKfX5KmtsHAEltsttDz-gcdA7n5nka7m3Kd1_NuE7MGF_xlMgZ5ZC338vPbgQ3uJ98Lqn5QBuuvV90CAUE4WwvHSuE8jZZDcK5k96dzBfuXu4sSLevGABjCJEMAFU0PrtodtCxSHu0HA9f7sVHC-hNtssIH3JDt48JYiwqhsoott2wqmg4A-ehD8SfT7A4ZlGpTbB-xr_W_SmAU_AYTjRrj3RxIcVx1yrcQCsDfu394A"
-FROM_DATE = "2021-05-03"
-TO_DATE = "2021-05-09"
+TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjE5Mjk5ODg0NTBfZTUwNTdmYTctZGVjYy00MjNjLThmODktYWVhMGYzMzkwNGZhX3VlMSIsImNsaWVudF9pZCI6IjVlOWZkNTVmYTkyYzRhMGE4MmIzZjJhNzRjMDg4ZTYwIiwidXNlcl9pZCI6IkFENEE3QTFENjA4OEY5RjQwQTQ5NUM2OEB0ZWNoYWNjdC5hZG9iZS5jb20iLCJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWTzRVTjZUTkZMUDU1SFVDQ01aTFJIUUFJST09PT09PSIsIm1vaSI6ImJiZDcyOGJkIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjE5Mjk5ODg0NTAifQ.DkI7byQjdeiUdil_0hcIdaqQBSmI2KNTmYBSPsveV1We0OHlhUEOG2bNJai4ezVscke2fG8NlqI9YjVwjwTPlmwzywBhn7AYm4k9zhSpOipKbER7RE4VX6cJSw4vLzr6hANm5CUaU_wz_WH98_rSc5_Zjynd-sPok4LlT2mI4Vgji7RdAyTluZBzRuxN3sgWrPTzTV8h2ls8mgVpjQMJrhT2ClXNbgUFEzchEIXwi7IZQzIjOG6qpt0Q1JU02RIojE2ZQmWvSzVZ9jTBSDKzrDWxL5-m5VBCREW4W8uPjS44Y39u2Duz7b9CHOTJkK4al95YyAQZI2WtEgPKTK6vfw"
+FROM_DATE = "2021-05-22"
+TO_DATE = "2021-05-23"
 DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe"
 DIR_EXPORT = 'export' 
 DIR_PATH = os.path.join(DIR_PARENT, DIR_EXPORT)
@@ -33,7 +33,9 @@ response = requests.request("GET", url.replace("{{page}}", "1"), headers=headers
 # =============================================================================
 
 df = pd.DataFrame();
-if response.status_code == 200:
+if response.status_code != 200:
+    print("ERROR " + str(response.status_code) + " > " + response.text)
+else:
     response = response.json()
     total_records = response['totalRecords']
     if total_records > 0:
@@ -43,9 +45,6 @@ if response.status_code == 200:
             response = requests.request("GET", url.replace("{{page}}", str(i)), headers=headers, data=payload)
             response = response.json()
             df = df.append(pd.DataFrame.from_dict(response['jobDetails']))
-else:
-    print("ERROR " + str(response.status_code) + " > " + response.text)
-
 
 # =============================================================================
 #   CAST
@@ -61,8 +60,7 @@ df["diffDate"] = df["lastModifiedDate_datetime"] - df["createdDate_datetime"]
 # =============================================================================
 
 df_clean = df[
-    (df["userKey"].str.startswith("infojobs.net - ") & (df["userKey"].str.len() < 30))|
-    df["userKey"].str.startswith("LuisSalamoEsteve")
+    df["userKey"].str.startswith("Analytics-") & df["userKey"].str.contains("sdrn:infojobs")
 ]
 
 # =============================================================================
