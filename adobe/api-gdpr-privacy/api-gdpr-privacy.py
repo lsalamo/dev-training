@@ -4,16 +4,16 @@ import os
 import shutil
 import sys
 from datetime import datetime
+from datetime import timedelta
 
 # =============================================================================
 # VARIABLES
 # =============================================================================
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjI1NDM0NjMwMDRfNWQ4Y2UzOTgtNWZiYS00ZWNmLWIzZGMtZjlkMjZlZDgxNzQ3X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUFFUT1ZVTUZMUDU1SFVDQ01aTFJIUUFJST09PT09PSIsIm1vaSI6ImJkOTM4NjYyIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjI1NDM0NjMwMDQifQ.UvvWMUtYA9DTZlF6KJHRpH2QkGExSLndVSwCszEKoyz_I9J38wgcrwv5QjDZgtod_z26rh8GgeilIG41JenQLcoYFzN9abTgHoYPZWl18GL8z-oQrl5PXxO87sQWer55aEXtJS0Bs9KSAAwhN303QEeYxxKz2BmTr2xiIRSGSu_iGL1aQOnkvGVWunh0ZA0Sj27kmYS5YsGcSBOuq-qNJp3GLzY-ShvM8w-rgtPWYO88wZ2OV4bd4g29Fr5yL53Yx9IkcLfM-rA3dW6uMqE6LC_POBMv0-twySeONdq471_KLEB8zylPQf60L0Ox89JP0u-CD0XboAr8N5Ah_8b9Kg"
+TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjMwNTY4MTI3NjJfNWQ1YjNiOGUtZjM0OC00NWFhLThmMzItZGJkMmYwNjM3ODY4X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUUJLRjdZN0ZMUDU1WFVDQ01aTFJIUUFBND09PT09PSIsIm1vaSI6IjdmYjc1YTZiIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjMwNTY4MTI3NjIifQ.Aqa_kCCUDDZy0gWTysug6ggCkXgOohNSyz7B4FsppudqY0uIGLFtjLtbal_S_k6EaMBUB8vp1Xy7UXOsd_z-EOYhu6tO9ehEOTQse9r0Et-CyVYO7j5C45g0YSaDQxCPQZtFHCrEi8hd63HPYAUFuBBqcuoM1blUKX0lxlqBNNcNbvWBV1TJQXCzD5ltKWjmt_2i8PK0VYMBw6zUrC20WKGJ_DPT0gvcaIrwg_BYO3VGxKbuWU-C_jsj3QBnZNSfh6m6z0S8TIWZyOy_gVAEz54wEk_fuMtJX5G9RIorgoUhneRsFxvgIIQUOCQVELcEEqYN-nWkEqdcsgqcMb88wA"
 FROM_DATE = "2021-05-24"
 TO_DATE = "2021-05-30"
 DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy"
 DIR_EXPORT = 'export' 
-DIR_PATH = os.path.join(DIR_PARENT, DIR_EXPORT)
 
 # =============================================================================
 # REQUEST
@@ -63,7 +63,7 @@ df["diffDate"] = df["lastModifiedDate_datetime"] - df["createdDate_datetime"]
 #   CLEAR
 # =============================================================================
 
-df_clean = df[df["userKey"].str.startswith("Analytics-") & df["userKey"].str.contains("sdrn:infojobs")]
+df_clean = df[df["userKey"].str.startswith("Analytics-") & df["userKey"].str.contains("sdrn:")]
 
 # =============================================================================
 #   RESULT
@@ -76,33 +76,39 @@ df_summary_by_day = df_clean.groupby(["createdDate_datetime_ymd", "action", "sta
     mean = pd.NamedAgg(column="diffDate", aggfunc=lambda x: x.mean())
 )
 
-data = {
-    'count': df_clean.shape[0],
-    'count_delete': df_clean[df_clean["action"] == "delete"].shape[0],
-    'count_access': df_clean[df_clean["action"] == "access"].shape[0],
-    '%_count_delete': round(data["count_delete"] / data["count"] * 100, 2),
-    '%_count_access': round(data["count_access"] / data["count"] * 100, 2),
-    'date_from': datetime.strptime(FROM_DATE, '%Y-%m-%d').date(),
-    'date_to': datetime.strptime(TO_DATE, '%Y-%m-%d').date(),
-    'date_diff': (data["date_to"] - data["date_from"]).days + 1,
-    'count / day': round(df_clean.shape[0] / date_diff),
-    'time_min_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].min(),
-    'time_min_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].min(),
-    'time_max_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].max(),
-    'time_max_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].max(),
-    'time_mean_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].mean(),
-    'time_mean_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].mean()      
-}
-df_summary = pd.DataFrame.from_dict(list(data.items()))
-df_summary.rename(columns={0:'Key', 1:'Value'}, inplace = True)
-df_summary.set_index('Key', inplace = True)
+def get_summary():
+    count = df_clean.shape[0]
+    count_delete = df_clean[df_clean["action"] == "delete"].shape[0]
+    count_access = df_clean[df_clean["action"] == "access"].shape[0]
+    date_from = datetime.strptime(FROM_DATE, '%Y-%m-%d').date()
+    date_to = datetime.strptime(TO_DATE, '%Y-%m-%d').date()
+    date_diff = (date_to - date_from).days + 1
+    data = {
+        'count': count,
+        'count_delete': count_delete,
+        'count_access': count_access,
+        '%_count_delete': round(count_delete / count * 100, 2),
+        '%_count_access': round(count_access / count * 100, 2),
+        'date_from': date_from,
+        'date_to': date_to,
+        'date_diff': (date_to - date_from).days + 1,
+        'count / day': round(count / date_diff),
+        'time_min_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].min().to_pytimedelta(),
+        'time_min_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].min().to_pytimedelta(),
+        'time_max_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].max().to_pytimedelta(),
+        'time_max_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].max().to_pytimedelta(),
+        'time_mean_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].mean().to_pytimedelta(),
+        'time_mean_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].mean().to_pytimedelta()
+    }
+    data["time_mean_delete"] = data["time_mean_delete"] - timedelta(microseconds=data["time_mean_delete"].microseconds)
+    data["time_mean_access"] = data["time_mean_access"] - timedelta(microseconds=data["time_mean_access"].microseconds)
+    return data
 
 result = { 
     'total_records': df_clean.shape[0], 
     'df': df,
     'df_clean': df_clean,
-    'df_clean_complete': df_clean_complete,
-    'df_summary': df_summary,
+    'df_summary': get_summary(),
     'df_summary_by_day': df_summary_by_day
 }
 
@@ -110,11 +116,17 @@ result = {
 #   EXPORT CSV
 # =============================================================================
 
-if os.path.isdir(DIR_PATH):
-    shutil.rmtree(DIR_PATH)
-os.makedirs(DIR_PATH)
-result['df_summary_by_day'].to_csv(DIR_PATH + "/data_summary_by_day.csv")
-result['df_summary'].to_csv(DIR_PATH + "/data_summary.csv")
+
+df_summary = pd.DataFrame.from_dict(list(result["df_summary"].items()))
+df_summary.rename(columns={0:'Key', 1:'Value'}, inplace = True)
+df_summary.set_index('Key', inplace = True)
+
+dir = os.path.join(DIR_PARENT, DIR_EXPORT)
+if os.path.isdir(dir):
+    shutil.rmtree(dir)
+os.makedirs(dir)
+result['df_summary_by_day'].to_csv(dir + "/data_summary_by_day.csv")
+result['df_summary'].to_csv(dir + "/data_summary.csv")
 
 a = result['df_clean'][result['df_clean']['userKey'].str.contains("40558615524")]
 
