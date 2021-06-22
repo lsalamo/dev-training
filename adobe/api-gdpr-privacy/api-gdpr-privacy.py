@@ -9,9 +9,9 @@ from datetime import timedelta
 # =============================================================================
 # VARIABLES
 # =============================================================================
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjMwNTY4MTI3NjJfNWQ1YjNiOGUtZjM0OC00NWFhLThmMzItZGJkMmYwNjM3ODY4X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUUJLRjdZN0ZMUDU1WFVDQ01aTFJIUUFBND09PT09PSIsIm1vaSI6IjdmYjc1YTZiIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjMwNTY4MTI3NjIifQ.Aqa_kCCUDDZy0gWTysug6ggCkXgOohNSyz7B4FsppudqY0uIGLFtjLtbal_S_k6EaMBUB8vp1Xy7UXOsd_z-EOYhu6tO9ehEOTQse9r0Et-CyVYO7j5C45g0YSaDQxCPQZtFHCrEi8hd63HPYAUFuBBqcuoM1blUKX0lxlqBNNcNbvWBV1TJQXCzD5ltKWjmt_2i8PK0VYMBw6zUrC20WKGJ_DPT0gvcaIrwg_BYO3VGxKbuWU-C_jsj3QBnZNSfh6m6z0S8TIWZyOy_gVAEz54wEk_fuMtJX5G9RIorgoUhneRsFxvgIIQUOCQVELcEEqYN-nWkEqdcsgqcMb88wA"
-FROM_DATE = "2021-05-24"
-TO_DATE = "2021-05-30"
+TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjQzNDU4ODk3MzZfNWU1OWI5ZDctNzc2ZS00YjE1LTk0MWYtYzJlZjE0ZTJlN2ZhX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUkxJNzdZN0ZMRzVOWFVDQ01aQkJIUUE2RT09PT09PSIsIm1vaSI6Ijc2NDJjZGM3IiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjQzNDU4ODk3MzYifQ.Nm9iLWC8cdlOKCRzajekfhRLdHdMsOztpPcYvvl77PtzYOb2RpxIhvJUHB8cZRDIv1QIq51_nNOt5f3iih7WHsMiY0AhHz13kKiWsTbAvWMPqQLHZznZy7Z_A_c0foX9KIESoC2iBGJ3iOKbLJFGGLovBUkL4B8J9WFbEQlVKwgboYuiJsNYkKb4jW8O5Rcs9kZ96oHuOUTvvrXpq8iJFcy8yLnqsTi2UbzGT09WC3FQ1ZNafOJQaqjO06ZDZjbthD7W2JWTIWmG8W9nYRSJD9dMONzf7U1f5M2VIe4CeOowM6pNVmyLB04rrk7EWPrTVV5Jj_VTpNXqahZfUrbLwg"
+FROM_DATE = "2021-06-14"
+TO_DATE = "2021-06-21"
 DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy"
 DIR_EXPORT = 'export' 
 
@@ -51,9 +51,10 @@ else:
             df = df.append(pd.DataFrame.from_dict(response['jobDetails']))
 
 # =============================================================================
-#   CAST
+#   ADD COLUMNS
 # =============================================================================
 
+df["realm"] = df["userKey"].str.extract('.*-(sdrn:.*):user:', expand=False)
 df['createdDate_datetime'] = pd.to_datetime(pd.to_datetime(df['createdDate']).dt.strftime('%Y-%m-%d %H:%M:%S'))
 df['lastModifiedDate_datetime'] = pd.to_datetime(pd.to_datetime(df['lastModifiedDate']).dt.strftime('%Y-%m-%d %H:%M:%S'))
 df["createdDate_datetime_ymd"] = df["createdDate_datetime"].dt.strftime('%Y-%m-%d')
@@ -68,6 +69,13 @@ df_clean = df[df["userKey"].str.startswith("Analytics-") & df["userKey"].str.con
 # =============================================================================
 #   RESULT
 # =============================================================================
+
+df_summary_by_realm = df_clean.groupby(["realm", "action", "status"]).agg(
+    count = pd.NamedAgg(column="jobId", aggfunc="count"),
+    min = pd.NamedAgg(column="diffDate", aggfunc="min"),
+    max = pd.NamedAgg(column="diffDate", aggfunc="max"),
+    mean = pd.NamedAgg(column="diffDate", aggfunc=lambda x: x.mean())
+)
 
 df_summary_by_day = df_clean.groupby(["createdDate_datetime_ymd", "action", "status"]).agg(
     count = pd.NamedAgg(column="jobId", aggfunc="count"),
@@ -109,7 +117,7 @@ result = {
     'df': df,
     'df_clean': df_clean,
     'df_summary': get_summary(),
-    'df_summary_by_day': df_summary_by_day
+    'df_summary_by_realm': df_summary_by_realm
 }
 
 # =============================================================================
@@ -126,7 +134,7 @@ if os.path.isdir(dir):
     shutil.rmtree(dir)
 os.makedirs(dir)
 result['df_summary_by_day'].to_csv(dir + "/data_summary_by_day.csv")
-result['df_summary'].to_csv(dir + "/data_summary.csv")
+df_summary.to_csv(dir + "/data_summary.csv")
 
 a = result['df_clean'][result['df_clean']['userKey'].str.contains("40558615524")]
 
