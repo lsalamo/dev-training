@@ -9,9 +9,9 @@ from datetime import timedelta
 # =============================================================================
 # VARIABLES
 # =============================================================================
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjQzNDU4ODk3MzZfNWU1OWI5ZDctNzc2ZS00YjE1LTk0MWYtYzJlZjE0ZTJlN2ZhX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUkxJNzdZN0ZMRzVOWFVDQ01aQkJIUUE2RT09PT09PSIsIm1vaSI6Ijc2NDJjZGM3IiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjQzNDU4ODk3MzYifQ.Nm9iLWC8cdlOKCRzajekfhRLdHdMsOztpPcYvvl77PtzYOb2RpxIhvJUHB8cZRDIv1QIq51_nNOt5f3iih7WHsMiY0AhHz13kKiWsTbAvWMPqQLHZznZy7Z_A_c0foX9KIESoC2iBGJ3iOKbLJFGGLovBUkL4B8J9WFbEQlVKwgboYuiJsNYkKb4jW8O5Rcs9kZ96oHuOUTvvrXpq8iJFcy8yLnqsTi2UbzGT09WC3FQ1ZNafOJQaqjO06ZDZjbthD7W2JWTIWmG8W9nYRSJD9dMONzf7U1f5M2VIe4CeOowM6pNVmyLB04rrk7EWPrTVV5Jj_VTpNXqahZfUrbLwg"
-FROM_DATE = "2021-06-14"
-TO_DATE = "2021-06-21"
+TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjQ4OTI3NTYxODRfYzE0MGFlZDUtMjVmYS00MDFjLThjYjAtYTYzYWYwZTk4MGUzX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUjVDVDdZN0ZMRzVOWDRDR01aQkJIUUFKST09PT09PSIsIm1vaSI6IjI0YzZhMzk4IiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjQ4OTI3NTYxODQifQ.EkkaRoXYcHH3DGgG5rb3bBrbT9IFCftHQf2nQI7XiDHoeY9lYlhdRkI6vfq_4Z9V36r-i8oHaBol5-w4cmSYKU9Wlt2BiGKcH7ucfPooXVYmTgPXp2FEtMt9AFulN6D3SESzP2uAyWVe2f3BMVLzErQ6jrJmtctIy3sRF2rARcJI0t2-dvHgnkn_vqu0N03R7ysRJUvGzXOVj572zW1xC_mFrjR6ucv5mS7Nk4JFFJmVRATgTo-Njm_gLF2UY7oFFW0ZmBGbHwlGVi60jQma_U9Aq529ddk8qb45RaVUyip7dmvd_WNXdVcz4n8HJfNHfYsHkelN4dLojs3Rl7aIRg"
+FROM_DATE = "2021-06-08"
+TO_DATE = "2021-06-20"
 DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy"
 DIR_EXPORT = 'export' 
 
@@ -77,13 +77,6 @@ df_summary_by_realm = df_clean.groupby(["realm", "action", "status"]).agg(
     mean = pd.NamedAgg(column="diffDate", aggfunc=lambda x: x.mean())
 )
 
-df_summary_by_day = df_clean.groupby(["createdDate_datetime_ymd", "action", "status"]).agg(
-    count = pd.NamedAgg(column="jobId", aggfunc="count"),
-    min = pd.NamedAgg(column="diffDate", aggfunc="min"),
-    max = pd.NamedAgg(column="diffDate", aggfunc="max"),
-    mean = pd.NamedAgg(column="diffDate", aggfunc=lambda x: x.mean())
-)
-
 def get_summary():
     count = df_clean.shape[0]
     count_delete = df_clean[df_clean["action"] == "delete"].shape[0]
@@ -133,9 +126,17 @@ dir = os.path.join(DIR_PARENT, DIR_EXPORT)
 if os.path.isdir(dir):
     shutil.rmtree(dir)
 os.makedirs(dir)
-result['df_summary_by_day'].to_csv(dir + "/data_summary_by_day.csv")
+result['df_summary_by_realm'].to_csv(dir + "/data_summary_by_realm.csv")
 df_summary.to_csv(dir + "/data_summary.csv")
 
-a = result['df_clean'][result['df_clean']['userKey'].str.contains("40558615524")]
+# =============================================================================
+#   FILTER BY REQUEST
+# =============================================================================
+
+df_filter = result['df_clean'][result['df_clean']['userKey'].str.contains(
+    'sdrn:coches.net:user:339a58a1fa574949a09d0b8c168c0e57|sdrn:coches.net:user:41614f1095714a5dbb6b1b23c0d3dab1|sdrn:coches.net:user:0a0c6ec7082442c3892d4d159b1d14ca|sdrn:coches.net:user:1773804'
+, regex=True) == True]    
+df_filter.to_csv(dir + "/data_filter.csv")
+
 
 
