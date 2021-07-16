@@ -9,11 +9,11 @@ from datetime import timedelta
 # =============================================================================
 # VARIABLES
 # =============================================================================
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjQ4OTI3NTYxODRfYzE0MGFlZDUtMjVmYS00MDFjLThjYjAtYTYzYWYwZTk4MGUzX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWUjVDVDdZN0ZMRzVOWDRDR01aQkJIUUFKST09PT09PSIsIm1vaSI6IjI0YzZhMzk4IiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2MjQ4OTI3NTYxODQifQ.EkkaRoXYcHH3DGgG5rb3bBrbT9IFCftHQf2nQI7XiDHoeY9lYlhdRkI6vfq_4Z9V36r-i8oHaBol5-w4cmSYKU9Wlt2BiGKcH7ucfPooXVYmTgPXp2FEtMt9AFulN6D3SESzP2uAyWVe2f3BMVLzErQ6jrJmtctIy3sRF2rARcJI0t2-dvHgnkn_vqu0N03R7ysRJUvGzXOVj572zW1xC_mFrjR6ucv5mS7Nk4JFFJmVRATgTo-Njm_gLF2UY7oFFW0ZmBGbHwlGVi60jQma_U9Aq529ddk8qb45RaVUyip7dmvd_WNXdVcz4n8HJfNHfYsHkelN4dLojs3Rl7aIRg"
-FROM_DATE = "2021-06-08"
-TO_DATE = "2021-06-20"
-DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy"
-DIR_EXPORT = 'export' 
+TOKEN = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjUxMjk3NTgxNDZfZDk5MTM5ZDItNmZjNi00YjY2LTkxMmItMGM5NzA4MDAzZDY0X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWU0VaUDdZN0ZMRzVOWDRDR01aQkJIUUFKST09PT09PSIsIm1vaSI6IjgxMWU3N2UwIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwiY3JlYXRlZF9hdCI6IjE2MjUxMjk3NTgxNDYiLCJzY29wZSI6Im9wZW5pZCxBZG9iZUlELHJlYWRfb3JnYW5pemF0aW9ucyxhZGRpdGlvbmFsX2luZm8ucHJvamVjdGVkUHJvZHVjdENvbnRleHQifQ.DSMpb_ItupO00gg3-PIF1gywr1EWXoy0-4GZmQB_UldoPO5DVS8OXupNjWuiZF7ME1ZQcyXdUXzrTjWnXsWS5Fy9r0RRqRUJQEG1ynfwCVBlynYGijoSMCgKp84pjaSuUa4Ft06X7Vm-PMEbrjpBKRO2TFW8Cn6Dqb6zSGmBWoV13ek4TmT7sPUYcviizCml23iDdDIyGUqZ7QsZHroeCiY8PDFEwa8b8tliUgJ65it_XQ2Y_WxiWYD3IMosuNtFHRTOP_UvyrYGnrNg97Ruh9FwRRw8kCiLCj7TgaOmYhDqNKFPSnQkkkbSn0vZbJV4p9azeO8rQRK2rhKNY6BW3A'
+FROM_DATE = '2021-06-15'
+TO_DATE = '2021-06-27'
+DIR_PARENT = '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy'
+DIR_EXPORT = 'export'
 
 # =============================================================================
 # REQUEST
@@ -77,6 +77,8 @@ df_summary_by_realm = df_clean.groupby(["realm", "action", "status"]).agg(
     mean = pd.NamedAgg(column="diffDate", aggfunc=lambda x: x.mean())
 )
 
+df_grouping_first_row = df_clean.groupby(["realm", "action", "status"]).head(1).reset_index(drop=True)
+
 def get_summary():
     count = df_clean.shape[0]
     count_delete = df_clean[df_clean["action"] == "delete"].shape[0]
@@ -94,15 +96,22 @@ def get_summary():
         'date_to': date_to,
         'date_diff': (date_to - date_from).days + 1,
         'count / day': round(count / date_diff),
-        'time_min_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].min().to_pytimedelta(),
-        'time_min_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].min().to_pytimedelta(),
-        'time_max_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].max().to_pytimedelta(),
-        'time_max_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].max().to_pytimedelta(),
-        'time_mean_delete': df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]["diffDate"].mean().to_pytimedelta(),
-        'time_mean_access': df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]["diffDate"].mean().to_pytimedelta()
     }
-    data["time_mean_delete"] = data["time_mean_delete"] - timedelta(microseconds=data["time_mean_delete"].microseconds)
-    data["time_mean_access"] = data["time_mean_access"] - timedelta(microseconds=data["time_mean_access"].microseconds)
+    df_delete_complete = df_clean[(df_clean["action"] == "delete") & (df_clean["status"] == "complete")]
+    if len(df_delete_complete) > 0:
+        print("entrea")
+        data['time_min_delete'] = df_delete_complete["diffDate"].min().to_pytimedelta()
+        data['time_max_delete'] = df_delete_complete["diffDate"].max().to_pytimedelta()
+        data['time_mean_delete'] = df_delete_complete["diffDate"].mean().to_pytimedelta()
+        data["time_mean_delete"] = data["time_mean_delete"] - timedelta(microseconds=data["time_mean_delete"].microseconds)
+
+    df_access_complete = df_clean[(df_clean["action"] == "access") & (df_clean["status"] == "complete")]
+    if len(df_access_complete) > 0:
+        data['time_min_access'] = df_access_complete["diffDate"].min().to_pytimedelta(),
+        data['time_max_access'] = df_access_complete["diffDate"].max().to_pytimedelta(),
+        data['time_mean_access'] = df_access_complete["diffDate"].mean().to_pytimedelta()  
+        data["time_mean_access"] = data["time_mean_access"] - timedelta(microseconds=data["time_mean_access"].microseconds)
+
     return data
 
 result = { 
@@ -110,7 +119,8 @@ result = {
     'df': df,
     'df_clean': df_clean,
     'df_summary': get_summary(),
-    'df_summary_by_realm': df_summary_by_realm
+    'df_summary_by_realm': df_summary_by_realm,
+    'df_grouping_first_row': df_grouping_first_row
 }
 
 # =============================================================================
@@ -130,13 +140,30 @@ result['df_summary_by_realm'].to_csv(dir + "/data_summary_by_realm.csv")
 df_summary.to_csv(dir + "/data_summary.csv")
 
 # =============================================================================
-#   FILTER BY REQUEST
+#   FILTER BY USERKEY
 # =============================================================================
 
 df_filter = result['df_clean'][result['df_clean']['userKey'].str.contains(
     'sdrn:coches.net:user:339a58a1fa574949a09d0b8c168c0e57|sdrn:coches.net:user:41614f1095714a5dbb6b1b23c0d3dab1|sdrn:coches.net:user:0a0c6ec7082442c3892d4d159b1d14ca|sdrn:coches.net:user:1773804'
 , regex=True) == True]    
 df_filter.to_csv(dir + "/data_filter.csv")
+
+df_filter = result['df_clean'][result['df_clean']['userKey'].str.contains(
+    '13504170770'
+, regex=True) == True] 
+df_filter.to_csv(dir + "/data_filter.csv")
+
+# =============================================================================
+#   FIRST ROW OF EACH GROUP > VERIFY RESULTS
+# =============================================================================
+
+df = pd.DataFrame();
+url = 'https://platform.adobe.io/data/core/privacy/jobs/{{jobId}}'
+for index, row in result['df_grouping_first_row'].iterrows():
+    response = requests.request("GET", url.replace("{{jobId}}", str(row['jobId'])), headers=headers, data=payload)
+    response = response.json()
+    df = df.append(pd.DataFrame.from_dict(response))
+
 
 
 
