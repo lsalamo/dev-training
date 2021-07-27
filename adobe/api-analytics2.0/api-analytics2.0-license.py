@@ -133,5 +133,5 @@ dir = os.path.join(DIR_PARENT, DIR_EXPORT)
 if os.path.isdir(dir):
     shutil.rmtree(dir)
 os.makedirs(dir)
-df.to_csv(dir + "/data_license.csv")
+result['df_report_license_week_grouping'].to_csv(dir + "/data_license.csv")
   
