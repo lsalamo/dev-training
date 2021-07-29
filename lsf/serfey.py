@@ -1,12 +1,19 @@
 import pandas as pd
 import os
+import shutil
 
-# Directory
+# =============================================================================
+# VARIABLES
+# =============================================================================
 os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/lsf')
 DIR_PARENT = os.getcwd()
 DIR_EXPORT = 'export' 
 
-# read data worker
+
+# =============================================================================
+# WORKDERS
+# =============================================================================
+
 df_lsf_workers = pd.read_csv(DIR_PARENT + "/lsf_workers.csv", header=None)  
 df_lsf_workers["EMPRESA"] = 'Limpiezas y Servicios La Fragatina, SL'
 df_lsac_workers = pd.read_csv(DIR_PARENT + "/lsac_workers.csv", header=None)  
@@ -34,39 +41,77 @@ df_workers.rename(
     },
     inplace=True
 )
+df_workers['CODIGO'] = df_workers['CODIGO'].astype(str)
 
-# read data billing
-df_billing = pd.read_csv(DIR_PARENT + "/billing.csv", header=None)  
-df_billing.rename(
-    columns={
-        0: 'CODIGO',
-        1: 'NOMBRE',
-        2: 'H/S',
-        3: 'CODIGO TRABAJADOR ALL'
-    },
-    inplace=True
-)
-df_billing['WORKERS'] = df_billing['CODIGO TRABAJADOR ALL'].str.split(',').apply(lambda x: len(x))
-df_billing['H/S BILLING'] = df_billing['H/S'] / df_billing['WORKERS']
+# =============================================================================
+# BILLING
+# =============================================================================
 
-# total hours by worker into billing
-df_billing_workers = pd.DataFrame(df_billing['CODIGO TRABAJADOR ALL'].str.split(',').tolist(), index=df_billing['CODIGO']).stack()
-df_billing_workers = df_billing_workers.reset_index([0, 'CODIGO'])
-df_billing_workers.columns = ['CODIGO', 'CODIGO TRABAJADOR']
-df_billing_workers = pd.merge(df_billing, df_billing_workers, on='CODIGO')
-df_billing_groupby_workers = df_billing_workers.groupby(by='CODIGO TRABAJADOR')['H/S BILLING'].sum()
-df_billing_groupby_workers = df_billing_groupby_workers.to_frame().reset_index()
-df_billing_groupby_workers['CODIGO TRABAJADOR'] = df_billing_groupby_workers['CODIGO TRABAJADOR'].astype('int64', copy=False)
+# get data
+def get_billing_data(file):
+    df = pd.read_csv(DIR_PARENT + '/' + file, header=None)  
+    df.rename(
+        columns={
+            0: 'NOMBRE',
+            1: 'TIPO CLIENTE',
+            2: 'LOCALIDAD',
+            3: 'CLIENTE PUBLICO',
+            4: 'CUOTA MENSUAL',
+            5: 'FACTURACION ANUAL',
+            6: 'CODIGO TRABAJADOR',
+            7: 'H/S',
+            8: 'KM',
+            9: 'TAREAS EXTRAS'
+        },
+        inplace=True
+    )
+    df['CODIGO'] = 'CLIENT_' + (df.index + 1).astype(str)
+    df['CODIGO TRABAJADOR'].fillna('', inplace=True)
+    df['NUMERO TRABAJADORES'] = df['CODIGO TRABAJADOR'].apply(lambda x: 0 if not x else len(x.split(',')))
+    df['H/S BILLING'] = df['H/S'] / df['NUMERO TRABAJADORES']    
+    # df.set_index('CODIGO', inplace=True)
+    return df
 
-df_billing_qa = pd.merge(df_workers, df_billing_groupby_workers, how='outer', left_on = 'CODIGO', right_on='CODIGO TRABAJADOR')
-df_billing_qa = df_billing_qa[['CODIGO', 'NOMBRE', 'EMPRESA', 'H/S', 'H/S BILLING']]
-df_billing_qa['GAP'] = df_billing_qa['H/S BILLING'] - df_billing_qa['H/S']
+df_lsf_billing = get_billing_data('lsf_billing.csv')
+df_lsac_billing = get_billing_data('lsac_billing.csv')
+
+# QA WORKERS
+def get_billing_data_split_worker(df,target_column,separator):
+    row_accumulator = []
+    def splitListToRows(row, separator):
+        split_row = row[target_column].split(separator)
+        for s in split_row:
+            new_row = row.to_dict()
+            new_row[target_column] = s
+            row_accumulator.append(new_row)
+
+    df.apply(splitListToRows, axis=1, args = (separator, ))
+    new_df = pd.DataFrame(row_accumulator)
+    return new_df
+
+df_lsf_billing_qa = get_billing_data_split_worker(df_lsf_billing,'CODIGO TRABAJADOR',',')
+df_lsac_billing_qa = get_billing_data_split_worker(df_lsac_billing,'CODIGO TRABAJADOR',',')
+
+def get_billing_worker(df1, df2):  
+    df1 = df1.groupby(by='CODIGO TRABAJADOR')['H/S BILLING'].sum().to_frame()
+    df1.rename(columns={'H/S BILLING': 'H/S LSF'},inplace=True)
+    df2 = df2.groupby(by='CODIGO TRABAJADOR')['H/S BILLING'].sum().to_frame()
+    df2.rename(columns={'H/S BILLING': 'H/S LSAC'},inplace=True)
+
+    df = pd.merge(df1, df2, how='outer', on = 'CODIGO TRABAJADOR')
+    df["H/S BILLING"] = df.sum(axis=1)
+    return df
+    
+df_billing_worker_qa = get_billing_worker(df_lsf_billing_qa, df_lsac_billing_qa)
+df_billing_worker = pd.merge(df_workers, df_billing_worker_qa, how='left', left_on = 'CODIGO', right_on='CODIGO TRABAJADOR')
+df_billing_worker['H/S GAP'] = df_billing_worker['H/S BILLING'] - df_billing_worker['H/S']  
+df_billing_worker = df_billing_worker[['CODIGO', 'NOMBRE', 'EMPRESA', 'H/S', 'H/S LSF', 'H/S LSAC', 'H/S BILLING', 'H/S GAP']]
 
 # =============================================================================
 #   RESULT
 # =============================================================================
 
-df_billing.set_index('CODIGO', inplace=True)
+# df_billing.set_index('CODIGO', inplace=True)
 
 df_workers_maintenance = df_workers[~df_workers['NOMBRE'].isin(['ELSA KLEIN CASTAÑ','KAREN LUCIA FERNANDEZ SAAVEDRA'])]
 df_workers_maintenance = df_workers_maintenance[['CODIGO', 'CONVENIO', 'H/S', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA']]
@@ -85,5 +130,16 @@ result = {
     'df_workers': df_workers,
     'df_workers_maintenance': df_workers_maintenance,
     'df_workers_mobile': df_workers_mobile,
-    'df_workers_management': df_workers_management
+    'df_workers_management': df_workers_management,
+    'df_billing_worker': df_billing_worker
 }
+
+# =============================================================================
+#   EXPORT CSV
+# =============================================================================
+
+dir = os.path.join(DIR_PARENT, DIR_EXPORT)
+if os.path.isdir(dir):
+    shutil.rmtree(dir)
+os.makedirs(dir)
+df_workers.to_csv(dir + "/data_workers.csv")
