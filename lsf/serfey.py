@@ -65,18 +65,25 @@ def get_billing_data(file):
         },
         inplace=True
     )
-    # df['CODIGO'] = 'CLIENT_' + (df.index + 1).astype(str)
     df['CODIGO TRABAJADOR'] = df['CODIGO TRABAJADOR'].astype(str)
     df['NUMERO TRABAJADORES'] = df['CODIGO TRABAJADOR'].apply(lambda x: 0 if not x else len(x.split(','))) 
-    df['H/S BILLING'] = df['H/S'] / df['NUMERO TRABAJADORES'] 
-    df['COSTE EXTRA/SEMANA'] = df['KM/S'] * 0.2    
+    df['H/S'] = df['H/S'].astype('float64')
+    # df['H/S BILLING'] = df['H/S'] / df['NUMERO TRABAJADORES'] 
+    # df['COSTE EXTRA/SEMANA'] = df['KM/S'] * 0.2    
     df['CODIGO'] = df.index + 1
     df.set_index('CODIGO', inplace=True)
     return df
 
+
+
 df_lsf_billing = get_billing_data('lsf_billing.csv')
 df_lsac_billing = get_billing_data('lsac_billing.csv')
 df_gi_billing = get_billing_data('gi_billing.csv')
+
+df = df_gi_billing
+df['H/S'] = df['H/S'].astype('float64')
+df['H/S BILLING'] = df['H/S'] / df['NUMERO TRABAJADORES'] 
+df.info()
 
 # =============================================================================
 # QA BILLING WORKER H/S
@@ -124,7 +131,7 @@ df = df.sort_values(by=['H/S GAP'], ascending=False)
 # query hours by worker id
 df = pd.concat([df_lsf_billing, df_lsac_billing, df_gi_billing]) 
 df = df[['NOMBRE', 'EMPRESA', 'CODIGO TRABAJADOR', 'H/S', 'H/A']]
-worker = '27'
+worker = '26'
 df_worker = df[
     (df['CODIGO TRABAJADOR'] == worker) |
     (df['CODIGO TRABAJADOR'].str.endswith(',' + worker)) |
@@ -212,18 +219,17 @@ df.to_csv(dir + "/data_lsac_billing.csv")
 df = df_gi_billing[['CUENTA', 'CODIGO', 'NOMBRE', 'TIPO CLIENTE', 'LOCALIDAD', 'CLIENTE PUBLICO', 'CUOTA MENSUAL', 'FACTURACION ANUAL', 'H/S', 'H/A', 'H/S BILLING', 'CODIGO TRABAJADOR', 'NUMERO TRABAJADORES', 'TAREAS EXTRAS', 'KM/S', 'COSTE EXTRA/SEMANA']]
 df.to_csv(dir + "/data_gi_billing.csv")
 
-df_billing_worker.to_csv(dir + "/data_billing_worker.csv")
 
 # =============================================================================
 #   EXPORT SERFEY
 # =============================================================================
 
 df = df_workers[df_workers['TIPO'] == 'MANTENIMIENTO']
-df = df[['NOMBRE', 'CONVENIO', 'H/S', 'CATEGORIA', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA']]
+df = df[[ 'BAJA LABORAL', 'NOMBRE', 'CONVENIO', 'H/S', 'CATEGORIA', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA']]
 df = df_workers[df_workers['TIPO'] == 'MOVILIDAD']
-df = df[['NOMBRE', 'CONVENIO', 'H/S', 'CATEGORIA', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA', 'VEHICULO EMPRESA', 'TAREAS GENERALES']]
+df = df[[ 'BAJA LABORAL', 'NOMBRE', 'CONVENIO', 'H/S', 'CATEGORIA', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA', 'VEHICULO EMPRESA', 'TAREAS GENERALES']]
 df = df_workers[df_workers['TIPO'] == 'ADMINISTRATIVO']
-df = df[['NOMBRE', 'CONVENIO', 'H/S', 'CATEGORIA', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA']]
+df = df[[ 'BAJA LABORAL', 'NOMBRE', 'CONVENIO', 'H/S', 'CATEGORIA', 'ANTIGUEDAD', 'PLUSES', 'LOCALIDAD', 'EMPRESA']]
 
 df = df_lsf_billing
 df['EMPRESA'] = 'Limpiezas y Servicios La Fragatina, SL'
