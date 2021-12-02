@@ -9,15 +9,17 @@ from datetime import timedelta
 # =============================================================================
 # VARIABLES
 # =============================================================================
-TOKEN = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2MjUxMjk3NTgxNDZfZDk5MTM5ZDItNmZjNi00YjY2LTkxMmItMGM5NzA4MDAzZDY0X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWU0VaUDdZN0ZMRzVOWDRDR01aQkJIUUFKST09PT09PSIsIm1vaSI6IjgxMWU3N2UwIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwiY3JlYXRlZF9hdCI6IjE2MjUxMjk3NTgxNDYiLCJzY29wZSI6Im9wZW5pZCxBZG9iZUlELHJlYWRfb3JnYW5pemF0aW9ucyxhZGRpdGlvbmFsX2luZm8ucHJvamVjdGVkUHJvZHVjdENvbnRleHQifQ.DSMpb_ItupO00gg3-PIF1gywr1EWXoy0-4GZmQB_UldoPO5DVS8OXupNjWuiZF7ME1ZQcyXdUXzrTjWnXsWS5Fy9r0RRqRUJQEG1ynfwCVBlynYGijoSMCgKp84pjaSuUa4Ft06X7Vm-PMEbrjpBKRO2TFW8Cn6Dqb6zSGmBWoV13ek4TmT7sPUYcviizCml23iDdDIyGUqZ7QsZHroeCiY8PDFEwa8b8tliUgJ65it_XQ2Y_WxiWYD3IMosuNtFHRTOP_UvyrYGnrNg97Ruh9FwRRw8kCiLCj7TgaOmYhDqNKFPSnQkkkbSn0vZbJV4p9azeO8rQRK2rhKNY6BW3A'
-FROM_DATE = '2021-06-15'
-TO_DATE = '2021-06-27'
-DIR_PARENT = '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy'
-DIR_EXPORT = 'export'
+
+TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2Mzg0MzgzNDEzNjVfZTkxZmUzZjUtZTdiMi00NzJhLWI5MTAtYTVhZTZhOGYzMDU1X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiY3RwIjowLCJmZyI6IlY3V0FUVURBRkxFNUlYVUNGTVFCUkhRQTVNPT09PT09IiwibW9pIjoiNzNmYzNmY2MiLCJleHBpcmVzX2luIjoiODY0MDAwMDAiLCJjcmVhdGVkX2F0IjoiMTYzODQzODM0MTM2NSIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCJ9.iT-Y0Ue6QrH_34JVwGuU39NVMu7r6ZLndNoomdFDNOMtsXXAwEhhuHP9-l6ru7MPoXq3VIPZ6YIkvpw0T8GqOIlKtFIXUsqrYaHhmwirjanlt1lAFm6vvqUotdjPhT7FFpo4w4jPfd1LKqoUAT2gR2OqlITKPWQe4jpzO4QYKCYuenVgNO_3d8qRbSopCOMT7J287fwNS-vAHcQrpONWLeOlV9AZDHskuwo4azQ9bVP9Hnf-sjlU-bvqXVPGUotftGwji2VzVsYZ884N1akcptuRxVPYj2CoD3cRYXKfC7DhpdS-jYKbYLFxlF2KecMN_QLyHFngU0sYZnNbqsRG1w"
+FROM_DATE = "2021-11-01"
+TO_DATE = "2021-11-15"
+DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy"
+DIR_EXPORT = 'export' 
 
 # =============================================================================
 # REQUEST
 # =============================================================================
+
 url = "https://platform.adobe.io/data/core/privacy/jobs?regulation=gdpr&size=100&page={{page}}&status=&fromDate={{from_date}}&toDate={{to_date}}&filterDate="
 url = url.replace("{{from_date}}", FROM_DATE).replace("{{to_date}}", TO_DATE)
 payload = {}
@@ -49,22 +51,22 @@ else:
             response = requests.request("GET", url.replace("{{page}}", str(i)), headers=headers, data=payload)
             response = response.json()
             df = df.append(pd.DataFrame.from_dict(response['jobDetails']))
-
-# =============================================================================
-#   ADD COLUMNS
-# =============================================================================
-
-df["realm"] = df["userKey"].str.extract('.*-(sdrn:.*):user:', expand=False)
-df['createdDate_datetime'] = pd.to_datetime(pd.to_datetime(df['createdDate']).dt.strftime('%Y-%m-%d %H:%M:%S'))
-df['lastModifiedDate_datetime'] = pd.to_datetime(pd.to_datetime(df['lastModifiedDate']).dt.strftime('%Y-%m-%d %H:%M:%S'))
-df["createdDate_datetime_ymd"] = df["createdDate_datetime"].dt.strftime('%Y-%m-%d')
-df["diffDate"] = df["lastModifiedDate_datetime"] - df["createdDate_datetime"]
-
+            
 # =============================================================================
 #   CLEAR
 # =============================================================================
 
 df_clean = df[df["userKey"].str.startswith("Analytics-") & df["userKey"].str.contains("sdrn:")]
+
+# =============================================================================
+#   ADD COLUMNS
+# =============================================================================
+
+df_clean['realm'] = df_clean["userKey"].str.extract('Analytics-(?:delete|access)-(sdrn:.*):user:', expand=False)
+df_clean['createdDate_datetime'] = pd.to_datetime(pd.to_datetime(df_clean['createdDate']).dt.strftime('%Y-%m-%d %H:%M:%S'))
+df_clean['lastModifiedDate_datetime'] = pd.to_datetime(pd.to_datetime(df_clean['lastModifiedDate']).dt.strftime('%Y-%m-%d %H:%M:%S'))
+df_clean["createdDate_datetime_ymd"] = df_clean["createdDate_datetime"].dt.strftime('%Y-%m-%d')
+df_clean["diffDate"] = df_clean["lastModifiedDate_datetime"] - df_clean["createdDate_datetime"]
 
 # =============================================================================
 #   RESULT
@@ -126,7 +128,6 @@ result = {
 # =============================================================================
 #   EXPORT CSV
 # =============================================================================
-
 
 df_summary = pd.DataFrame.from_dict(list(result["df_summary"].items()))
 df_summary.rename(columns={0:'Key', 1:'Value'}, inplace = True)
