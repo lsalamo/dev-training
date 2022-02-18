@@ -14,9 +14,9 @@ FROM_DATE = "2021-02-01"
 TO_DATE = "2022-01-31"
 
 # Directory
-os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-analytics2.0')
+os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-license')
 DIR_PARENT = os.getcwd()
-DIR_EXPORT = 'export' 
+DIR_EXPORT = 'export'
 
 result = {}
 
@@ -35,14 +35,14 @@ headers = {
 response = requests.request("GET", url, headers=headers, data=payload)
 df = pd.DataFrame();
 if response.status_code != 200:
-    sys.exit("ERROR " + str(response.status_code) + " > " + response.text) 
+    sys.exit("ERROR " + str(response.status_code) + " > " + response.text)
 else:
     response = response.json()
     total_records = response['numberOfElements']
     if total_records > 0:
         df = df.append(pd.DataFrame.from_dict(response['content']))
         df = df.loc[df['collectionItemType'] == 'reportsuite']
-result["df_rs"] = df          
+result["df_rs"] = df
 
 
 # =============================================================================
@@ -53,7 +53,7 @@ def get_payload():
     file = open('payload-license-by-week.json')
     line = file.read()
     file.close()
-    return line    
+    return line
 payload = get_payload()
 url = 'https://analytics.adobe.io/api/schibs1/reports'
 headers = {
@@ -69,7 +69,7 @@ for index, row in result['df_rs'].iterrows():
     print(index, row['rsid'])
     response = requests.request("POST", url, headers=headers, data=payload.replace('{{rs}}', row['rsid']))
     if response.status_code != 200:
-        sys.exit("ERROR " + str(response.status_code) + " > " + response.text) 
+        sys.exit("ERROR " + str(response.status_code) + " > " + response.text)
     else:
         response = response.json()
         total_records = response['numberOfElements']
@@ -80,15 +80,15 @@ for index, row in result['df_rs'].iterrows():
             df_request['week'] = pd.to_datetime(df_request["value"]).dt.strftime('%W')
             df_request['year'] = pd.to_datetime(df_request["value"]).dt.year
             df = df.append(df_request)
-result["df_report_license_week"] = df   
-        
+result["df_report_license_week"] = df
+
 
 df = result['df_report_license_week'].groupby(['year','week']).agg(
     sum_pageviews = pd.NamedAgg(column='pageviews', aggfunc='sum'),
     sum_pageevents = pd.NamedAgg(column='pageevents', aggfunc='sum'),
     sum_total = pd.NamedAgg(column='total', aggfunc='sum')
 )
-result["df_report_license_week_grouping"] = df   
+result["df_report_license_week_grouping"] = df
 
 
 
@@ -97,7 +97,7 @@ result["df_report_license_week_grouping"] = df
 # #   IMPORT CSV
 # # =============================================================================
 
-# df = pd.read_csv(DIR_PATH + "/data_license.csv")  
+# df = pd.read_csv(DIR_PATH + "/data_license.csv")
 
 # # =============================================================================
 # #   RESULT
@@ -134,4 +134,3 @@ if os.path.isdir(dir):
     shutil.rmtree(dir)
 os.makedirs(dir)
 result['df_report_license_week_grouping'].to_csv(dir + "/data_license.csv")
-  
