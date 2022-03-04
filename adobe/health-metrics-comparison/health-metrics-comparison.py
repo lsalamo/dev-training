@@ -37,7 +37,7 @@ def get_adobe_analytics_data():
       'x-proxy-global-company-id': 'schibs1'
     } 
     df = pd.DataFrame();
-    for row in variables['list_rs']:
+    for row in variables['rs'].values():
         print('> get_adobe_analytics_data() - rs:', row)
         response = requests.request('POST', url, headers=headers, data=payload.replace('{{rs}}', row))
         if response.status_code != 200:
@@ -77,7 +77,7 @@ def get_adobe_analytics_data_events():
       'x-proxy-global-company-id': 'schibs1'
     } 
     df = pd.DataFrame();
-    for row in variables['list_rs']:
+    for row in variables['rs'].values():
         print('> get_adobe_analytics_data_events() - rs:', row)
         response = requests.request('POST', url, headers=headers, data=payload.replace('{{rs}}', row))
         if response.status_code != 200:
@@ -116,7 +116,7 @@ def get_google_analytics_data():
     # Clean dataframe
     df.drop(df.index[:1], inplace=True)
     df.drop(['Totals', 'Totals.1'], axis=1, inplace=True)
-    df.columns = ['day', 'and-visits', 'and-visitors', 'web-visits', 'web-visitors', 'ios-visits', 'ios-visitors']
+    df.columns = ['day', 'web-visits', 'web-visitors', 'and-visits', 'and-visitors', 'ios-visits', 'ios-visitors']
     df['day'] = df['day'].astype('int64').astype('str')
 
     print('> get_google_analytics_data() -', 'clean dataframe loaded')
@@ -178,7 +178,7 @@ result = {}
 result_events = {}
 variables = {}
 variables['rs'] = {}
-variables['token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NDU1MjIwNTY0MzJfMmM0ZmFiMzQtYjkzOC00MjE3LWE3NDctMDE3YTQ3YjgxODJjX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiY3RwIjowLCJmZyI6IldHNFRPQ0o2RkxFNUlQVUNFTVFGUkhRQVNBPT09PT09IiwibW9pIjoiYTFjZGMwNWIiLCJleHBpcmVzX2luIjoiODY0MDAwMDAiLCJjcmVhdGVkX2F0IjoiMTY0NTUyMjA1NjQzMiIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCJ9.RM3YhzRpCkiEpygdQf13c92U7gU4HTmadHQKYi9NOtpw1AHia3VtcGncpCX4in_6hVDwqH-6DfUviLPEb7YMYBgNokxkdLJb5JRWjwPs41JuPPGrRqmT8GvW5etBFKkclk340LaO8s3DZx8VO6g3WLUI1vlY2D8mB49raAeZnbA9D6y4xEYmK3LSska5CpZ5YaoPvEvnHWmrGcunLcQRZ8yMB4SZwgIWTqsUS3Nxcy3n-c5-i6vRwfwoL_4AAL9pLgGiijCf9CIu-tz_nlUoXDeFPRRUKVz8G7D3J_06ZKOgPGhK0DWR77kX6Vz75RBUbiD1cHGpnjfsgF1f5rRoig'
+variables['token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NDYzMTYyOTc3MzRfMmYxZDE1YTYtYTcyYy00NWVmLWIyYTEtNDVhYzU5OTY3ZDhlX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiY3RwIjowLCJmZyI6IldIV09ZQ0o2RkxFNUlQVUNFTVFGUkhRQVNBPT09PT09IiwibW9pIjoiOGY3NTEwODgiLCJleHBpcmVzX2luIjoiODY0MDAwMDAiLCJzY29wZSI6Im9wZW5pZCxBZG9iZUlELHJlYWRfb3JnYW5pemF0aW9ucyxhZGRpdGlvbmFsX2luZm8ucHJvamVjdGVkUHJvZHVjdENvbnRleHQiLCJjcmVhdGVkX2F0IjoiMTY0NjMxNjI5NzczNCJ9.anxkX0l8T60EBDEsyEzNUJh4_3v9m3jqPuhVboVaFXYO80q-LcLwhsVshJthl6E2Ymmzxw41AHVToWNj6-PrZjMqTCd4OIYnbjFa8JGdG7ndgjtpS066_DZIMAY6d533c8kxlvQN5g1XIxsH7Ptth1omO2z8EH2XxanURQycGICOrz-GrbfXzGwLlO5rxFkvJAuoFrtc6gTKhbYvhSi6KGnrbx9Abua4Md_CBox9TGYGwbCHEt3VksEDFzkYvvl30hPjvxNpr1tD7SyHK5M1-uf1UXK_Rdon4Bj9Op-J3KN7aDI5sLguMPo1zPb6VZwEzEWo-FtwIEEU5IWiTTLgEw'
 variables['directory'] = '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison'
 variables['rs']['rs_fotocasaes'] = 'vrs_schibs1_fcall'
 variables['rs']['rs_motosnet'] = 'vrs_schibs1_motorcochesnet'
