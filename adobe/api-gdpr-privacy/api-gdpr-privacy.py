@@ -10,9 +10,9 @@ from datetime import timedelta
 # VARIABLES
 # =============================================================================
 
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2Mzg0MzgzNDEzNjVfZTkxZmUzZjUtZTdiMi00NzJhLWI5MTAtYTVhZTZhOGYzMDU1X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiY3RwIjowLCJmZyI6IlY3V0FUVURBRkxFNUlYVUNGTVFCUkhRQTVNPT09PT09IiwibW9pIjoiNzNmYzNmY2MiLCJleHBpcmVzX2luIjoiODY0MDAwMDAiLCJjcmVhdGVkX2F0IjoiMTYzODQzODM0MTM2NSIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCJ9.iT-Y0Ue6QrH_34JVwGuU39NVMu7r6ZLndNoomdFDNOMtsXXAwEhhuHP9-l6ru7MPoXq3VIPZ6YIkvpw0T8GqOIlKtFIXUsqrYaHhmwirjanlt1lAFm6vvqUotdjPhT7FFpo4w4jPfd1LKqoUAT2gR2OqlITKPWQe4jpzO4QYKCYuenVgNO_3d8qRbSopCOMT7J287fwNS-vAHcQrpONWLeOlV9AZDHskuwo4azQ9bVP9Hnf-sjlU-bvqXVPGUotftGwji2VzVsYZ884N1akcptuRxVPYj2CoD3cRYXKfC7DhpdS-jYKbYLFxlF2KecMN_QLyHFngU0sYZnNbqsRG1w"
-FROM_DATE = "2021-11-01"
-TO_DATE = "2021-11-15"
+TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NDczNDgzMjA3NDFfYzQ1NmNiZGEtZTMwNC00YjQxLTgwY2ItYzA5NzM5YTc3YTlmX2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiY3RwIjowLCJmZyI6IldJWUIzU0NQRkxFNUlQVUNNTVFGUkhRQUxBPT09PT09IiwibW9pIjoiY2EyNjZmZmEiLCJleHBpcmVzX2luIjoiODY0MDAwMDAiLCJjcmVhdGVkX2F0IjoiMTY0NzM0ODMyMDc0MSIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCJ9.DULXHxyFIJwPTLCzdJMgRVC22daJSqbt3cnuMpvu1RONr9cMJHotupMN6OCd4aftrDbA5BWud3k2NqGDGy6XTxRjeUetE6k7V9lMJ5eNENcQ7Laosn6eqEgNWaJ_GFCBwl-62Y1sg67gg8vLBnJ7wW7gg9MNij9Ws2VB-bSRcW_M_9PbHc8VFcH-HrGRteuynP06rlErzFFiJdNLBn6nx80AwIiU3H3lcRVMG07BnV9JC1Wmy1nBZL_F6xQ__aqkTYpwC6BI6k1CsEoWcRYxuMghCrFUUCArfD5q3bHYc2hrMszx34JvYUa6RYlefNmS-r9mSy58ClDstsPPOMaNgg"
+FROM_DATE = "2022-02-14"
+TO_DATE = "2022-02-15"
 DIR_PARENT = "/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-gdpr-privacy"
 DIR_EXPORT = 'export'
 
@@ -124,9 +124,9 @@ result = {
     'total_records': df_clean.shape[0],
     'df': df,
     'df_clean': df_clean,
-    'df_summary': get_summary(),
+    # 'df_summary': get_summary(),
     'df_summary_by_realm': df_summary_by_realm,
-    'df_grouping_first_row': df_grouping_first_row
+    # 'df_grouping_first_row': df_grouping_first_row
 }
 
 # =============================================================================
@@ -149,7 +149,7 @@ df_summary.to_csv(dir + "/data_summary.csv")
 # =============================================================================
 
 df_filter = result['df_clean'][result['df_clean']['userKey'].str.contains(
-    'sdrn:coches.net:user:339a58a1fa574949a09d0b8c168c0e57|sdrn:coches.net:user:41614f1095714a5dbb6b1b23c0d3dab1|sdrn:coches.net:user:0a0c6ec7082442c3892d4d159b1d14ca|sdrn:coches.net:user:1773804'
+    'sdrn:fotocasa.es:user:3625292|sdrn:coches.net:user:1773804'
 , regex=True) == True]
 df_filter.to_csv(dir + "/data_filter.csv")
 
