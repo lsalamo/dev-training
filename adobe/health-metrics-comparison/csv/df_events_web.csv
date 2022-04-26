@@ -1,0 +1,99 @@
+,event,event2,web-count-aa,web-count-ga,web-visits-aa,web-visits-ga,web-visitors-aa,web-visitors-ga
+0,List Web Viewed,list_web_viewed,9646174,9717046,1647313,1682325,1058011,1218095
+1,Detail Web Viewed,detail_web_viewed,6372169,6372299,2058937,2154908,1239041,1452042
+2,Experiment Viewed,experiment_viewed,3731864,3724216,1847767,1942774,1063463,1264356
+3,Page Viewed,page_viewed,3390658,3296937,1377982,1421083,929345,1034094
+4,Detail Clicked,detail_clicked,2753766,2754029,789289,801331,597716,640798
+5,Recommender Loaded,recommender_loaded,2505248,2524218,738083,784615,567918,622182
+6,Event Fired,event_fired,856483,846573,822451,802412,815222,807258
+7,Google One Tap Showed,google_one_tap_showed,670519,670443,587803,581188,586816,583415
+8,Home Viewed,home_viewed,421315,421778,295657,313349,209439,241866
+9,Detail Navigation Button Clicked,detail_navigation_button_clicked,223750,223749,69306,70691,60995,64197
+10,Sign In Showed,sign_in_showed,121650,121714,73834,86333,66212,75928
+11,Recommender Card Clicked,recommender_card_clicked,115139,115160,77662,78901,69234,71371
+12,Search History Item Selected,search_history_item_selected,113839,113849,91288,90429,62763,71771
+13,Ad Phone Called,ad_phone_called,96754,96765,51114,51642,42112,44722
+14,Signed In Error,signed_in_error,91758,91750,78051,76822,77309,78261
+15,Favourite Added,favourite_added,90141,90148,47157,47692,40737,41491
+16,Ad Replied Email,ad_replied_email,77229,77235,51141,52675,42783,44787
+17,Shared Icon Clicked,shared_icon_clicked,76320,76318,48700,49441,42997,44479
+18,Share Method Submitted,share_method_submitted,74846,74835,47540,48158,41934,43410
+19,Search Button Clicked,search_button_clicked,60847,60849,48149,47817,43897,45733
+20,Favourite Added Success,favourite_added_success,59423,59421,23549,24020,18339,18243
+21,Download App,download_app,48828,48825,48627,48536,48530,48387
+22,Small Cards Top Clicked,small_cards_top_clicked,47380,47395,35608,35275,33647,33823
+23,Draw Map Clicked,draw_map_clicked,41100,41099,20059,19917,17615,18593
+24,Favourite Modal Viewed,favourite_modal_viewed,35223,35227,27797,28132,26691,27079
+25,Ad Contact Button,ad_contact_button,33450,33452,24883,24723,23225,23680
+26,My Favourites Viewed,my_favourites_viewed,31972,31968,15570,18188,10795,11215
+27,Alert Added Success,alert_added_success,31081,31083,24143,24860,21158,21774
+28,Sign Up Showed,sign_up_showed,26897,26901,24307,24570,23915,24093
+29,Signed In,signed_in,25428,25456,23758,25010,23061,22322
+30,Alert Added,alert_added,23404,23401,20612,21635,20198,20511
+31,Alert Modal Viewed,alert_modal_viewed,22953,22950,16471,16871,16301,16376
+32,Explore Services Showed,explore_services_showed,20769,20773,12241,12405,11246,11607
+33,Geoadvisor Viewed,geoadvisor_viewed,19271,19270,13090,13179,12001,12353
+34,Ad 3d Button Clicked,ad_3d_button_clicked,18241,18240,15402,15555,14451,14585
+35,Recommended Ads Showed,recommended_ads_showed,17350,17354,12227,12405,11239,11592
+36,Nearby Neighbourhoods Showed,nearby_neighbourhoods_showed,17044,17049,12209,12386,11223,11572
+37,Ad Phone Showed,ad_phone_showed,14979,14977,7918,8217,5259,5581
+38,Signed Up Error,signed_up_error,13151,13154,5917,6075,5842,5896
+39,Signed Up,signed_up,12602,12567,12456,12386,12412,12501
+40,My Alerts Viewed,my_alerts_viewed,10360,10362,6850,7691,5832,5928
+41,Favourite Removed,favourite_removed,9220,9224,3918,4106,3422,3394
+42,Favourite Removed Success,favourite_removed_success,9172,9171,3896,4087,3408,3380
+43,Property Valuation Configuration Viewed,property_valuation_configuration_viewed,8163,8162,1378,1460,1210,1329
+44,Request Reset Password Showed,request_reset_password_showed,5705,5708,5023,5268,4917,5083
+45,Draw Map Link Clicked,draw_map_link_clicked,5414,5415,4863,4804,4659,4751
+46,Property Valuation Landing Viewed,property_valuation_landing_viewed,4744,4748,2347,2476,1972,2162
+47,PTA CE Clicked,pta_ce_clicked,4741,4745,3154,3469,2861,3036
+48,Request Reset Password,request_reset_password,4580,4582,4247,4381,4173,4269
+49,Gigya Modal Showed,gigya_modal_showed,3785,3795,1976,2020,1777,1858
+50,PTA Button Clicked,pta_button_clicked,3551,3549,3138,3285,3010,3105
+51,Ad Error Replied Email,ad_error_replied_email,3369,3369,1853,1875,1753,1772
+52,Reset Password Showed,reset_password_showed,2916,2918,2855,2875,2850,2858
+53,Card Button Clicked,card_button_clicked,2669,2671,1921,1943,1698,1781
+54,Ad Modification Confirmation,ad_modification_confirmation,2666,2666,2203,2353,1917,1893
+55,Ad Insertion Abandonment,ad_insertion_abandonment,2652,2653,2224,2342,2112,2203
+56,Ad Replied Counteroffer Email,ad_replied_counteroffer_email,2477,2481,2000,2023,1834,1872
+57,Ad Insertion Confirmation,ad_insertion_confirmation,2331,2331,2048,2166,1922,1983
+58,Property Valuation Result Viewed,property_valuation_result_viewed,2262,2265,1214,1260,1071,1144
+59,Alert Deleted,alert_deleted,1906,1907,937,956,924,924
+60,Upselling Viewed,upselling_viewed,1786,1785,1470,1558,1302,1328
+61,Signed Out,signed_out,1723,1722,1449,1485,1289,1389
+62,PTA Landing Viewed,pta_landing_viewed,1294,1294,1063,1103,1009,1059
+63,Property Valuation Error,property_valuation_error,1225,1226,574,591,547,566
+64,Alert Modification Showed,alert_modification_showed,1043,639,836,546,795,508
+65,Request Reset Password Error,request_reset_password_error,789,789,499,512,490,503
+66,Average Price Clicked,average_price_clicked,693,694,642,648,629,640
+67,Alert Edit Button Clicked,alert_edit_button_clicked,652,652,523,546,506,508
+68,Alert Modification Success,alert_modification_success,450,318,402,288,392,274
+69,Blog Button Clicked,blog_button_clicked,379,379,358,359,354,354
+70,ON Highlight Button Clicked,on_highlight_button_clicked,342,342,264,265,260,262
+71,Edit Alert Frequency Button Clicked,edit_alert_frequency_button_clicked,339,339,258,261,255,253
+72,Mortgage Button Clicked,mortgage_button_clicked,261,258,241,238,241,238
+73,Sell Acquisition Landing Viewed,sell_acquisition_landing_viewed,261,262,237,241,232,235
+74,Property Valuation Close Modal Clicked,property_valuation_close_modal_clicked,239,239,168,170,165,166
+75,Rent Acquisition Landing Viewed,rent_acquisition_landing_viewed,233,232,212,213,208,211
+76,Alert Configuration Applied,alert_configuration_applied,152,152,106,108,106,105
+77,Neighbourhood Ratings Button Clicked,neighbourhood_ratings_button_clicked,150,150,141,142,141,142
+78,Gigya GOT Closed,gigya_got_closed,83,83,72,72,72,72
+79,VVG Landing Viewed,vvg_landing_viewed,61,60,54,53,48,47
+80,old sdk,old_sdk,1,0,1,0,1,0
+81,Alert Configuration Error,alert_configuration_error,1,0,1,0,1,0
+82,0,property_valuation_simulation_button_cli,0,5352,0,1460,0,1329
+83,0,view_search_results,0,66,0,63,0,60
+84,0,geoadvisor_find_ads_clicked,0,96,0,88,0,86
+85,0,advertising_placement_clicked,0,322,0,300,0,300
+86,0,property_valuation_landing_button_clicke,0,471,0,398,0,387
+87,0,file_download,0,581,0,494,0,471
+88,0,banner_rental_button_showed,0,1436,0,643,0,574
+89,0,user_engagement,0,5298261,0,2620848,0,1710929
+90,0,click,0,81630,0,65570,0,61122
+91,0,scroll,0,1009643,0,801787,0,615578
+92,0,first_visit,0,877097,0,861094,0,881235
+93,0,session_start,0,3572344,0,3362747,0,1780930
+94,0,page_view,0,15458458,0,3495109,0,1892476
+95,Map POI Clicked,map_poi_clicked,0,527912,0,83594,0,76947
+96,Ad Insertion Viewed,ad_insertion_viewed,0,2615,0,2121,0,1836
+97,0,vvg_banner_showed,0,170,0,0,0,53
