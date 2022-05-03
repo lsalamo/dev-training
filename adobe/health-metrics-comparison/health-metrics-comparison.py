@@ -66,7 +66,7 @@ def get_adobe_analytics_data(site):
         print('> get_adobe_analytics_data() -', 'data loaded')
 
     # Clean dataframe
-    df.drop(['itemId', 'data', 'value'], axis=1, inplace=True)
+    df.drop(['itemId', 'data', 'value', 'rs'], axis=1, inplace=True)
     df['day'] = df['day'].astype('str')
     print('> get_adobe_analytics_data() -', 'clean dataframe loaded')
 
@@ -171,10 +171,10 @@ def get_data():
     return df
 
 
-def get_data_web():
+def get_data_platform(platform):
     print('')
-    df = result['df'][['day', 'web-visits-aa', 'web-visits-ga', 'web-visitors-aa', 'web-visitors-ga']]
-    print('> get_data_events_web() -', 'data loaded')
+    df = result['df'][['day', platform + '-visits-aa', platform + '-visits-ga', platform + '-visitors-aa', platform + '-visitors-ga']]
+    print('> get_data_platform() - ' + platform + ' -', 'data loaded')
     return df
 
 
@@ -194,13 +194,6 @@ def get_data_events():
     df.drop(['rs'], axis=1, inplace=True)
 
     print('> get_data_events() -', 'data loaded')
-    return df
-
-
-def get_data_android():
-    print('')
-    df = result['df'][['day', 'and-visits-aa', 'and-visits-ga', 'and-visitors-aa', 'and-visitors-ga']]
-    print('> get_data_android() -', 'data loaded')
     return df
 
 
@@ -255,7 +248,7 @@ result_events = {}
 variables = {}
 variables['rs'] = {}
 variables[
-    'token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTA4OTc1NzIwMTBfM2M1NjM2YzAtZmNmMC00MzI4LThiMDgtNDE4OWNkMTE4ZGU0X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV01MUzdTQ1BGUE01SVBVS0VNUUZSSFFBR0k9PT09PT0iLCJzaWQiOiIxNjUwODk3NTcwMjcwXzU4ZGYxNjk1LWExYmQtNDIzOC1hY2E1LTUwMmVhMjU4MTVlN191ZTEiLCJydGlkIjoiMTY1MDg5NzU3MjAxMF82MmE2OTE4Ny0yNWUwLTRkYWQtODkzMy1mNWQ0YWRlNjYwNWZfdWUxIiwibW9pIjoiYWNiNDIzMmQiLCJwYmEiOiIiLCJydGVhIjoiMTY1MjEwNzE3MjAxMCIsIm9jIjoicmVuZ2EqbmExcioxODA2MTI5YzljNypQUUsyUERNUTRIMTFWMDdZV1FBWDNRUjFGUiIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjUwODk3NTcyMDEwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.U_S4M4p94OdaXxVSQqqANnI46DbJ0MydNE406pDAsybeWh_t7C2aJPzqHA-1oADTz0KEkt7BsJWINy1MBxOybvmonbKrai-PxEXAmZiQHZInwfF-d2Em0sw22M45LXmSyBvavTqBsfCT5WNORqxn5TCSQJl3IRmYtwCw4X1U-6bKNmNpvUow1CSY0REWdwDxINwbkAwIyaxeF09QPz7k2LpRdKqOVPPxFTZ7rcVAIhkwjt9CHFsvdvX-Cd3yhTi6PbXnIFZwqn-kkPJ2ykT9X1pFJBN8BupZXLjQ1lBKgCgnAO0EoBA0cM7HPO7Q9uZ0PirRe8CxhaL-nKt2RvPhvg'
+    'token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTE0OTk0ODkyODZfYTgwNjhiMWMtNWVhNi00M2U2LWE3MGMtNTEzYWRiNDE1NzllX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV003RjdTQ1BGUE01SVBVS0VNUUZSSFFBR0k9PT09PT0iLCJzaWQiOiIxNjUxNDk5NDg4ODQ3X2I2ZTZkYTE1LWNjNDktNDQzZi1iNTE1LTE2NmJiMDE2NmZiY191ZTEiLCJydGlkIjoiMTY1MTQ5OTQ4OTI4Nl83Zjk5ZmU0Yi0zYjE4LTRkMTktYWUzNy1hNWRjYWU3NzA4YTBfdWUxIiwibW9pIjoiOTg5ZmUzYzQiLCJwYmEiOiIiLCJydGVhIjoiMTY1MjcwOTA4OTI4NiIsIm9jIjoicmVuZ2EqbmExcioxODA4NTBhNTYyZipKRE5RUTQ2U1FINFEzQ0ZURVlGQlZQMDlDRyIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjUxNDk5NDg5Mjg2Iiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.Udm1VgabMwUeUVjQyXV8s9nGnRU0dTzKI5FNtbi0uG4UPH7o_ukH_en2EIhliqFBYdp31WkQcwwUAwWfzVs1GUB0tAMZ6uFM9okSRZS2XR4ox9hrFk-ab9qXGhVtevZxdw1lTBItoV0UdUcrKRhFUoju7cNCH3GFw8tkATyzU1VtqjLp26npnWnDtW2CGEPMu5F_3nUyEpGyFXSu7AugcOGZq0gS_8M9b9-RNnvl2mcBPuwYpmacjEA06eq03KnDpe3-UFJsxWBTY462JULKNxQRfMklhHq56Ls_NwlsXBAO-p7jxmGlnLeZDboAGIiFoS1aKAttdC44KK56Ue4SwA'
 variables[
     'directory'] = '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison'
 variables['rs']['rs_fotocasaes'] = 'vrs_schibs1_fcall'
@@ -266,14 +259,23 @@ variables['to_date'] = '2021-02-01'
 init()
 
 site = variables['rs']['rs_fotocasaes']
-
+# Adobe Analytics > user and visits
 result['df_aa'] = get_adobe_analytics_data(site)
+# GA4 > user and visits
 result['df_ga'] = get_google_analytics_data('data-web.csv', 'web')
+df = get_google_analytics_data('data-and.csv', 'and')
+result['df_ga'] = pd.merge(result['df_ga'], df, on='day', how='outer')
+df = get_google_analytics_data('data-ios.csv', 'ios')
+result['df_ga'] = pd.merge(result['df_ga'], df, on='day', how='outer')
+# df > user and visits
 result['df'] = get_data()
-result['df_web'] = get_data_web()
+# df web, and, ios > user and visits
+result['df_web'] = get_data_platform('web')
 export_csv(result['df_web'], 'df_web.csv')
-# result['df_and'] = get_data_android()
-# export_csv(result['df_and'], 'df_and.csv')
+result['df_and'] = get_data_platform('and')
+export_csv(result['df_and'], 'df_and.csv')
+result['df_ios'] = get_data_platform('ios')
+export_csv(result['df_ios'], 'df_ios.csv')
 
 result_events['df_aa'] = get_adobe_analytics_data_events(site)
 result_events['df_ga'] = get_google_analytics_data_events('data-events-web.csv', 'web')
