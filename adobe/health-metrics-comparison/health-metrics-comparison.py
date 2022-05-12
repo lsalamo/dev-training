@@ -4,38 +4,37 @@ import numpy as np
 import os
 import sys
 import shutil
+import sys
 
+# adding libraries folder to the system path
+sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
+
+import constants
+import functions as lse_functions
+
+# from functions import API,decir_hola
 
 # =============================================================================
 # VARIABLES
 # =============================================================================
 
+
 def init():
-    # Change working directory
-    os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison')
-
-    dir = os.path.join(variables['directory'], 'csv')
-    if os.path.isdir(dir):
-        shutil.rmtree(dir)
-    os.makedirs(dir)
-
-    # Set list report suites
-    data_values = variables['rs'].values()
-    variables['list_rs'] = list(data_values)
-    print('> init() -', 'loaded')
+    variables['working_directory'].create_directory('csv')
+    lse_functions.Log.print('init', 'loaded')
 
 
 # =============================================================================
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
 
-def get_adobe_analytics_data(site):
-    print('')
-    file = open('aa/request.json')
-    payload = file.read()
-    file.close()
-    print('> get_adobe_analytics_data() -', 'file payload loaded')
+def get_adobe(rs):
+    file = lse_functions.File('aa/request.json')
+    payload = file.read_file()
+    payload = payload.replace('{{rs}}', rs)
+    lse_functions.Log.print('get_adobe', 'file payload loaded')
 
+    # request
     url = 'https://analytics.adobe.io/api/schibs1/reports'
     headers = {
         'Accept': 'application/json',
@@ -44,36 +43,21 @@ def get_adobe_analytics_data(site):
         'x-api-key': '5e9fd55fa92c4a0a82b3f2a74c088e60',
         'x-proxy-global-company-id': 'schibs1'
     }
-    df = pd.DataFrame();
-    for row in variables['rs'].values():
-        if row == site:
-            print('> get_adobe_analytics_data() - rs:', row)
-            response = requests.request('POST', url, headers=headers, data=payload.replace('{{rs}}', row))
-            if response.status_code != 200:
-                sys.exit('ERROR ' + str(response.status_code) + ' > ' + response.text)
-            else:
-                response = response.json()
-                total_records = response['numberOfElements']
-                if total_records > 0:
-                    df_request = pd.DataFrame.from_dict(response['rows'])
-                    df_request['rs'] = row
-                    df_request['day'] = pd.to_datetime(df_request['value']).dt.strftime('%Y%m%d')
-                    df_request[['web-visits', 'web-visitors', 'and-visits', 'and-visitors', 'ios-visits',
-                                'ios-visitors']] = pd.DataFrame(df_request['data'].tolist(),
-                                                                index=df_request.index).astype(
-                        'int64')
-                    df = pd.concat([df, df_request])
-        print('> get_adobe_analytics_data() -', 'data loaded')
+    api = lse_functions.API(constants.API_POST, url, headers, payload)
+    df = api.request()
+    df['day'] = pd.to_datetime(df['value']).dt.strftime('%Y%m%d')
+    df[['web-visits', 'web-visitors', 'and-visits', 'and-visitors', 'ios-visits','ios-visitors']] = \
+        pd.DataFrame(df['data'].tolist(), index=df.index).astype('int64')
 
     # Clean dataframe
     df.drop(['itemId', 'data', 'value', 'rs'], axis=1, inplace=True)
     df['day'] = df['day'].astype('str')
-    print('> get_adobe_analytics_data() -', 'clean dataframe loaded')
+    print('> get_adobe() -', 'dataframe cleaned')
 
     return df
 
 
-def get_adobe_analytics_data_events(site):
+def get_adobe_events(rs):
     print('')
     file = open('aa/request-events.json')
     payload = file.read()
@@ -88,9 +72,9 @@ def get_adobe_analytics_data_events(site):
         'x-api-key': '5e9fd55fa92c4a0a82b3f2a74c088e60',
         'x-proxy-global-company-id': 'schibs1'
     }
-    df = pd.DataFrame();
+    df = pd.DataFrame()
     for row in variables['rs'].values():
-        if row == site:
+        if row == rs:
             print('> get_adobe_analytics_data_events() - rs:', row)
             response = requests.request('POST', url, headers=headers, data=payload.replace('{{rs}}', row))
             if response.status_code != 200:
@@ -121,10 +105,10 @@ def get_adobe_analytics_data_events(site):
 #   REQUEST GOOGLE ANALYTICS
 # =============================================================================
 
-def get_google_analytics_data(file, platform):
-    print('')
-    df = pd.DataFrame();
+def get_google(platform):
+    df = pd.DataFrame()
     dir = os.path.join(variables['directory'], 'ga')
+    file = 'data-' + platform + '.csv'
     if os.path.isdir(dir):
         df = pd.read_csv(dir + '/' + file, header=None)
     print('> get_google_analytics_data() - file: ' + file + ' - ', 'data loaded')
@@ -137,17 +121,17 @@ def get_google_analytics_data(file, platform):
     df.columns = columns
     df[values] = df[values].astype(np.int64)
     df['day'] = df['day'].astype('str')
-    print('> get_google_analytics_data() - file: ' + file + ' - ', 'data cleaned')
+    print('> get_google() - file: ' + file + ' - ', 'data cleaned')
     return df
 
 
-def get_google_analytics_data_events(file, platform):
-    print('')
-    df = pd.DataFrame();
+def get_google_events(platform):
+    df = pd.DataFrame()
     dir = os.path.join(variables['directory'], 'ga')
+    file = 'data-events-' + platform + '.csv'
     if os.path.isdir(dir):
         df = pd.read_csv(dir + '/' + file, header=None)
-    print('> get_google_analytics_data_events() - file: ' + file + ' - ', 'data loaded')
+    print('> get_google_events() - file: ' + file + ' - ', 'data loaded')
 
     # Clean dataframe
     df.drop(columns=[4, 5, 6], axis=1, inplace=True)
@@ -164,22 +148,22 @@ def get_google_analytics_data_events(file, platform):
 #   JOIN
 # =============================================================================
 
-def get_data():
+def merge_adobe_google():
     print('')
     df = pd.merge(result['df_aa'], result['df_ga'], on='day', suffixes=('-aa', '-ga'), how='outer')
     print('> get_data() -', 'data loaded')
     return df
 
 
-def get_data_platform(platform):
+def merge_adobe_google_platform(platform):
     print('')
-    df = result['df'][['day', platform + '-visits-aa', platform + '-visits-ga', platform + '-visitors-aa', platform + '-visitors-ga']]
+    df = result['df'][
+        ['day', platform + '-visits-aa', platform + '-visits-ga', platform + '-visitors-aa', platform + '-visitors-ga']]
     print('> get_data_platform() - ' + platform + ' -', 'data loaded')
     return df
 
 
-def get_data_events():
-    print('')
+def merge_events_adobe_google():
     df = pd.merge(result_events['df_aa'], result_events['df_ga'], on='event2', suffixes=('-aa', '-ga'), how='outer')
 
     # Clean dataframe
@@ -197,27 +181,15 @@ def get_data_events():
     return df
 
 
-def get_data_events_web():
-    print('')
+def merge_events_adobe_google_platform(platform):
     df = result_events['df'][
-        ['event', 'event2', 'web-count-aa', 'web-count-ga', 'web-visits-aa', 'web-visits-ga', 'web-visitors-aa',
-         'web-visitors-ga']]
+        ['event', 'event2', platform + '-count-aa', platform + '-count-ga', platform + '-visits-aa',
+         platform + '-visits-ga', platform + '-visitors-aa',
+         platform + '-visitors-ga']]
     df = df.loc[~((df['web-count-aa'] == 0) & (df['web-count-ga'] == 0))]
-    df.sort_values(by='web-count-aa', ascending=False, inplace=True)
+    df.sort_values(by=platform + '-count-aa', ascending=False, inplace=True)
     df.reset_index(drop=True, inplace=True)
-    print('> get_data_events_web() -', 'data loaded')
-    return df
-
-
-def get_data_events_android():
-    print('')
-    df = result_events['df'][
-        ['event', 'event2', 'and-count-aa', 'and-count-ga', 'and-visits-aa', 'and-visits-ga', 'and-visitors-aa',
-         'and-visitors-ga']]
-    df = df.loc[~((df['and-count-aa'] == 0) & (df['and-count-ga'] == 0))]
-    df.sort_values(by='and-count-aa', ascending=False, inplace=True)
-    df.reset_index(drop=True, inplace=True)
-    print('> get_data_events_android() -', 'data loaded')
+    print('> get_data_events_platform() - ' + platform + ' -', 'data loaded')
     return df
 
 
@@ -243,14 +215,16 @@ def export_csv(df, file):
 #   MAIN
 # =============================================================================
 
+
 result = {}
 result_events = {}
 variables = {}
 variables['rs'] = {}
 variables[
-    'token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTE0OTk0ODkyODZfYTgwNjhiMWMtNWVhNi00M2U2LWE3MGMtNTEzYWRiNDE1NzllX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV003RjdTQ1BGUE01SVBVS0VNUUZSSFFBR0k9PT09PT0iLCJzaWQiOiIxNjUxNDk5NDg4ODQ3X2I2ZTZkYTE1LWNjNDktNDQzZi1iNTE1LTE2NmJiMDE2NmZiY191ZTEiLCJydGlkIjoiMTY1MTQ5OTQ4OTI4Nl83Zjk5ZmU0Yi0zYjE4LTRkMTktYWUzNy1hNWRjYWU3NzA4YTBfdWUxIiwibW9pIjoiOTg5ZmUzYzQiLCJwYmEiOiIiLCJydGVhIjoiMTY1MjcwOTA4OTI4NiIsIm9jIjoicmVuZ2EqbmExcioxODA4NTBhNTYyZipKRE5RUTQ2U1FINFEzQ0ZURVlGQlZQMDlDRyIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjUxNDk5NDg5Mjg2Iiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.Udm1VgabMwUeUVjQyXV8s9nGnRU0dTzKI5FNtbi0uG4UPH7o_ukH_en2EIhliqFBYdp31WkQcwwUAwWfzVs1GUB0tAMZ6uFM9okSRZS2XR4ox9hrFk-ab9qXGhVtevZxdw1lTBItoV0UdUcrKRhFUoju7cNCH3GFw8tkATyzU1VtqjLp26npnWnDtW2CGEPMu5F_3nUyEpGyFXSu7AugcOGZq0gS_8M9b9-RNnvl2mcBPuwYpmacjEA06eq03KnDpe3-UFJsxWBTY462JULKNxQRfMklhHq56Ls_NwlsXBAO-p7jxmGlnLeZDboAGIiFoS1aKAttdC44KK56Ue4SwA'
+    'token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTIzNjg5OTI3NDBfY2UyYjI1ZTAtZmRmNC00ZDRhLWI1M2EtZGIyYzJiZGViNmIxX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV04zUFhaVTVGUE41SVBVS0VNUUZSSFFBWUE9PT09PT0iLCJzaWQiOiIxNjUyMzY4OTkyMzM0XzJkZGYwNmExLTMwMzQtNGI2Zi1iZTJlLWJjMjNiMmVlYTBhM191ZTEiLCJydGlkIjoiMTY1MjM2ODk5Mjc0MV9iYjZhMjVjNi05NmM5LTQzYzYtODMxOC0wNTdhMzdiOWI4NjFfdWUxIiwibW9pIjoiZmVkMDJlMjciLCJwYmEiOiIiLCJydGVhIjoiMTY1MzU3ODU5Mjc0MSIsIm9jIjoicmVuZ2EqbmExcioxODBiOGRkZTZlZio2Nlk5R1dCOUhONUdIQ0pGR0IyTjNCR0daUiIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjUyMzY4OTkyNzQwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.hA0N6mPKFSe46KLJemTQx7E1yvQuqYRXczstrIg_TdDFtnLv9mt_58C3unl3xcW54bpZgzvk9kEpsSkkg2RWzhHrmRadWmW0NTYn-qZBfAcLM0hKbjDbQnGBbkAoG1BMqBSUxviCaAsxO9-6DY6l3PL3XuXvvjK3A8wkQCg76giYJRqiohcqd2a_AtbuBVit7P8wOOBSMIVkSlZm2Cp7mRIEFq8fADYAEA2xqv7s5KL4UoimWo9RqrCDS5OeVCI6qAfdGcWFIcfcByZQXe41-PR8OxwUPUCm6lluVBOQsjdszmwKCSV9jfeEfhvDXgrTJ9p9gDBYrUKDRDprtX6TWw'
 variables[
-    'directory'] = '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison'
+    'working_directory'] = lse_functions.Directory(
+    '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison')
 variables['rs']['rs_fotocasaes'] = 'vrs_schibs1_fcall'
 variables['rs']['rs_motosnet'] = 'vrs_schibs1_motorcochesnet'
 variables['from_date'] = '2021-02-01'
@@ -260,36 +234,39 @@ init()
 
 site = variables['rs']['rs_fotocasaes']
 # Adobe Analytics > user and visits
-result['df_aa'] = get_adobe_analytics_data(site)
+result['df_aa'] = get_adobe(site)
 # GA4 > user and visits
-result['df_ga'] = get_google_analytics_data('data-web.csv', 'web')
-df = get_google_analytics_data('data-and.csv', 'and')
+result['df_ga'] = get_google(constants.PLATFORM_WEB)
+df = get_google(constants.PLATFORM_ANDROID)
 result['df_ga'] = pd.merge(result['df_ga'], df, on='day', how='outer')
-df = get_google_analytics_data('data-ios.csv', 'ios')
+df = get_google(constants.PLATFORM_IOS)
 result['df_ga'] = pd.merge(result['df_ga'], df, on='day', how='outer')
-# df > user and visits
-result['df'] = get_data()
+# df > merge data
+result['df'] = merge_adobe_google()
 # df web, and, ios > user and visits
-result['df_web'] = get_data_platform('web')
+result['df_web'] = merge_adobe_google_platform('web')
 export_csv(result['df_web'], 'df_web.csv')
-result['df_and'] = get_data_platform('and')
+result['df_and'] = merge_adobe_google_platform('and')
 export_csv(result['df_and'], 'df_and.csv')
-result['df_ios'] = get_data_platform('ios')
+result['df_ios'] = merge_adobe_google_platform('ios')
 export_csv(result['df_ios'], 'df_ios.csv')
 
-result_events['df_aa'] = get_adobe_analytics_data_events(site)
-result_events['df_ga'] = get_google_analytics_data_events('data-events-web.csv', 'web')
+# Adobe Analytics > events
+result_events['df_aa'] = get_adobe_events(site)
+# GA4 > events
+result_events['df_ga'] = get_google_events(constants.PLATFORM_WEB)
 result_events['df_ga']['and-count'] = 0
 result_events['df_ga']['and-visits'] = 0
 result_events['df_ga']['and-visitors'] = 0
 result_events['df_ga']['ios-count'] = 0
 result_events['df_ga']['ios-visits'] = 0
 result_events['df_ga']['ios-visitors'] = 0
-result_events['df'] = get_data_events()
-result_events['df_web'] = get_data_events_web()
+# df > merge data
+result_events['df'] = merge_events_adobe_google()
+# df web, and, ios > user and visits
+result_events['df_web'] = merge_events_adobe_google_platform('web')
 export_csv(result_events['df_web'], 'df_events_web.csv')
-# result_events['df_and'] = get_data_events_android()
-# export_csv(result_events['df_and'], 'df_events_and.csv')
+
 # result_events['df_web_count_ga_0'] = get_data_events_count_ga_0(result_events['df_web'], 'web-count-ga')
 # result_events['df_web_count_ga_0_str'] = ','.join(result_events['df_web_count_ga_0']['event'])
 
@@ -329,3 +306,4 @@ print('> END EXECUTION')
 # summary['count_new_events_ios'] = len(summary['df_new_events_ios'])
 
 # df_sumary = pd.DataFrame(summary.items())
+

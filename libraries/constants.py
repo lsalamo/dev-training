@@ -1,0 +1,5 @@
+PLATFORM_WEB = 'web'
+PLATFORM_ANDROID = 'and'
+PLATFORM_IOS = 'ios'
+
+API_POST = 'POST'
