@@ -1,3 +1,4 @@
+from typing import overload
 import pandas as pd
 from functools import reduce
 
@@ -26,16 +27,14 @@ class Dataframe:
             return list(df.columns)
 
         @staticmethod
-        def join_by_columns(frames, columns, join):
-            """ CALL > Dataframe.Columns.join_by_columns([fr1, fr2, ...], ['a','b'], 'outer') """
-            df = reduce(lambda left, right: pd.merge(left, right, on=columns, how=join), frames)
-            return df
+        def join_two_frames_by_columns(frame_left, frame_right, columns, join, suffix) -> pd.DataFrame:
+            """ CALL > Dataframe.Columns.join_by_columns(fr1, fr2, ['a','b'], 'outer', ('-fr1', '-fr2') """
+            return pd.merge(left=frame_left, right=frame_right, on=columns, how=join, suffixes=suffix)
 
         @staticmethod
-        def join_two_frames_by_columns(frame_left, frame_right, columns, join, suffix):
-            """ CALL > Dataframe.Columns.join_by_columns(fr1, fr2, ['a','b'], 'outer', ('-fr1', '-fr2') """
-            df = pd.merge(left=frame_left, right=frame_right, on=columns, how=join, suffixes=suffix)
-            return df
+        def join_by_columns(frames, columns, join) -> pd.DataFrame:
+            """ CALL > Dataframe.Columns.join_by_columns([fr1, fr2, ...], ['a','b'], 'outer') """
+            return reduce(lambda left, right: pd.merge(left, right, on=columns, how=join), frames)
 
         @staticmethod
         def drop_columns(df, columns, inplace):
