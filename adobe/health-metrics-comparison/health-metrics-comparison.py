@@ -26,26 +26,18 @@ def init():
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
 class Adobe:
-    def __init__(self, rs, token):
+    def __init__(self, rs, token, from_date, to_date):
         self.rs = rs
         self.token = token
-
-    def get_file_payload(self, file_path):
-        file = f.File(file_path)
-        payload = file.read_file()
-        payload = payload.replace('{{rs}}', self.rs)
-        return payload
+        self.from_date = from_date
+        self.to_date = to_date
 
     def get_adobe(self):
-        # file payload
-        payload = self.get_file_payload('aa/request.json')
-        f.Log.print('get_adobe', 'file payload loaded')
-
         # request api
-        api = f_api.Adobe_Report_API(variables['token'], payload)
+        api = f_api.Adobe_Report_API(self.rs, self.token, 'aa/request.json', self.from_date, self.to_date)
         df = api.request()
         df['day'] = pd.to_datetime(df['value']).dt.strftime('%Y%m%d')
-        df[['web-visits', 'web-visitors', 'and-visits', 'and-visitors', 'ios-visits','ios-visitors']] = \
+        df[['web-visits', 'web-visitors', 'web-pageviews', 'and-visits', 'and-visitors', 'and-pageviews', 'ios-visits', 'ios-visitors', 'ios-pageviews']] = \
             pd.DataFrame(df['data'].tolist(), index=df.index).astype('int64')
         f.Log.print('get_adobe', 'request api loaded')
 
@@ -57,12 +49,8 @@ class Adobe:
         return df
 
     def get_adobe_events(self):
-        # file payload
-        payload = self.get_file_payload('aa/request-events.json')
-        f.Log.print('get_adobe_events', 'file payload loaded')
-
         # request api
-        api = f_api.Adobe_Report_API(variables['token'], payload)
+        api = f_api.Adobe_Report_API(self.rs, self.token, 'aa/request-events.json', self.from_date, self.to_date)
         df = api.request()
         df['event'] = df['value']
         df[['web-count', 'web-visits', 'web-visitors', 'and-count', 'and-visits', 'and-visitors',
@@ -196,18 +184,20 @@ if __name__ == '__main__':
     result_events = {}
     variables = {}
     variables['rs'] = {}
-    variables[
-        'token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTI4ODIyNTYwNjRfYWQ4M2VjZWMtMGQ3MC00ZmMyLWE3MDYtMDIwODg0NDFmNWM3X3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV09NR0xaVTVGUE41SVBVS0VNUUZSSFFBWUE9PT09PT0iLCJzaWQiOiIxNjUyODgyMjU1NjgxXzYyYTk0YzkyLTBlNzUtNDFiOS1iNTU4LTlhYWRlMTFkZmFkNV91ZTEiLCJydGlkIjoiMTY1Mjg4MjI1NjA2NV81MjlhOGVlOC03YzE2LTRhZDktYThjOS05ZDhjOGJhMTFkMzBfdWUxIiwibW9pIjoiMTNhZjVkN2MiLCJwYmEiOiIiLCJydGVhIjoiMTY1NDA5MTg1NjA2NSIsIm9jIjoicmVuZ2EqbmExcioxODBkNzc1YWVkYSo3MERUQ0Q5RkJTMU43N003NDg1TURWN1BUVyIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjUyODgyMjU2MDY0Iiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.M8wShaNOOeUxFMwUSNTQ9QkCP2CiU0DA0_ztxdRu8FI7pFG9XgXS3eLMee-J3vsm9WOxxEZS70Aly9_2ZnuHRMkptkf-oWysOV3AG0Vbj2xEhETXiaJhGacSlw6t4tW7-ECZ_14GssfWE8QpsaAjLc9POVa0sCzbWZ67q9zXwJKCCMxVvLoWnfSbHhK-ZdBip7112kBP6wWZs3PEl7DFN81javG__nl6riR4shwGAp5VFR2mwLuBdS97GKG1gZJ1K-qoKuG_OtLHFZ3UhrFAgLthbzkE3YArpwCQVPOj6jTxDXUbguTvriCw7px6VvXXOoMUXl_w0Jugz4BiZgBunA'
+    variables['token'] = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTM2NjE2NzU5OTNfZjc4NTNjN2YtZmM4OC00MzhjLThjNDctNDAyNjg1ZDEzMzdmX2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1BGU0hSMkNGUE41SUhVS0VNUUZRSFFBMjQ9PT09PT0iLCJzaWQiOiIxNjUzNjYxNjc1NjUyX2ZiNTI2NDkzLWIwYWItNGZjMS1iYmI1LWUwYTFlOTQ4OGY4Zl91ZTEiLCJydGlkIjoiMTY1MzY2MTY3NTk5NF9iMjdmYjcxMC0yNGZkLTQzMjktYmRhNy1jNWI2YmI3ZTcwNGZfZXcxIiwibW9pIjoiNTUyNDBhMjUiLCJwYmEiOiIiLCJydGVhIjoiMTY1NDg3MTI3NTk5NCIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCxhZGRpdGlvbmFsX2luZm8uam9iX2Z1bmN0aW9uIiwiY3JlYXRlZF9hdCI6IjE2NTM2NjE2NzU5OTMifQ.S43FuSIWOBYqY3bzacVJCulwRDmEAsDbiggFqtUpXr7cA9B7f8vX56CeJRM7RNjZauJdeJqGi8lSOSgicq3vH6W4ameTKt-pokunLutyMqBZ5dZlAmUc1JJZWNvEYnRqw71Enn-_DR0p19yu8Z-M3BH4Lu_EipkwUAaJ3C9baGGs_NwUXThlBabyayQn-OMe9WzM3pjpXNf4iY0EcbHSLiGfuNi0Vj7ewVLIon0mej7BTHwOEglX-SROItq5QaQCsMIkMHUs2rPHTeNAhB0ooHUuc_n3o2f4OwYHMOwLdI84Y7AXfV4wzKJQr7Yi9yuYvWlUOsLClR8zDVP9UkPQFw'
     variables['directory'] = '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison'
-    variables['from_date'] = '2021-02-01'
-    variables['to_date'] = '2021-02-01'
+    variables['from_date'] = '2022-05-01'
+    variables['to_date'] = '2022-05-02'
+
+# https://github.com/AdobeDocs/analytics-2.0-apis
+# https://github.com/pitchmuc/adobe-analytics-api-2.0
 
     init()
 
     site = f_api.Adobe_Report_API.rs_cochesnet
 
     # Adobe Analytics > user and visits
-    adobe = Adobe(site, variables['token'])
+    adobe = Adobe(site, variables['token'], variables['from_date'], variables['to_date'])
     result['df_aa'] = adobe.get_adobe()
     result_events['df_aa'] = adobe.get_adobe_events()
 

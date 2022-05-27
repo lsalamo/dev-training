@@ -1,6 +1,8 @@
 import requests
-import functions as f
 import pandas as pd
+import functions as f
+import dt as dt
+
 
 class API:
     def __init__(self, method, url, headers, payload):
@@ -39,6 +41,23 @@ class Adobe_API(API):
 
 
 class Adobe_Report_API(Adobe_API):
-    def __init__(self, token, payload):
+
+    def __init__(self, rs, token, url_request, date_from, to_date):
+        # endpoint
         url = 'https://analytics.adobe.io/api/schibs1/reports'
+
+        # date
+        date_from = dt.Datetime.str_to_datetime(date_from, '%Y-%m-%d')
+        date_from = dt.Datetime.datetime_to_str(date_from, '%Y-%m-%dT00:00:00.000')
+        to_date = dt.Datetime.str_to_datetime(to_date, '%Y-%m-%d')
+        to_date = dt.Datetime.datetime_add_days(to_date, 1)
+        to_date = dt.Datetime.datetime_to_str(to_date, '%Y-%m-%dT00:00:00.000')
+        date = date_from + '/' + to_date
+
+        # payload
+        file = f.File(url_request)
+        payload = file.read_file()
+        payload = payload.replace('{{rs}}', rs)
+        payload = payload.replace('{{dt}}', date)
+
         super().__init__('POST', url, token, payload)
