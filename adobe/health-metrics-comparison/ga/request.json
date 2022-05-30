@@ -1,0 +1,35 @@
+{
+    "dimensions": [
+        {
+            "name": "date"
+        }
+    ],
+    "metrics": [
+        {
+            "name": "screenPageViews"
+        },
+        {
+            "name": "sessions"
+        },
+        {
+            "name": "totalUsers"
+        }
+    ],
+    "dateRanges": [
+        {
+            "startDate": "{{dt_from}}",
+            "endDate": "{{dt_to}}"
+        }
+    ],
+    "orderBys": [
+        {
+            "dimension": {
+                "orderType": "NUMERIC",
+                "dimensionName": "date"
+            }
+        }
+    ],
+    "metricAggregations": [
+        "TOTAL"
+    ]
+}

@@ -3,7 +3,7 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 
-
+# df['day'] = pd.to_datetime(df['dimensionValues']).dt.strftime('%Y%m%d')
 # https://docs.python.org/3.8/library/datetime.html
 class Datetime:
     @staticmethod
