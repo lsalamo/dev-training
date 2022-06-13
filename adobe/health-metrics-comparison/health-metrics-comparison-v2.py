@@ -97,6 +97,9 @@ class Google2:
 
 
 class Google:
+    def __init__(self):
+        pass
+
     @staticmethod
     def csv_to_dataframe(file):
         df = f.CSV.csv_to_dataframe(file)
@@ -222,7 +225,7 @@ if __name__ == '__main__':
     init()
 
     site = f_api.Adobe_Report_API.rs_cochesnet
-    property = f_api.Google_Report_API.property_cochesnet
+    property_id = f_api.Google_Report_API.property_cochesnet
 
     # Adobe Analytics > user and visits
     adobe = Adobe(site, variables['token_aa'], variables['from_date'], variables['to_date'])
@@ -230,7 +233,7 @@ if __name__ == '__main__':
     result_events['df_aa'] = adobe.get_adobe_events()
 
     # Google Analytics > user and visits
-    google = Google2(property, variables['token_ga'], variables['from_date'], variables['to_date'])
+    google = Google2(property_id, variables['token_ga'], variables['from_date'], variables['to_date'])
     result['df_ga'] = google.get_google()
     result_events['df_ga'] = Google.get_google_events()
 
@@ -254,44 +257,6 @@ if __name__ == '__main__':
     result_events['df_ios'] = merge_events_adobe_google_platform(constants.PLATFORM_IOS)
     f.CSV.dataframe_to_file(result_events['df_ios'], 'df_events_ios.csv')
 
+    print('> END EXECUTION')
 
-# result_events['df_web_count_ga_0'] = get_data_events_count_ga_0(result_events['df_web'], 'web-count-ga')
-# result_events['df_web_count_ga_0_str'] = ','.join(result_events['df_web_count_ga_0']['event'])
-
-print('> END EXECUTION')
-
-# df_platform = df[['event2', 'and-aa', 'and-ga']]
-# result_events['df_and_events'] = df_platform.loc[
-#     ~((df_platform['and-count-aa'] == 0) & (df_platform['and-count-ga'] == 0))]
-# df_platform = df[['event2', 'ios-aa', 'ios-ga']]
-# result_events['df_ios_events'] = df_platform.loc[
-#     ~((df_platform['ios-count-aa'] == 0) & (df_platform['ios-count-ga'] == 0))]
-
-# result_events['df_aa_events_fc'] = result_events['df_aa_events'].loc[result_events['df_aa_events'].rs == variables['rs']['rs_fotocasaes']]
-
-# summary = {}
-# summary['count_aa_events_web'] = len(result_events['df_web_events'].loc[result_events['df_web_events']['web-aa'] > 0])
-# summary['count_aa_events_and'] = len(result_events['df_and_events'].loc[result_events['df_and_events']['and-aa'] > 0])
-# summary['count_aa_events_ios'] = len(result_events['df_ios_events'].loc[result_events['df_ios_events']['ios-aa'] > 0])
-
-# summary['count_ga_events_web'] = len(result_events['df_web_events'].loc[result_events['df_web_events']['web-ga'] > 0])
-# summary['count_ga_events_and'] = len(result_events['df_and_events'].loc[result_events['df_and_events']['and-ga'] > 0])
-# summary['count_ga_events_ios'] = len(result_events['df_ios_events'].loc[result_events['df_ios_events']['ios-ga'] > 0])
-
-# Events blocked by platform > pending to fix and split by plantform (not only web devices)
-# summary['count_aa_events_web'] = len(result_events['df_web_events'].loc[result_events['df_web_events']['web-aa'] > 0])
-# summary['count_aa_events_and'] = len(result_events['df_and_events'].loc[result_events['df_and_events']['and-aa'] > 0])
-# summary['count_aa_events_ios'] = len(result_events['df_ios_events'].loc[result_events['df_ios_events']['ios-aa'] > 0])
-
-# df = result_events['df_web_events']
-# summary['df_new_events_web'] = df.loc[(df['web-aa'] == 0) & (df['web-ga'] > 0)]
-# summary['count_new_events_web'] = len(summary['df_new_events_web'])
-# df = result_events['df_and_events']
-# summary['df_new_events_and'] = df.loc[(df['and-aa'] == 0) & (df['and-ga'] > 0)]
-# summary['count_new_events_and'] = len(summary['df_new_events_and'])
-# df = result_events['df_ios_events']
-# summary['df_new_events_ios'] = df.loc[(df['ios-aa'] == 0) & (df['ios-ga'] > 0)]
-# summary['count_new_events_ios'] = len(summary['df_new_events_ios'])
-
-# df_sumary = pd.DataFrame(summary.items())
 

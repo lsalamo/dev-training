@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import functions as f
 import dt as dt
+import dataframe as f_df
 
 
 class API:
@@ -64,11 +65,17 @@ class Adobe_Report_API(Adobe_API):
             rows = response['rows']
             if len(rows) > 0:
                 df = pd.DataFrame.from_dict(rows)
+                df = f_df.Dataframe.Columns.split_column_array_into_columns(df, 'data')
         return df
 
 
 class Google_API(API):
+    property_fotocasaes = '296810976'
+    property_motosnet = '273930537'
     property_cochesnet = '313836548'
+    platform_web = 'web'
+    platform_android = 'android'
+    platform_ios = 'ios'
 
     def __init__(self, method, url, token, payload):
         headers = {
@@ -81,7 +88,7 @@ class Google_API(API):
 
 class Google_Report_API(Google_API):
 
-    def __init__(self, property, token, url_request, date_from, to_date):
+    def __init__(self, property, token, url_request, date_from, to_date, platform):
         # endpoint
         url = 'https://analyticsdata.googleapis.com/v1beta/properties/' + property + ':runReport'
 
@@ -90,6 +97,7 @@ class Google_Report_API(Google_API):
         payload = file.read_file()
         payload = payload.replace('{{dt_from}}', date_from)
         payload = payload.replace('{{dt_to}}', to_date)
+        payload = payload.replace('{{platform}}', platform)
 
         super().__init__('POST', url, token, payload)
 

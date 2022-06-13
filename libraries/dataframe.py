@@ -1,5 +1,6 @@
 from typing import overload
 import pandas as pd
+import numpy as np
 from functools import reduce
 
 
@@ -14,12 +15,24 @@ class Dataframe:
         df = pd.concat(frames, axis=0, join=join)
         return df
 
+    class Cast:
+        @staticmethod
+        def columns_regex_to_int64(df, regex):
+            """ CALL >
+            df_values = Dataframe.Cast.columns_regex_to_int64(df, '(-aa|-ga)$')
+            df[df_values.columns] = df_values
+            """
+            df = Dataframe.Columns.select_columns_by_regex(df, regex)
+            return df.astype(np.int64)
+
     class Columns:
         @staticmethod
-        def select_columns_by_regex(df, regex):
-            """ CALL > Dataframe.Columns.select_columns_by_regex(df, '(-aa|-ga)$') """
-            df = df.filter(regex=regex)
-            return df
+        def exists(df, column):
+            """ CALL > Dataframe.Columns.exists(df, 'day') """
+            if column in df.columns:
+                return True
+            else:
+                return False
 
         @staticmethod
         def columns_names(df):
@@ -27,8 +40,18 @@ class Dataframe:
             return list(df.columns)
 
         @staticmethod
+        def select_columns_by_regex(df, regex) -> pd.DataFrame:
+            """ CALL > Dataframe.Columns.select_columns_by_regex(df, '(-aa|-ga)$') """
+            return df.filter(regex=regex, axis=1)
+
+        @staticmethod
+        def join_two_frames_by_index(frame_left, frame_right, join) -> pd.DataFrame:
+            """ CALL > Dataframe.Columns.join_two_frames_by_index(fr1, fr2, 'outer') """
+            return pd.merge(left=frame_left, right=frame_right, left_index=True, right_index=True, how=join)
+
+        @staticmethod
         def join_two_frames_by_columns(frame_left, frame_right, columns, join, suffix) -> pd.DataFrame:
-            """ CALL > Dataframe.Columns.join_by_columns(fr1, fr2, ['a','b'], 'outer', ('-fr1', '-fr2') """
+            """ CALL > Dataframe.Columns.join_by_columns(fr1, fr2, ['a','b'], 'outer', ('-fr1', '-fr2')) """
             return pd.merge(left=frame_left, right=frame_right, on=columns, how=join, suffixes=suffix)
 
         @staticmethod
@@ -37,9 +60,32 @@ class Dataframe:
             return reduce(lambda left, right: pd.merge(left, right, on=columns, how=join), frames)
 
         @staticmethod
-        def drop_columns(df, columns, inplace):
+        def drop(df, columns, inplace):
             """ CALL > Dataframe.Columns.drop_columns(df, ['a','b'], True) """
             # df.loc[:, df.columns != 'b']
             # df[df.columns.difference(['b'])]
-            df.drop(columns, axis=1, inplace=inplace)
+            return df.drop(columns, axis=1, inplace=inplace)
+
+        @staticmethod
+        def drop_from_index(df, index, inplace):
+            """ CALL > Dataframe.Columns.drop_columns_from_index(df, 4, True) """
+            return df.drop(df.loc[:, index:], axis=1, inplace=inplace)
+
+        @staticmethod
+        def drop_to_index(df, index, inplace):
+            """ CALL > Dataframe.Columns.drop_columns_from_index(df, 4, True) """
+            return df.drop(df.loc[:, :index], axis=1, inplace=inplace)
+
+        @staticmethod
+        def split_column_string_into_columns(df, column, char):
+            """ CALL > Dataframe.Columns.split_into_columns(df, 'column', ',') """
+            return df[column].str.split(char, expand=True)
+
+        @staticmethod
+        def split_column_array_into_columns(df, column):
+            """ CALL > Dataframe.Columns.split_into_columns(df, 'column', ',') """
+            df_values = pd.DataFrame(df[column].tolist(), index=df.index)
+            df = Dataframe.Columns.join_two_frames_by_index(df, df_values, 'inner')
             return df
+
+

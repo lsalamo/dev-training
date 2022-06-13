@@ -2,17 +2,20 @@
     "dimensions": [
         {
             "name": "date"
+        },
+        {
+            "name": "platform"
         }
     ],
     "metrics": [
-        {
-            "name": "screenPageViews"
-        },
         {
             "name": "sessions"
         },
         {
             "name": "totalUsers"
+        },
+        {
+            "name": "screenPageViews"
         }
     ],
     "dateRanges": [
@@ -21,6 +24,15 @@
             "endDate": "{{dt_to}}"
         }
     ],
+    "dimensionFilter": {
+        "filter": {
+            "fieldName": "platform",
+            "stringFilter": {
+                "matchType": "EXACT",
+                "value": "{{platform}}"
+            }
+        }
+    },
     "orderBys": [
         {
             "dimension": {
@@ -28,8 +40,5 @@
                 "dimensionName": "date"
             }
         }
-    ],
-    "metricAggregations": [
-        "TOTAL"
     ]
 }
