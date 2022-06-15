@@ -1,0 +1,36 @@
+{
+    "dimensions": [
+        {
+            "name": "eventName"
+        },
+        {
+            "name": "platform"
+        }
+    ],
+    "metrics": [
+        {
+            "name": "eventCount"
+        },
+        {
+            "name": "sessions"
+        },
+        {
+            "name": "totalUsers"
+        }
+    ],
+    "dateRanges": [
+        {
+            "startDate": "{{dt_from}}",
+            "endDate": "{{dt_to}}"
+        }
+    ],
+    "dimensionFilter": {
+        "filter": {
+            "fieldName": "platform",
+            "stringFilter": {
+                "matchType": "EXACT",
+                "value": "{{platform}}"
+            }
+        }
+    }
+}

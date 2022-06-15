@@ -121,4 +121,6 @@ class Google_Report_API(Google_API):
                     metrics_values
                     row['metricValues'] = metrics_values.rstrip(',')
                 df = pd.DataFrame.from_dict(rows)
+                df = f_df.Dataframe.Columns.split_column_string_into_columns(df, 'dimensionValues', ',')
+                df = f_df.Dataframe.Columns.split_column_string_into_columns(df, 'metricValues', ',')
         return df
