@@ -35,6 +35,10 @@ class Dataframe:
             df = Dataframe.Columns.select_columns_by_regex(df, regex)
             return df.astype(np.int64)
 
+    class Rows:
+        def __init__(self):
+            pass
+
     class Columns:
         def __init__(self):
             pass

@@ -37,10 +37,6 @@ def clean_columns(df, platform, to_columns):
             df['event'] = df['event'].str.lower().replace(' ', '_', regex=True)
         df_values = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(' + platform + '-).*$')
         df[df_values.columns] = df_values
-        # if f_df.Dataframe.Columns.exists(df, 'dimensionValues'):
-        #     f_df.Dataframe.Columns.drop(df, ['dimensionValues', 'metricValues', 'platform'], True)
-        # else:
-        #     f_df.Dataframe.Columns.drop_from_index(df, len(columns), True)
     else:
         for i in to_columns:
             df[i] = 0
@@ -63,21 +59,20 @@ class Adobe:
         # request
         api = f_api.Adobe_Report_API(self.rs, self.token, file_payload, self.from_date, self.to_date)
         df = api.request()
-
         # web
-        from_columns = ['value', 0, 1, 2]
-        df_web = clean_columns(df[from_columns], constants.PLATFORM_WEB, columns)
+        from_columns = ('value', 0, 1, 2)
+        df_web = clean_columns(df.loc[:, from_columns], constants.PLATFORM_WEB, columns)
         # android
         from_columns = ['value', 3, 4, 5]
-        df_and = clean_columns(df[from_columns], constants.PLATFORM_ANDROID, columns)
+        df_and = clean_columns(df.loc[:, from_columns], constants.PLATFORM_ANDROID, columns)
         # ios
         from_columns = ['value', 6, 7, 8]
-        df_ios = clean_columns(df[from_columns], constants.PLATFORM_IOS, columns)
+        df_ios = clean_columns(df.loc[:, from_columns], constants.PLATFORM_IOS, columns)
         # join dataframes
         frames = [df_web, df_and, df_ios]
         df = f_df.Dataframe.Columns.join_by_columns(frames, columns_join, 'outer')
 
-        f.Log.print('get_adobe', 'dataframe loaded')
+        f.Log.print('get_adobe', 'dataframe loaded <' + file_payload + '>')
         return df
 
     def get_adobe(self):
@@ -100,27 +95,25 @@ class GoogleAPI:
         self.to_date = variables['to_date']
 
     def get_request(self, file_payload, to_columns, columns_join):
+        def run_request(platform):
+            api = f_api.Google_Report_API(self.property_id, self.token, file_payload, self.from_date, self.to_date, platform)
+            df_request = api.request()
+            df_request = df_request if df_request.empty else df_request.loc[:, from_columns]
+            df_request = clean_columns(df_request, platform, to_columns)
+            return df_request
+
         from_columns = ['0_x', '0_y', '1_y', 2]
         # web
-        api = f_api.Google_Report_API(self.property_id, self.token, file_payload, self.from_date, self.to_date, constants.PLATFORM_WEB)
-        df_web = api.request()
-        df_web = df_web if df_web.empty else df_web[from_columns]
-        df_web = clean_columns(df_web, constants.PLATFORM_WEB, to_columns)
+        df_web = run_request(constants.PLATFORM_WEB)
         # android
-        api = f_api.Google_Report_API(self.property_id, self.token, file_payload, self.from_date, self.to_date, constants.PLATFORM_ANDROID)
-        df_and = api.request()
-        df_and = df_and if df_and.empty else df_and[from_columns]
-        df_and = clean_columns(df_and, constants.PLATFORM_ANDROID, to_columns)
-        # ios
-        api = f_api.Google_Report_API(self.property_id, self.token, file_payload, self.from_date, self.to_date, constants.PLATFORM_IOS)
-        df_ios = api.request()
-        df_ios = df_ios if df_ios.empty else df_ios[from_columns]
-        df_ios = clean_columns(df_ios, constants.PLATFORM_IOS, to_columns)
+        df_and = run_request(constants.PLATFORM_ANDROID)
+        # # ios
+        df_ios = run_request(constants.PLATFORM_IOS)
         # join dataframes
         frames = [df_web, df_and, df_ios]
         df = f_df.Dataframe.Columns.join_by_columns(frames, columns_join, 'outer')
 
-        f.Log.print('get_google', 'dataframe loaded')
+        f.Log.print('get_google', 'dataframe loaded <' + file_payload + '>')
         return df
 
     def get_google(self):
@@ -192,6 +185,10 @@ def merge_adobe_google(frames, columns):
 def merge_adobe_google_platform(df, platform, columns):
     columns = columns.replace('{{platform}}', platform).split(',')
     df = df[columns]
+    if f_df.Dataframe.Columns.exists(df, 'event'):
+        df = df.loc[~((df[platform + '-count-aa'] == 0) & (df[platform + '-count-ga'] == 0))]
+        df.sort_values(by=platform + '-count-aa', ascending=False, inplace=True)
+    df.reset_index(drop=True, inplace=True)
     f.Log.print('merge_adobe_google_platform', platform + ' - data loaded')
     return df
 
@@ -205,11 +202,11 @@ if __name__ == '__main__':
     result = {}
     result_events = {}
     variables = {'rs': {},
-                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTUyMjA0NTI1MzJfOWU3MWVmZjEtZjFiYS00NTEwLWJmYmMtMTA2YjllNTZiNDVkX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1FZSjZSWEpGUE41SUhVT0VNUUZRSFFBT009PT09PT0iLCJzaWQiOiIxNjU1MjIwNDUyMTY1X2Y0NDJlMGQ0LTllNTktNGRjNi04YWUyLTc2NjcyYTU4YjNlY191ZTEiLCJydGlkIjoiMTY1NTIyMDQ1MjUzM19hMDg2MGU3NC0xZmExLTRlZGEtYmZiOC1jZDE2ODhjODNjOGFfdWUxIiwibW9pIjoiZjkwYWNjOTIiLCJwYmEiOiIiLCJydGVhIjoiMTY1NjQzMDA1MjUzMyIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCxhZGRpdGlvbmFsX2luZm8uam9iX2Z1bmN0aW9uIiwiY3JlYXRlZF9hdCI6IjE2NTUyMjA0NTI1MzIifQ.Uu036N3JEgCKAZFbYwi-dOtzqSZNSmW6n-W83KdvMMhGjlYI2V_iDRFmrGb1EQHMQUn1H2sHy7h0AEqgcmu-dLXzNP0NdkL9-1GkHXfkodg5AIhUOPDb0skQR3flnOi2Zv1oeWFtvW9S5KrlAeANPwp-N3_QY2SViFWcLlkuVUMC1jox8QXOQkMbo30wK--IUFKujBubznOW6ROgjOaCKdsj_nKi3zBT5CWVW7U4DkiX4AmGA2Yb_anubS5tNs9-SxRTSycc_Ljknb31u-5Ki_yxqJtQI3Gs0BzZhJED-uPAL0hpxAZ1Rm9BMwQcBtKDVv0jgJOLj5xH_5E5e4YqIQ',
-                 'token_ga': 'ya29.a0ARrdaM_q20o0Y-Cw9v67QhrAj__CTtN9RQyzLkyfsxIcxtfZx9VC2z2ND51BrX8BwHaNHwKZKmMdN4MH4lesMdYNP9wr7VjVoYnXGQeBFrysP0e1QX001-M0hJjh8KAjXuGsB_RHh-Dtv6i3MEU_vHvi8oX5dVM',
+                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTUzMDY4ODA2NzlfYWRmZWUxYTEtMTZkZS00NjkxLWFmMTAtMmZhOWM5MzhmM2Q0X2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1EzRUFSWEpGUE41SUhVT0VNUUZRSFFBT009PT09PT0iLCJzaWQiOiIxNjU1MzA2ODgwMzk0X2QyOWVjOTU3LWQ4NjQtNGJjYy05NTZjLTFlMWRjOGNmMTJiNl91ZTEiLCJydGlkIjoiMTY1NTMwNjg4MDY4MF9lMTQ4MTQwYi0zYjk0LTQ3ZTMtOGE3OC02Nzc1Y2I3NGJjZWNfZXcxIiwibW9pIjoiNWY0NTYxNmMiLCJwYmEiOiIiLCJydGVhIjoiMTY1NjUxNjQ4MDY4MCIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjU1MzA2ODgwNjc5Iiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.Z1sfXzQ_89dMz_oHLSs2zOJ13gN-UsUTlu0Ji5idxi5Ss9FQ8AJMcMhr9zk87iu6Xn6ZciXgPLLtMeO2F-dqXYi_-182d9XDEBgW2HMC11rOb5EAimVwbcAQPgGkZccw29vXAX-A4kb0bu5ZkFbcJPbd7VB4dGPsfr9jhbZh46WNPepToEyjr8Zv7YCPfh3a8bHMIhxuIaGL_l_24wRSgb6-yEKtwlh7KgqjP2fQeAO9MR9sWV7aYwGjddQQoCx511mJj26T3aW5Q8RlURF_xRuqRhDV0MqFMCVEsymU6Ist4PPk8ckLMw-TnP81xsrJ6kbLQT15TRJcbSoG5C4jdg',
+                 'token_ga': 'ya29.a0ARrdaM9LXy4Kr3ctQbt3OLu_RxHKETrSArn5kmdFCdBey4WE753qsjl6G5xom1SFbc6M9SqTP6RmnNsLTf7B0hEtTtNDDT7gRd6DRY-Lo0G_1NgHcnbcC1qrNS3G73zyXkUTZTiP9AqfNSR9U9APFVj4ffHavvI',
                  'directory': '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison',
-                 'from_date': '2022-05-28',
-                 'to_date': '2022-06-06',
+                 'from_date': '2022-06-01',
+                 'to_date': '2022-06-15',
                  'site_aa': f_api.Adobe_Report_API.rs_motosnet,
                  'site_ga': f_api.Google_Report_API.property_motosnet,
                  'request_columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
