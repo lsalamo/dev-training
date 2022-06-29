@@ -2,9 +2,6 @@
     "dimensions": [
         {
             "name": "date"
-        },
-        {
-            "name": "platform"
         }
     ],
     "metrics": [

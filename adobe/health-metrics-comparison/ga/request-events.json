@@ -4,7 +4,7 @@
             "name": "eventName"
         },
         {
-            "name": "platform"
+            "name": "customEvent:custom_link"
         }
     ],
     "metrics": [

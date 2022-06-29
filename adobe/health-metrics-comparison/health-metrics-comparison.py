@@ -94,15 +94,20 @@ class GoogleAPI:
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
 
-    def get_request(self, file_payload, to_columns, columns_join):
+    def get_request(self, file_payload, to_columns, type_request):
         def run_request(platform):
             api = f_api.Google_Report_API(self.property_id, self.token, file_payload, self.from_date, self.to_date, platform)
             df_request = api.request()
-            df_request = df_request if df_request.empty else df_request.loc[:, from_columns]
+            if not df_request.empty:
+                if type_request == "event":
+                    from_columns = ['0_x', '0_y', '1_y', 2]
+                    df_request.loc[df_request['1_x'] != '(not set)', '0_x'] = df_request.loc[df_request['1_x'] != '(not set)', '1_x']
+                else:
+                    from_columns = ['0_x', '0_y', 1, 2]
+                df_request = df_request.loc[:, from_columns]
             df_request = clean_columns(df_request, platform, to_columns)
             return df_request
 
-        from_columns = ['0_x', '0_y', '1_y', 2]
         # web
         df_web = run_request(constants.PLATFORM_WEB)
         # android
@@ -111,16 +116,17 @@ class GoogleAPI:
         df_ios = run_request(constants.PLATFORM_IOS)
         # join dataframes
         frames = [df_web, df_and, df_ios]
+        columns_join = ['event'] if type_request == 'event' else ['day']
         df = f_df.Dataframe.Columns.join_by_columns(frames, columns_join, 'outer')
 
         f.Log.print('get_google', 'dataframe loaded <' + file_payload + '>')
         return df
 
     def get_google(self):
-        return self.get_request('ga/request.json', self.request_columns, ['day'])
+        return self.get_request('ga/request.json', self.request_columns, 'day')
 
     def get_google_events(self):
-        return self.get_request('ga/request-events.json', self.request_events_columns, ['event'])
+        return self.get_request('ga/request-events.json', self.request_events_columns, 'event')
 
 
 class GoogleCSV:
@@ -202,11 +208,11 @@ if __name__ == '__main__':
     result = {}
     result_events = {}
     variables = {'rs': {},
-                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTUzMDY4ODA2NzlfYWRmZWUxYTEtMTZkZS00NjkxLWFmMTAtMmZhOWM5MzhmM2Q0X2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1EzRUFSWEpGUE41SUhVT0VNUUZRSFFBT009PT09PT0iLCJzaWQiOiIxNjU1MzA2ODgwMzk0X2QyOWVjOTU3LWQ4NjQtNGJjYy05NTZjLTFlMWRjOGNmMTJiNl91ZTEiLCJydGlkIjoiMTY1NTMwNjg4MDY4MF9lMTQ4MTQwYi0zYjk0LTQ3ZTMtOGE3OC02Nzc1Y2I3NGJjZWNfZXcxIiwibW9pIjoiNWY0NTYxNmMiLCJwYmEiOiIiLCJydGVhIjoiMTY1NjUxNjQ4MDY4MCIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjU1MzA2ODgwNjc5Iiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.Z1sfXzQ_89dMz_oHLSs2zOJ13gN-UsUTlu0Ji5idxi5Ss9FQ8AJMcMhr9zk87iu6Xn6ZciXgPLLtMeO2F-dqXYi_-182d9XDEBgW2HMC11rOb5EAimVwbcAQPgGkZccw29vXAX-A4kb0bu5ZkFbcJPbd7VB4dGPsfr9jhbZh46WNPepToEyjr8Zv7YCPfh3a8bHMIhxuIaGL_l_24wRSgb6-yEKtwlh7KgqjP2fQeAO9MR9sWV7aYwGjddQQoCx511mJj26T3aW5Q8RlURF_xRuqRhDV0MqFMCVEsymU6Ist4PPk8ckLMw-TnP81xsrJ6kbLQT15TRJcbSoG5C4jdg',
-                 'token_ga': 'ya29.a0ARrdaM9LXy4Kr3ctQbt3OLu_RxHKETrSArn5kmdFCdBey4WE753qsjl6G5xom1SFbc6M9SqTP6RmnNsLTf7B0hEtTtNDDT7gRd6DRY-Lo0G_1NgHcnbcC1qrNS3G73zyXkUTZTiP9AqfNSR9U9APFVj4ffHavvI',
+                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTY1MzM2OTU1MjBfZjFlMTk2NmMtMWUzYS00ODkwLWE4YmYtODM1MzBlYmJlZDRhX2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1NEQjVTQ1BGUE41SUhVT0VNUUZRSFFBT009PT09PT0iLCJzaWQiOiIxNjU2NTMzNjk1MTk5XzJkZTliMjRmLWEzYjctNGFjNi05MzgzLWQ5OGU5ZmUxNTZiZl91ZTEiLCJydGlkIjoiMTY1NjUzMzY5NTUyMl9kZjZjMDE0Yy04ZDRiLTQ1NGItOWMyOS1lYjU0MzczZDEyNjRfZXcxIiwibW9pIjoiNDY1MzI0ZSIsInBiYSI6IiIsInJ0ZWEiOiIxNjU3NzQzMjk1NTIyIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24iLCJjcmVhdGVkX2F0IjoiMTY1NjUzMzY5NTUyMCJ9.FTahCRCkUG0MpyVnB0jrdEXhgiZPZOR0h45ZquQ1rHGwgMIDCayLK5Ls5ZleFZ_CMhaVU2EdpaLT6dXX57RCTCyl5TWd5hgDBPOfrCbgiQVrhKmIX0KLAfLYKZXGTTVwo4CuU0X_Aj23gXRXr91Gm_OqRizzIHY3jEO9mdL58roOVGzvazJyDDx5mkmWjqoSUo2QuBZ6m1yzhBmZELVOc0malQ0F80xHMAKoo-FwS1OfVUBJ_jSNVtHMPA58YBFPT3WayduBmhHNbacg_nCFV59rgjOZeCHN9bGwAEYCC4azJYTswBmyZ_rfQpTrSvLdnPpkYHEx9giHIyFX9nK_Rg',
+                 'token_ga': 'ya29.A0ARrdaM9F8JT2MwRpkVUwlgRBeLjE7nAHTZv3Kg5bfXHX43ZJrA-0QXmk81WMf7u80IRxJZKu1M1C4vPGpn9KbNMVNN0iYXwkiZrkOr1zXWd7lHOBPP6maRbybjXJRtuPz4cexYjLFV84FnjRyhgHKDSW4DaP8N4YUNnWUtBVEFTQVRBU0ZRRl91NjFWQy1lZmJBMGNqOG1acVB4NWNCN3dkQQ0166',
                  'directory': '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison',
-                 'from_date': '2022-06-01',
-                 'to_date': '2022-06-15',
+                 'from_date': '2022-06-28',
+                 'to_date': '2022-06-28',
                  'site_aa': f_api.Adobe_Report_API.rs_motosnet,
                  'site_ga': f_api.Google_Report_API.property_motosnet,
                  'request_columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
