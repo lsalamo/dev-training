@@ -18,9 +18,9 @@ class CSV:
 
     @staticmethod
     def dataframe_to_file(df, file):
-        dir = os.path.join(Directory.get_working_directory(), 'csv/')
-        if Directory.exists_directory(dir):
-            file = os.path.join(dir, file)
+        directory = os.path.join(Directory.get_working_directory(), 'csv/')
+        if Directory.exists_directory(directory):
+            file = os.path.join(directory, file)
             df.to_csv(file)
         else:
             Log.print_and_exit('CSV.dataframe_to_file', 'Directory csv does not exist')
@@ -42,23 +42,23 @@ class Log:
 
 class Directory:
     @staticmethod
-    def change_working_directory(dir):
-        os.chdir(dir)
+    def change_working_directory(directory):
+        os.chdir(directory)
 
     @staticmethod
     def get_working_directory():
         return os.getcwd()
 
     @staticmethod
-    def create_directory(dir):
-        dir = os.path.join(Directory.get_working_directory(), dir)
-        if os.path.isdir(dir):
-            shutil.rmtree(dir)
-        os.makedirs(dir)
+    def create_directory(directory):
+        directory = os.path.join(Directory.get_working_directory(), directory)
+        if os.path.isdir(directory):
+            shutil.rmtree(directory)
+        os.makedirs(directory)
 
     @staticmethod
-    def exists_directory(dir):
-        if os.path.isdir(dir):
+    def exists_directory(directory):
+        if os.path.isdir(directory):
             return True
         else:
             return False

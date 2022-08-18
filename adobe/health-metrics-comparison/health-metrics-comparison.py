@@ -1,16 +1,8 @@
-# https://github.com/AdobeDocs/analytics-2.0-apis
-# https://github.com/pitchmuc/adobe-analytics-api-2.0
 # AA > https://adobedocs.github.io/analytics-2.0-apis/
 # GA4 > https://ga-dev-tools.web.app/ga4/query-explorer/
 
-import requests
 import pandas as pd
-import numpy as np
-import os
 import sys
-import shutil
-import sys
-import re
 
 # adding libraries folder to the system path
 sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
@@ -47,7 +39,7 @@ def clean_columns(df, platform, to_columns):
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
 class Adobe:
-    def __init__(self,request_columns, request_events_columns, rs, token, from_date, to_date):
+    def __init__(self, request_columns, request_events_columns, rs, token, from_date, to_date):
         self.request_columns = request_columns
         self.request_events_columns = request_events_columns
         self.rs = rs
@@ -101,7 +93,8 @@ class GoogleAPI:
             if not df_request.empty:
                 if type_request == "event":
                     from_columns = ['0_x', '0_y', '1_y', 2]
-                    df_request.loc[df_request['1_x'] != '(not set)', '0_x'] = df_request.loc[df_request['1_x'] != '(not set)', '1_x']
+                    df_request["1_x"] = df_request["1_x"].replace("(not set)", None)
+                    df_request.loc[df_request['1_x'].notnull(), '0_x'] = df_request.loc[df_request['1_x'].notnull(), '1_x']
                 else:
                     from_columns = ['0_x', '0_y', 1, 2]
                 df_request = df_request.loc[:, from_columns]
@@ -206,20 +199,20 @@ def merge_adobe_google_platform(df, platform, columns):
 # main function
 if __name__ == '__main__':
     result = {}
-    result_events = {}
     variables = {'rs': {},
-                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NTY1MzM2OTU1MjBfZjFlMTk2NmMtMWUzYS00ODkwLWE4YmYtODM1MzBlYmJlZDRhX2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1NEQjVTQ1BGUE41SUhVT0VNUUZRSFFBT009PT09PT0iLCJzaWQiOiIxNjU2NTMzNjk1MTk5XzJkZTliMjRmLWEzYjctNGFjNi05MzgzLWQ5OGU5ZmUxNTZiZl91ZTEiLCJydGlkIjoiMTY1NjUzMzY5NTUyMl9kZjZjMDE0Yy04ZDRiLTQ1NGItOWMyOS1lYjU0MzczZDEyNjRfZXcxIiwibW9pIjoiNDY1MzI0ZSIsInBiYSI6IiIsInJ0ZWEiOiIxNjU3NzQzMjk1NTIyIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24iLCJjcmVhdGVkX2F0IjoiMTY1NjUzMzY5NTUyMCJ9.FTahCRCkUG0MpyVnB0jrdEXhgiZPZOR0h45ZquQ1rHGwgMIDCayLK5Ls5ZleFZ_CMhaVU2EdpaLT6dXX57RCTCyl5TWd5hgDBPOfrCbgiQVrhKmIX0KLAfLYKZXGTTVwo4CuU0X_Aj23gXRXr91Gm_OqRizzIHY3jEO9mdL58roOVGzvazJyDDx5mkmWjqoSUo2QuBZ6m1yzhBmZELVOc0malQ0F80xHMAKoo-FwS1OfVUBJ_jSNVtHMPA58YBFPT3WayduBmhHNbacg_nCFV59rgjOZeCHN9bGwAEYCC4azJYTswBmyZ_rfQpTrSvLdnPpkYHEx9giHIyFX9nK_Rg',
-                 'token_ga': 'ya29.A0ARrdaM9F8JT2MwRpkVUwlgRBeLjE7nAHTZv3Kg5bfXHX43ZJrA-0QXmk81WMf7u80IRxJZKu1M1C4vPGpn9KbNMVNN0iYXwkiZrkOr1zXWd7lHOBPP6maRbybjXJRtuPz4cexYjLFV84FnjRyhgHKDSW4DaP8N4YUNnWUtBVEFTQVRBU0ZRRl91NjFWQy1lZmJBMGNqOG1acVB4NWNCN3dkQQ0166',
+                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NjA2NDYxNTAxOTdfMTE5NjE2NmYtNjlhZC00ODNkLWI2Y2MtNWM2OTc5NjMyN2M2X2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1dJNVhTQ1BGUEU1SUhVT0VNUUZRSFFBQVE9PT09PT0iLCJzaWQiOiIxNjYwNjQ2MTQ5ODgwXzAxZDcyNjdlLTBjNTctNDU4NS05NWRkLWUyZWJiYTU5ZGEwZF91ZTEiLCJydGlkIjoiMTY2MDY0NjE1MDE5OF83Y2EwNjc3My04ZjRjLTQ3YTktYmY0Mi1jMjg0YjdhODYyNTNfZXcxIiwibW9pIjoiNzJmNzlkYWEiLCJwYmEiOiIiLCJydGVhIjoiMTY2MTg1NTc1MDE5OCIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjYwNjQ2MTUwMTk3Iiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.R1lAOvoNqdnU-QtEFyK6KWOdGu0v9V1Z45QPluDB6VDtAFm02tIpK1MwjYNQDE3E9ID-saY4rsyYlSRc5hsxHG_H6z5TGuS19COnsO7KI4hsH8pw41HZvNsPlYRNv3mXZLaK5tjA1k2p0OhpCjzOxXbB8rvC1lHFlzSaUZTFderJ33-3p1H8aeTPQ4Bcxhs9uu0S5crDien_JGNKVYWnhlsmNrkVaLViqhZ37N1PtTotZIY3mi9m_GKFJmTub4RLka2gqfoOf8QdLa9pgojZr4mgxdp16y33tzX_BEmfbdNpSvLnOyovEMdSybF55FPPsp4cMcxkc2QVLtzAd2Wl-Q',
+                 'token_ga': 'ya29.A0AVA9y1ugv3Ekhg6xT4ds7qqo-Eqw8CaYdYDqNJq2VlBTjeZBd3R0A91z-akcqL7_z-4apCecbInRAIn6pSEezlwP-79u6imYerLmGaIDp95cUdJ7YcN-FwhnFWOeBPlMqxzAmsMhHBMtkAB2Mr8iE1fRn4rswoAaCgYKATASATASFQE65dr8LRDYz-HLn977-xPIEaIp_Q0166',
                  'directory': '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/health-metrics-comparison',
-                 'from_date': '2022-06-28',
-                 'to_date': '2022-06-28',
-                 'site_aa': f_api.Adobe_Report_API.rs_motosnet,
-                 'site_ga': f_api.Google_Report_API.property_motosnet,
+                 'from_date': '2022-06-01',
+                 'to_date': '2022-08-15',
+                 'site_aa': f_api.Adobe_Report_API.rs_fotocasaes,
+                 'site_ga': f_api.Google_Report_API.property_fotocasaes,
                  'request_columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
                  'request_events_columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors',
                  'merge_columns': 'day,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga',
                  'merge_events_columns': 'event,{{platform}}-count-aa,{{platform}}-count-ga,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga'
                  }
+    result_events = {}
 
     init()
 

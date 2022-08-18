@@ -1,136 +1,78 @@
-import requests
+# AA > https://adobedocs.github.io/analytics-2.0-apis/
+
 import pandas as pd
-import os
-import shutil
 import sys
-import datetime
+
+# adding libraries folder to the system path
+sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
+
+import functions as f
+import api as f_api
+import dataframe as f_df
+
+
+def init():
+    f.Directory.change_working_directory(variables['directory'])
+    f.Directory.create_directory('csv')
+    f.Log.print('init', 'loaded')
+
 
 # =============================================================================
-# VARIABLES
+# REQUEST ADOBE ANALYTICS
 # =============================================================================
+class Adobe:
+    def __init__(self, token):
+        self.token = token
 
-TOKEN = "eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LTEuY2VyIn0.eyJpZCI6IjE2Mjk3MDU4ODQyMzNfYjcyYTY1YTQtYWQwMS00NGQ1LWE1OTUtNTU4MjFiOTM2NWNlX3VlMSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1ZTlmZDU1ZmE5MmM0YTBhODJiM2YyYTc0YzA4OGU2MCIsInVzZXJfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiYXMiOiJpbXMtbmExIiwiYWFfaWQiOiJBRDRBN0ExRDYwODhGOUY0MEE0OTVDNjhAdGVjaGFjY3QuYWRvYmUuY29tIiwiZmciOiJWV1pZSVlGS0ZMRzVQSDRHR01aUkJQUUFBQT09PT09PSIsIm1vaSI6ImJhMmIxOGQzIiwiZXhwaXJlc19pbiI6Ijg2NDAwMDAwIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE2Mjk3MDU4ODQyMzMifQ.oUtsWaYnM_Bg__hca2rxWJ47e2JfNxBxnVAv7I4VLSVwWtjHkaD0pW2nDhXio9it5xOcbl4VUgmwzcTj8nHPNClqojqTTShWet31d6TjUz4Udgl6GA3T60OCgmZr95UOHMmac0YOYbX3oD3Jpo2Qew20BBoSY53DyNmCSng9D3xM6N7jTavjUS1jHFB4oX0W4yQQAcek4QilDZ4JXyL1xqMddfGSYAC_5cjJKOHldp7f4COXy7QHM6K3r-kTMCdBiHPQrgCw_C7J1jCyZaCN-RlqYHHuGDUo2YThW7zkzP57SMKUcUTWeoWSxg-EcuFetgun5Nsw1JrpO8y5x2PlBA"
-FROM_DATE = "2021-02-01"
-TO_DATE = "2022-01-31"
-
-# Directory
-os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-license')
-DIR_PARENT = os.getcwd()
-DIR_EXPORT = 'export'
-
-result = {}
-
-# =============================================================================
-# REQUEST RS
-# =============================================================================
-
-payload = {}
-url = 'https://analytics.adobe.io/api/schibs1/collections/suites?limit=100&page=0'
-headers = {
-  'Accept': 'application/json',
-  'Authorization': 'Bearer ' + TOKEN,
-  'x-api-key': '5e9fd55fa92c4a0a82b3f2a74c088e60',
-  'x-proxy-global-company-id': 'schibs1'
-}
-response = requests.request("GET", url, headers=headers, data=payload)
-df = pd.DataFrame();
-if response.status_code != 200:
-    sys.exit("ERROR " + str(response.status_code) + " > " + response.text)
-else:
-    response = response.json()
-    total_records = response['numberOfElements']
-    if total_records > 0:
-        df = df.append(pd.DataFrame.from_dict(response['content']))
+    def get_adobe_report_suite(self):
+        # request
+        api = f_api.Adobe_Report_Suite_API(self.token)
+        df = api.request()
         df = df.loc[df['collectionItemType'] == 'reportsuite']
-result["df_rs"] = df
+        f.Log.print('get_adobe_report_suite', 'dataframe loaded')
+        return df
 
+    def get_adobe_license(self, file_payload, from_date, to_date,):
+        df = pd.DataFrame()
+        for index, row in result['df_aa_rs'].iterrows():
+            f.Log.print('get_adobe_license', str(index) + ' - rsid:' + row['rsid'])
 
-# =============================================================================
-# REQUEST LICENSE
-# =============================================================================
-
-def get_payload():
-    file = open('payload-license-by-week.json')
-    line = file.read()
-    file.close()
-    return line
-payload = get_payload()
-url = 'https://analytics.adobe.io/api/schibs1/reports'
-headers = {
-  'Accept': 'application/json',
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer ' + TOKEN,
-  'x-api-key': '5e9fd55fa92c4a0a82b3f2a74c088e60',
-  'x-proxy-global-company-id': 'schibs1'
-}
-
-df = pd.DataFrame();
-for index, row in result['df_rs'].iterrows():
-    print(index, row['rsid'])
-    response = requests.request("POST", url, headers=headers, data=payload.replace('{{rs}}', row['rsid']))
-    if response.status_code != 200:
-        sys.exit("ERROR " + str(response.status_code) + " > " + response.text)
-    else:
-        response = response.json()
-        total_records = response['numberOfElements']
-        if total_records > 0:
-            df_request = pd.DataFrame.from_dict(response['rows'])
+            # request
+            api = f_api.Adobe_Report_API(row['rsid'], self.token, file_payload, from_date, to_date)
+            df_request = api.request()
+            df_request = df_request.loc[:, ('value', 0, 1, 2)]
+            df_request.columns = 'value,total-page-views,total-page-events,total'.split(',')
+            df_values = f_df.Dataframe.Cast.columns_regex_to_int64(df_request, '^(total).*$')
+            df_request[df_values.columns] = df_values
             df_request['rs'] = row['rsid']
-            df_request[['pageviews','pageevents','total']] = pd.DataFrame(df_request['data'].tolist(), index= df_request.index)
             df_request['week'] = pd.to_datetime(df_request["value"]).dt.strftime('%W')
             df_request['year'] = pd.to_datetime(df_request["value"]).dt.year
-            df = df.append(df_request)
-result["df_report_license_week"] = df
+            df = f_df.Dataframe.Rows.concat_two_frames(df, df_request)
+
+        df = df.groupby(['year', 'week']).agg(
+            sum_pageviews=pd.NamedAgg(column='total-page-views', aggfunc='sum'),
+            sum_pageevents=pd.NamedAgg(column='total-page-events', aggfunc='sum'),
+            sum_total=pd.NamedAgg(column='total', aggfunc='sum'))
+
+        return df
 
 
-df = result['df_report_license_week'].groupby(['year','week']).agg(
-    sum_pageviews = pd.NamedAgg(column='pageviews', aggfunc='sum'),
-    sum_pageevents = pd.NamedAgg(column='pageevents', aggfunc='sum'),
-    sum_total = pd.NamedAgg(column='total', aggfunc='sum')
-)
-result["df_report_license_week_grouping"] = df
+# main function
+if __name__ == '__main__':
+    result = {}
+    variables = {'rs': {},
+                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NjA4MTIyMjA1MjFfZTUwNWMwMzktNTRhMi00Y2JmLThiM2ItZGVkNDliMTgyZmZiX2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1dPS1hNMkpGUEc1SUhVT0Y0WUZRSFFBQ1k9PT09PT0iLCJzaWQiOiIxNjYwODEyMjIwMTk1XzM0MjU5ODcxLTUxOTAtNGY5Zi04OTEyLTJiZTBkNjZkYjFhZl91ZTEiLCJydGlkIjoiMTY2MDgxMjIyMDUyMl8zOGI0M2RiZC1mNWQwLTQxNDQtYWNkYS1kZjVmN2Q5MjI3ODFfZXcxIiwibW9pIjoiZDZhMGMxZTQiLCJwYmEiOiIiLCJydGVhIjoiMTY2MjAyMTgyMDUyMiIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsImNyZWF0ZWRfYXQiOiIxNjYwODEyMjIwNTIxIiwic2NvcGUiOiJvcGVuaWQsQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0LGFkZGl0aW9uYWxfaW5mby5qb2JfZnVuY3Rpb24ifQ.NExWReRVfz3JfD29Wud58KDRkbUbf1HqwkW9IRPSoU0RBhqZAY77nu9ejkaOmiLZw37-fn6UDMg3vSlSru14BBFTPcwjS6iDMrKYu-se5fbiLsZ50OaJVLzPLWsfy7hLzB47VtUoe5ax6LjwRJR1VrX9ml517VhZ-a0Dk5KkQ0b_kQ5jBwBrIdEWI6KLtlxBK3qjkhnof5QUuml5e-YjBfZqx_LhT1Kbu90-sGxsnKFLMPNYcC6tB9_K3_oQXB7ElwX7nA57vix0CJWKcC0SxL408ZGOk83QMr_wa2j1tRWNCTzjtFZ5S9a8cdcdUI_CJEetvxzfOp43Ur1Kt-UOUQ',
+                 'directory': '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-license',
+                 'from_date': '2022-01-01',
+                 'to_date': '2022-12-31',
+                 'file_payload': 'aa/request.json'
+                 }
 
+    init()
 
+    adobe = Adobe(variables['token_aa'])
+    result['df_aa_rs'] = adobe.get_adobe_report_suite()
+    result['df_aa_license'] = adobe.get_adobe_license(variables['file_payload'], variables['from_date'], variables['to_date'])
+    f.CSV.dataframe_to_file(result['df_aa_license'], 'df.csv')
 
-
-# # =============================================================================
-# #   IMPORT CSV
-# # =============================================================================
-
-# df = pd.read_csv(DIR_PATH + "/data_license.csv")
-
-# # =============================================================================
-# #   RESULT
-# # =============================================================================
-
-# df_1feb2020_to_31jan2021 = df[
-#     ((df["year"].astype("int64") == 2020) & (df["month"].astype("str") != "Jan")) |
-#     ((df["year"].astype("int64") == 2021) & (df["month"].astype("str") == "Jan"))
-# ]
-# df_last_year = pd.DataFrame(df_1feb2020_to_31jan2021.groupby(["report_suite", "rsid"])['total'].agg('sum'))
-# df_last_year.rename(columns=({'total': '1feb2020_to_31jan2021'}),inplace=True)
-# df_last_year["1feb2020_to_31jan2021"].sum()
-
-# df_1feb2021_to_31jan2022 = df[
-#     ((df["year"].astype("int64") == 2021) & (df["month"].astype("str") != "Jan")) |
-#     ((df["year"].astype("int64") == 2022) & (df["month"].astype("str") == "Jan"))
-# ]
-# df_current_year = pd.DataFrame(df_1feb2021_to_31jan2022.groupby(["report_suite", "rsid"])['total'].agg('sum'))
-# df_current_year.rename(columns=({'total': '1feb2021_to_31jan2022'}),inplace=True)
-# df_current_year["1feb2021_to_31jan2022"].sum()
-
-# result = pd.merge(df_last_year,df_current_year,on=['report_suite', 'rsid'])
-# result = result.sort_values(by='1feb2020_to_31jan2021', ascending=False)
-# result.info(verbose=True)
-# result.dtypes
-# result.index()
-
-# =============================================================================
-#   EXPORT CSV
-# =============================================================================
-
-dir = os.path.join(DIR_PARENT, DIR_EXPORT)
-if os.path.isdir(dir):
-    shutil.rmtree(dir)
-os.makedirs(dir)
-result['df_report_license_week_grouping'].to_csv(dir + "/data_license.csv")
+print('> END EXECUTION')

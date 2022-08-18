@@ -1,4 +1,3 @@
-from typing import overload
 import pandas as pd
 import numpy as np
 from functools import reduce
@@ -38,6 +37,17 @@ class Dataframe:
     class Rows:
         def __init__(self):
             pass
+
+        @staticmethod
+        def concat_two_frames(frame_left, frame_right) -> pd.DataFrame:
+            """ CALL > Dataframe.Rows.concat_two_frames_by_columns(fr1, fr2) """
+            frames = [frame_left, frame_right]
+            return pd.concat(frames, ignore_index=True)
+
+        @staticmethod
+        def concat_frames(frames) -> pd.DataFrame:
+            """ CALL > Dataframe.Rows.concat_frames([fr1, fr2, ...]) """
+            return pd.concat(frames, ignore_index=True)
 
     class Columns:
         def __init__(self):
@@ -107,5 +117,3 @@ class Dataframe:
             df_values = pd.DataFrame(df[column].tolist(), index=df.index)
             df = Dataframe.Columns.join_two_frames_by_index(df, df_values, 'inner')
             return df
-
-

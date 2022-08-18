@@ -31,7 +31,7 @@ class Adobe_API(API):
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token,
             'x-api-key': '5e9fd55fa92c4a0a82b3f2a74c088e60',
-            'x-proxy-global-company-id': 'schibs1'
+            #'x-proxy-global-company-id': 'schibs1'
         }
         super().__init__(method, url, headers, payload)
 
@@ -66,6 +66,24 @@ class Adobe_Report_API(Adobe_API):
             if len(rows) > 0:
                 df = pd.DataFrame.from_dict(rows)
                 df = f_df.Dataframe.Columns.split_column_array_into_columns(df, 'data')
+        return df
+
+
+class Adobe_Report_Suite_API(Adobe_API):
+
+    def __init__(self, token):
+        # endpoint
+        url = 'https://analytics.adobe.io/api/schibs1/collections/suites?limit=100&page=0'
+        payload = {}
+        super().__init__('GET', url, token, payload)
+
+    def request(self):
+        df = pd.DataFrame()
+        response = super().request()
+        if 'content' in response:
+            rows = response['content']
+            if len(rows) > 0:
+                df = pd.DataFrame.from_dict(rows)
         return df
 
 

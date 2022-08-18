@@ -3,7 +3,6 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 
-# df['day'] = pd.to_datetime(df['dimensionValues']).dt.strftime('%Y%m%d')
 # https://docs.python.org/3.8/library/datetime.html
 class Datetime:
     @staticmethod
@@ -22,14 +21,14 @@ class Datetime:
         return value.year
 
     @staticmethod
-    def str_to_datetime(value: str, format):
+    def str_to_datetime(value: str, pattern):
         """ CALL > Datetime.str_to_datetime('2022-05-01', '%Y-%m-%d') """
-        return datetime.strptime(value, format)
+        return datetime.strptime(value, pattern)
 
     @staticmethod
-    def datetime_to_str(value: datetime, format):
+    def datetime_to_str(value: datetime, pattern):
         """ CALL > Datetime.datetime_to_str(dt, '%Y-%m-%dT00:00:000') """
-        return value.strftime(format)
+        return value.strftime(pattern)
 
     @staticmethod
     def datetime_add_days(value: datetime, days):
