@@ -1,6 +1,8 @@
 """Google Analytics Data API sample quickstart application.
 This application demonstrates the usage of the Analytics Data API using
 service account credentials.
+API:
+  https://github.com/googleapis/python-analytics-data
 Usage:
   pip3 install --upgrade google-analytics-data
   python3 quickstart.py
@@ -11,6 +13,7 @@ from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import DateRange
 from google.analytics.data_v1beta.types import Dimension
 from google.analytics.data_v1beta.types import Metric
+from google.analytics.data_v1beta.types import OrderBy
 from google.analytics.data_v1beta.types import RunReportRequest
 
 
@@ -20,10 +23,12 @@ def sample_run_report(property_id):
     client = BetaAnalyticsDataClient()
 
     request = RunReportRequest(
-        property=f"properties/{property_id}",
+        property=f'properties/{property_id}',
         dimensions=[Dimension(name="date")],
         metrics=[Metric(name="sessions"), Metric(name="totalUsers")],
         date_ranges=[DateRange(start_date='2022-08-01', end_date="today")],
+        #order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="date"), desc=True)]
+        order_bys=[OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name="date"), desc=False)]
     )
     response = client.run_report(request)
 
@@ -37,9 +42,11 @@ def sample_run_report(property_id):
 
 
 if __name__ == "__main__":
-    os.environ[
-        'GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google-analytics/google-application-credentials.json"
+    # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google-analytics/google-application-credentials.json"
     property_id_motos = "273930537"
     sample_run_report(property_id_motos)
 
 print('> END EXECUTION')
+
+
