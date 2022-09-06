@@ -37,7 +37,6 @@ class Adobe_API(API):
 
 
 class Adobe_Report_API(Adobe_API):
-
     def __init__(self, rs, token, url_request, date_from, to_date):
         # endpoint
         url = 'https://analytics.adobe.io/api/schibs1/reports'
@@ -70,7 +69,6 @@ class Adobe_Report_API(Adobe_API):
 
 
 class Adobe_Report_Suite_API(Adobe_API):
-
     def __init__(self, token):
         # endpoint
         url = 'https://analytics.adobe.io/api/schibs1/collections/suites?limit=100&page=0'
@@ -105,7 +103,6 @@ class Google_API(API):
 
 
 class Google_Report_API(Google_API):
-
     def __init__(self, property, token, url_request, date_from, to_date, platform):
         # endpoint
         url = 'https://analyticsdata.googleapis.com/v1beta/properties/' + property + ':runReport'

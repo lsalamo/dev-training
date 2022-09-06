@@ -1,4 +1,5 @@
-"""Google Analytics Data API sample quickstart application.
+"""
+Google Analytics Data API sample quickstart application.
 This application demonstrates the usage of the Analytics Data API using
 service account credentials.
 API:
@@ -27,7 +28,7 @@ def sample_run_report(property_id):
         dimensions=[Dimension(name="date")],
         metrics=[Metric(name="sessions"), Metric(name="totalUsers")],
         date_ranges=[DateRange(start_date='2022-08-01', end_date="today")],
-        #order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="date"), desc=True)]
+        # order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="date"), desc=True)]
         order_bys=[OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name="date"), desc=False)]
     )
     response = client.run_report(request)
