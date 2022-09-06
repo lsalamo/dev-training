@@ -15,6 +15,9 @@ from google.analytics.data_v1beta.types import DateRange
 from google.analytics.data_v1beta.types import Dimension
 from google.analytics.data_v1beta.types import Metric
 from google.analytics.data_v1beta.types import OrderBy
+from google.analytics.data_v1beta.types import Filter
+from google.analytics.data_v1beta.types import FilterExpression
+from google.analytics.data_v1beta.types import FilterExpressionList
 from google.analytics.data_v1beta.types import RunReportRequest
 
 
@@ -29,7 +32,22 @@ def sample_run_report(property_id):
         metrics=[Metric(name="sessions"), Metric(name="totalUsers")],
         date_ranges=[DateRange(start_date='2022-08-01', end_date="today")],
         # order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="date"), desc=True)]
-        order_bys=[OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name="date"), desc=False)]
+        order_bys=[OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name="date"), desc=False)],
+        dimension_filter=FilterExpression(
+            and_group=FilterExpressionList(
+                expressions=[
+                    FilterExpression(
+                        filter=Filter(
+                            field_name="platform",
+                            string_filter=Filter.StringFilter(
+                                match_type=Filter.StringFilter.MatchType.EXACT,
+                                value="web",
+                            ),
+                        )
+                    )
+                ]
+            )
+        )
     )
     response = client.run_report(request)
 
@@ -45,7 +63,7 @@ def sample_run_report(property_id):
 if __name__ == "__main__":
     # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google-analytics/google-application-credentials.json"
-    property_id_motos = "273930537"
+    property_id_motos = '273930537'
     sample_run_report(property_id_motos)
 
 print('> END EXECUTION')

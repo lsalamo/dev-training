@@ -9,6 +9,9 @@ from google.analytics.data_v1beta.types import DateRange
 from google.analytics.data_v1beta.types import Dimension
 from google.analytics.data_v1beta.types import Metric
 from google.analytics.data_v1beta.types import OrderBy
+from google.analytics.data_v1beta.types import Filter
+from google.analytics.data_v1beta.types import FilterExpression
+from google.analytics.data_v1beta.types import FilterExpressionList
 from google.analytics.data_v1beta.types import RunReportRequest
 
 
@@ -19,7 +22,7 @@ class API_GA4:
         # specified in GOOGLE_APPLICATION_CREDENTIALS environment variable.
         self.client = BetaAnalyticsDataClient()
 
-    def request(self, property_id: str, dimensions: str, metrics: str, date_ranges: dict, order_bys: dict) -> pd.DataFrame:
+    def request(self, property_id: str, dimensions: str, metrics: str, date_ranges: dict, order_bys: dict, dimension_filter: dict) -> pd.DataFrame:
         # Dimensions
         list_dimensions = dimensions.split(',')
         for index, dimension in enumerate(list_dimensions):
@@ -39,12 +42,30 @@ class API_GA4:
         else:
             order_bys = [OrderBy(dimension=OrderBy.MetricOrderBy(metric_name=order_bys['metric']), desc=order_bys['desc'])]
 
+        # Dimension Filter
+        dimension_filter = FilterExpression(
+                and_group=FilterExpressionList(
+                    expressions=[
+                        FilterExpression(
+                            filter=Filter(
+                                field_name=dimension_filter['dimension'],
+                                string_filter=Filter.StringFilter(
+                                    match_type=Filter.StringFilter.MatchType.EXACT,
+                                    value=dimension_filter['value'],
+                                ),
+                            )
+                        )
+                    ]
+                )
+            )
+
         request = RunReportRequest(
             property=f'properties/{property_id}',
             dimensions=list_dimensions,
             metrics=list_metrics,
             date_ranges=date_ranges,
-            order_bys=order_bys
+            order_bys=order_bys,
+            dimension_filter=dimension_filter
         )
         response = self.client.run_report(request)
 
