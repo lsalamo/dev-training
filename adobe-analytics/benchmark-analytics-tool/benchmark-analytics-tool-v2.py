@@ -144,15 +144,21 @@ print('\n=====================================  BEGIN EXECUTION ================
 # main function
 if __name__ == '__main__':
     result = {}
-    variables = {'rs': {},
-                 'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NjI1NjY4NTgwOTNfN2JhYjk3MzctY2Q2MS00NDJmLTljMmUtOTc4YWIxNTE4N2Y4X2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1lIT1BZVEZGUEU1SUhVS0VNUUZZSFFBQk09PT09PT0iLCJzaWQiOiIxNjYyNTY2ODU3NTkwXzllZjY1MmMzLWYzYzUtNDc0MS04MjkyLWQwMzkxMGI5YTcyNV91ZTEiLCJydGlkIjoiMTY2MjU2Njg1ODA5NF8wMjc4MGVkMC1mZWExLTRlMzctYTY1My04Mjk1ODQyMWMwYWVfZXcxIiwibW9pIjoiMzlkMzY5MzkiLCJwYmEiOiIiLCJydGVhIjoiMTY2Mzc3NjQ1ODA5NCIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCxhZGRpdGlvbmFsX2luZm8uam9iX2Z1bmN0aW9uIiwiY3JlYXRlZF9hdCI6IjE2NjI1NjY4NTgwOTMifQ.EEBaBlkXqOe9RESiae9JJEITrj8BE3XRjZ1RWmJcAigpmGswyAhVDCQEafliMsda40RzBw9dUlpFqWVkm-_shY3Ym-XHrwKczDqlPK9IwDtVFFB7IzhK4s9eo3BI9fj6794RqSZySdLhVqwpQp99YsfPH8UhpnwbZ3QnCCob4mdKebkWm3oheHoQZVKxrYxUSErksY-Heh_ugjWVV9dSes0AXcEi_DyWlVFFF2WRFrIaqfLJPcqIJmpGyTGbKEMIgZbYR_NZAanLIHvvrf8IV6jScLUVChK3bSp39dA9pRI7B7tMNMk5mcG6Bg6dVKBYQG9RM7qD3yF57D1xltWLJQ',
-                 'from_date': '2022-08-01',
-                 'to_date': '2022-09-07',
-                 'site_aa': f_api.Adobe_Report_API.rs_motosnet,
-                 'site_ga': f_api.Google_Report_API.property_motosnet,
-                 'columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
-                 'columns_tools': 'day,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga'
-                 }
+    site = {
+        'motosnet': {'str': 'motosnet', 'aa': f_api.Adobe_Report_API.rs_motosnet, 'ga': f_api.Google_Report_API.property_motosnet},
+        'cochesnet': {'str': 'cochesnet', 'aa': f_api.Adobe_Report_API.rs_cochesnet, 'ga': f_api.Google_Report_API.property_cochesnet},
+    }
+    site = site['cochesnet']
+    f.Log.print('site', site['str'])
+    variables = {
+        'token_aa': 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2NjI1NjY4NTgwOTNfN2JhYjk3MzctY2Q2MS00NDJmLTljMmUtOTc4YWIxNTE4N2Y4X2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiV1lIT1BZVEZGUEU1SUhVS0VNUUZZSFFBQk09PT09PT0iLCJzaWQiOiIxNjYyNTY2ODU3NTkwXzllZjY1MmMzLWYzYzUtNDc0MS04MjkyLWQwMzkxMGI5YTcyNV91ZTEiLCJydGlkIjoiMTY2MjU2Njg1ODA5NF8wMjc4MGVkMC1mZWExLTRlMzctYTY1My04Mjk1ODQyMWMwYWVfZXcxIiwibW9pIjoiMzlkMzY5MzkiLCJwYmEiOiIiLCJydGVhIjoiMTY2Mzc3NjQ1ODA5NCIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLEFkb2JlSUQscmVhZF9vcmdhbml6YXRpb25zLGFkZGl0aW9uYWxfaW5mby5wcm9qZWN0ZWRQcm9kdWN0Q29udGV4dCxhZGRpdGlvbmFsX2luZm8uam9iX2Z1bmN0aW9uIiwiY3JlYXRlZF9hdCI6IjE2NjI1NjY4NTgwOTMifQ.EEBaBlkXqOe9RESiae9JJEITrj8BE3XRjZ1RWmJcAigpmGswyAhVDCQEafliMsda40RzBw9dUlpFqWVkm-_shY3Ym-XHrwKczDqlPK9IwDtVFFB7IzhK4s9eo3BI9fj6794RqSZySdLhVqwpQp99YsfPH8UhpnwbZ3QnCCob4mdKebkWm3oheHoQZVKxrYxUSErksY-Heh_ugjWVV9dSes0AXcEi_DyWlVFFF2WRFrIaqfLJPcqIJmpGyTGbKEMIgZbYR_NZAanLIHvvrf8IV6jScLUVChK3bSp39dA9pRI7B7tMNMk5mcG6Bg6dVKBYQG9RM7qD3yF57D1xltWLJQ',
+        'from_date': '2022-08-01',
+        'to_date': '2022-09-07',
+        'site_aa': site['aa'],
+        'site_ga': site['ga'],
+        'columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
+        'columns_tools': 'day,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga'
+    }
 
     init()
 
