@@ -34,6 +34,18 @@ class Dataframe:
             df = Dataframe.Columns.select_columns_by_regex(df, regex)
             return df.astype(np.int64)
 
+    class Sort:
+        def __init__(self):
+            pass
+
+        @staticmethod
+        def sort_by_columns(df: pd.DataFrame, columns: list, ascending: bool) -> pd.DataFrame:
+            """ CALL > Dataframe.Sort.sort_by_columns(df, '['col1', 'col2']', False)
+            @param df: pd.DataFrame
+            @type columns: list
+            """
+            return df.sort_values(by=columns, ascending=ascending)
+
     class Rows:
         def __init__(self):
             pass
@@ -48,6 +60,11 @@ class Dataframe:
         def concat_frames(frames) -> pd.DataFrame:
             """ CALL > Dataframe.Rows.concat_frames([fr1, fr2, ...]) """
             return pd.concat(frames, ignore_index=True)
+
+        @staticmethod
+        def reset_index(df) -> pd.DataFrame:
+            """ CALL > Dataframe.Rows.reset_index([df) """
+            df.reset_index(drop=True)
 
     class Columns:
         def __init__(self):
@@ -65,6 +82,11 @@ class Dataframe:
         def columns_names(df):
             """ CALL > Dataframe.Columns.columns_names(df) """
             return list(df.columns)
+
+        @staticmethod
+        def add_prefix(df, prefix: str) -> pd.DataFrame:
+            """ CALL > Dataframe.Columns.add_prefix(df, 'col_') """
+            return df.add_prefix(prefix)
 
         @staticmethod
         def select_columns_by_regex(df, regex) -> pd.DataFrame:
@@ -89,11 +111,11 @@ class Dataframe:
             return df
 
         @staticmethod
-        def drop(df, columns, inplace):
-            """ CALL > Dataframe.Columns.drop_columns(df, ['a','b'], True) """
+        def drop(df, columns):
+            """ CALL > Dataframe.Columns.drop_columns(df, ['col1','col2'], True) """
             # df.loc[:, df.columns != 'b']
             # df[df.columns.difference(['b'])]
-            return df.drop(columns, axis=1, inplace=inplace)
+            return df.drop(columns, axis=1)
 
         @staticmethod
         def drop_from_index(df, index, inplace):

@@ -1,11 +1,11 @@
 import sys
 sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
 import constants
-import api_ga4 as f_api
+import api_ga4 as f_api_ga4
 
 
 def sample_run_report():
-    api = f_api.API_GA4()
+    api = f_api_ga4.API_GA4()
     df = api.request(property_id, dimensions, metrics, date_ranges, order_bys, dimension_filter)
     return df
 

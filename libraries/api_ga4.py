@@ -22,7 +22,7 @@ class API_GA4:
         # specified in GOOGLE_APPLICATION_CREDENTIALS environment variable.
         self.client = BetaAnalyticsDataClient()
 
-    def request(self, property_id: str, dimensions: str, metrics: str, date_ranges: dict, order_bys: dict, dimension_filter: dict) -> pd.DataFrame:
+    def request(self, property_id: str, dimensions: str, metrics: str, date_ranges: dict) -> pd.DataFrame:
         # Dimensions
         list_dimensions = dimensions.split(',')
         for index, dimension in enumerate(list_dimensions):
@@ -37,35 +37,35 @@ class API_GA4:
         date_ranges = [DateRange(start_date=date_ranges['start_date'], end_date=date_ranges['end_date'])]
 
         # Order bys
-        if order_bys['type'] == 'dimension':
-            order_bys = [OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name=order_bys['dimension']), desc=order_bys['desc'])]
-        else:
-            order_bys = [OrderBy(dimension=OrderBy.MetricOrderBy(metric_name=order_bys['metric']), desc=order_bys['desc'])]
+        # if order_bys['type'] == 'dimension':
+        #     order_bys = [OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name=order_bys['dimension']), desc=order_bys['desc'])]
+        # else:
+        #     order_bys = [OrderBy(dimension=OrderBy.MetricOrderBy(metric_name=order_bys['metric']), desc=order_bys['desc'])]
 
         # Dimension Filter
-        dimension_filter = FilterExpression(
-                and_group=FilterExpressionList(
-                    expressions=[
-                        FilterExpression(
-                            filter=Filter(
-                                field_name=dimension_filter['dimension'],
-                                string_filter=Filter.StringFilter(
-                                    match_type=Filter.StringFilter.MatchType.EXACT,
-                                    value=dimension_filter['value'],
-                                ),
-                            )
-                        )
-                    ]
-                )
-            )
+        # dimension_filter = FilterExpression(
+        #         and_group=FilterExpressionList(
+        #             expressions=[
+        #                 FilterExpression(
+        #                     filter=Filter(
+        #                         field_name=dimension_filter['dimension'],
+        #                         string_filter=Filter.StringFilter(
+        #                             match_type=Filter.StringFilter.MatchType.EXACT,
+        #                             value=dimension_filter['value'],
+        #                         ),
+        #                     )
+        #                 )
+        #             ]
+        #         )
+        #     )
 
         request = RunReportRequest(
             property=f'properties/{property_id}',
             dimensions=list_dimensions,
             metrics=list_metrics,
             date_ranges=date_ranges,
-            order_bys=order_bys,
-            dimension_filter=dimension_filter
+            # order_bys=order_bys,
+            # dimension_filter=dimension_filter
         )
         response = self.client.run_report(request)
 
