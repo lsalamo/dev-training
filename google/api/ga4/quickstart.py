@@ -5,7 +5,7 @@ service account credentials.
 API:
   https://github.com/googleapis/python-analytics-data
 Usage:
-  pip3 install --upgrade google-analytics-data
+  pip3 install --upgrade google-data
   python3 quickstart.py
 """
 import os
@@ -62,7 +62,7 @@ def sample_run_report(property_id):
 
 if __name__ == "__main__":
     # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google-analytics/google-application-credentials.json"
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google/google-credentials.json"
     property_id_motos = '273930537'
     sample_run_report(property_id_motos)
 
