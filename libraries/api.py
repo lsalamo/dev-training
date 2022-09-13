@@ -1,7 +1,6 @@
 import requests
 import pandas as pd
 import functions as f
-import dt as dt
 import dataframe as f_df
 
 
@@ -18,71 +17,6 @@ class API:
             f.Log.print_and_exit('API.request', str(response.status_code) + ' > ' + response.text)
         else:
             return response.json()
-
-
-class Adobe_API(API):
-    rs_fotocasaes = 'vrs_schibs1_fcall'
-    rs_cochesnet = 'vrs_schibs1_motorcochesnet'
-    rs_motosnet = 'vrs_schibs1_motormotosnet'
-
-    def __init__(self, method, url, token, payload):
-        headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-            'x-api-key': '5e9fd55fa92c4a0a82b3f2a74c088e60',
-            #'x-proxy-global-company-id': 'schibs1'
-        }
-        super().__init__(method, url, headers, payload)
-
-
-class Adobe_Report_API(Adobe_API):
-    def __init__(self, rs, token, url_request, date_from, to_date):
-        # endpoint
-        url = 'https://analytics.adobe.io/api/schibs1/reports'
-
-        # date
-        date_from = dt.Datetime.str_to_datetime(date_from, '%Y-%m-%d')
-        date_from = dt.Datetime.datetime_to_str(date_from, '%Y-%m-%dT00:00:00.000')
-        to_date = dt.Datetime.str_to_datetime(to_date, '%Y-%m-%d')
-        to_date = dt.Datetime.datetime_add_days(to_date, 1)
-        to_date = dt.Datetime.datetime_to_str(to_date, '%Y-%m-%dT00:00:00.000')
-        date = date_from + '/' + to_date
-
-        # payload
-        file = f.File(url_request)
-        payload = file.read_file()
-        payload = payload.replace('{{rs}}', rs)
-        payload = payload.replace('{{dt}}', date)
-
-        super().__init__('POST', url, token, payload)
-
-    def request(self):
-        df = pd.DataFrame()
-        response = super().request()
-        if 'rows' in response:
-            rows = response['rows']
-            if len(rows) > 0:
-                df = pd.DataFrame.from_dict(rows)
-                df = f_df.Dataframe.Columns.split_column_array_into_columns(df, 'data')
-        return df
-
-
-class Adobe_Report_Suite_API(Adobe_API):
-    def __init__(self, token):
-        # endpoint
-        url = 'https://analytics.adobe.io/api/schibs1/collections/suites?limit=100&page=0'
-        payload = {}
-        super().__init__('GET', url, token, payload)
-
-    def request(self):
-        df = pd.DataFrame()
-        response = super().request()
-        if 'content' in response:
-            rows = response['content']
-            if len(rows) > 0:
-                df = pd.DataFrame.from_dict(rows)
-        return df
 
 
 class Google_API(API):
