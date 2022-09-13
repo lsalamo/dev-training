@@ -44,7 +44,8 @@ class Adobe:
 
     def get_request(self, file_payload, columns, columns_join):
         # request
-        api = f_api_adobe.Adobe_Report_API(self.rs, file_payload, self.from_date, self.to_date)
+        access_token = f_api_adobe.Adobe_JWT.get_access_token()
+        api = f_api_adobe.Adobe_Report_API(self.rs, file_payload, self.from_date, self.to_date, access_token)
         df = api.request()
         # web
         from_columns = ('value', 0, 1, 2)
