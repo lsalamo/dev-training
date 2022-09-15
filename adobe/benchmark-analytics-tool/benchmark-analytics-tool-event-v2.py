@@ -20,11 +20,7 @@ def clean_columns(df, platform, to_columns):
     to_columns = to_columns.replace('{{platform}}', platform).split(',')
     if not f_df.Dataframe.is_empty(df):
         df.columns = to_columns
-        if f_df.Dataframe.Columns.exists(df, 'day'):
-            df['day'] = pd.to_datetime(df['day']).dt.strftime('%Y%m%d').astype('str')
-    else:
-        for i in to_columns:
-            df[i] = 0
+        df['event'] = df['event'].str.lower().replace(' ', '_', regex=True)
     return df
 
 
@@ -74,20 +70,22 @@ class Google:
         def get_platform(platform):
             df_platform = df.loc[df['platform'] == platform]
             # change column names
-            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['platform'])
+            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['customEvent:custom_link', 'platform'])
             df_platform.columns = self.columns.replace('{{platform}}', platform[0:3].lower()).split(',')
             return df_platform
 
         api = f_api_ga4.GA4_API()
-        dimensions = 'date,platform'
-        metrics = 'sessions,totalUsers,screenPageViews'
+        dimensions = 'eventName,customEvent:custom_link,platform'
+        metrics = 'eventCount,sessions,totalUsers'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
 
         # Request
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
 
         # Cast
-        df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y%m%d').astype('str')
+        df["customEvent:custom_link"] = df["customEvent:custom_link"].replace("(not set)", None)
+        df.loc[df['customEvent:custom_link'].notnull(), 'eventName'] = df.loc[df['customEvent:custom_link'].notnull(), 'customEvent:custom_link']
+        df['eventName'] = df['eventName'].str.lower().replace(' ', '_', regex=True)
 
         # Get Platform
         df_web = get_platform(constants.GA4.platform.web)
@@ -96,14 +94,14 @@ class Google:
 
         # join dataframes
         frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, 'day', 'outer')
+        df = f_df.Dataframe.Columns.join_by_columns(frames, 'event', 'outer')
 
         log.print('get_google', 'dataframe loaded')
         return df
 
 
 def merge_adobe_google(df_aa, df_ga):
-    df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, ['day'], 'outer', ('-aa', '-ga'))
+    df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, ['event'], 'outer', ('-aa', '-ga'))
     df = df.fillna(0)
     df_values = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
     df[df_values.columns] = df_values
@@ -115,8 +113,10 @@ def get_csv_by_platform(df):
     def get_platform(platform):
         columns = variables['columns_tools'].replace('{{platform}}', platform).split(',')
         df_platform = df[columns]
+        df_platform = df_platform.loc[~((df[platform + '-count-aa'] == 0) & (df[platform + '-count-ga'] == 0))]
+        df_platform.reset_index(drop=True, inplace=True)
         # Sort
-        df_platform = f_df.Dataframe.Sort.sort_by_columns(df_platform, ['day'], True)
+        df_platform.sort_values(by=platform + '-count-aa', ascending=False, inplace=True)
         f.CSV.dataframe_to_file(df_platform, 'df_' + platform + '.csv')
         return df_platform
 
@@ -139,14 +139,14 @@ if __name__ == '__main__':
         'motosnet': {'str': 'motosnet', 'aa': f_api_adobe.Adobe_API.rs_motosnet, 'ga': f_api_ga4.GA4_API.property_motosnet},
         'cochesnet': {'str': 'cochesnet', 'aa': f_api_adobe.Adobe_API.rs_cochesnet, 'ga': f_api_ga4.GA4_API.property_cochesnet},
     }
-    site = site['cochesnet']
+    site = site['motosnet']
     variables = {
-        'from_date': '2022-08-01',
-        'to_date': '2022-09-07',
+        'from_date': '2022-09-14',
+        'to_date': '2022-09-14',
         'site_aa': site['aa'],
         'site_ga': site['ga'],
-        'columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
-        'columns_tools': 'day,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga'
+        'columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors',
+        'columns_tools': 'event,{{platform}}-count-aa,{{platform}}-count-ga,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga'
     }
 
     # Logging
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     log.print('site', site['str'])
 
     adobe = Adobe()
-    result['df_aa'] = adobe.get_adobe('aa/request.json', ['day'])
+    result['df_aa'] = adobe.get_adobe('aa/request-events.json', ['event'])
     google = Google()
     result['df_ga'] = google.get_google()
 
@@ -165,3 +165,5 @@ if __name__ == '__main__':
     get_csv_by_platform(result['df'])
 
 log.print('=====================================  END EXECUTION =====================================', '')
+
+
