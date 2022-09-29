@@ -1,5 +1,5 @@
-import pandas as pd
 import sys
+import os
 
 # adding libraries folder to the system path
 sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
@@ -13,6 +13,15 @@ import logs as f_log
 
 
 def init():
+    # args
+    log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
+    log.print('init', 'Name of Python script:: ' + sys.argv[0])
+    for i in range(1, len(sys.argv)):
+        log.print('init', 'Argument: ' + sys.argv[i])
+
+    # directory
+    os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/benchmark-analytics-tool')
+    log.print('directory', os.getcwd())
     f.Directory.create_directory('csv')
 
 
@@ -117,7 +126,7 @@ def get_csv_by_platform(df):
         df_platform.reset_index(drop=True, inplace=True)
         # Sort
         df_platform.sort_values(by=platform + '-count-aa', ascending=False, inplace=True)
-        f.CSV.dataframe_to_file(df_platform, 'df_' + platform + '.csv')
+        f.CSV.dataframe_to_file(df_platform, 'df_event_' + platform + '.csv')
         return df_platform
 
     result['df_web'] = get_platform(constants.PLATFORM_WEB)
@@ -136,13 +145,13 @@ def get_csv_by_platform(df):
 if __name__ == '__main__':
     result = {}
     site = {
-        'motosnet': {'str': 'motosnet', 'aa': f_api_adobe.Adobe_API.rs_motosnet, 'ga': f_api_ga4.GA4_API.property_motosnet},
-        'cochesnet': {'str': 'cochesnet', 'aa': f_api_adobe.Adobe_API.rs_cochesnet, 'ga': f_api_ga4.GA4_API.property_cochesnet},
+        'mnet': {'str': 'mnet', 'aa': f_api_adobe.Adobe_API.rs_motosnet, 'ga': f_api_ga4.GA4_API.property_motosnet},
+        'cnet': {'str': 'cnet', 'aa': f_api_adobe.Adobe_API.rs_cochesnet, 'ga': f_api_ga4.GA4_API.property_cochesnet},
     }
-    site = site['motosnet']
+    site = site[sys.argv[1]]
     variables = {
-        'from_date': '2022-09-14',
-        'to_date': '2022-09-14',
+        'from_date': sys.argv[2],
+        'to_date': sys.argv[3],
         'site_aa': site['aa'],
         'site_ga': site['ga'],
         'columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors',
@@ -151,7 +160,6 @@ if __name__ == '__main__':
 
     # Logging
     log = f_log.Logging()
-    log.print('=====================================  BEGIN EXECUTION =====================================', '')
 
     init()
     log.print('site', site['str'])
@@ -164,6 +172,5 @@ if __name__ == '__main__':
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
     get_csv_by_platform(result['df'])
 
-log.print('=====================================  END EXECUTION =====================================', '')
 
 

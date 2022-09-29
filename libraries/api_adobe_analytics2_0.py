@@ -103,8 +103,8 @@ class Adobe_JWT:
                 "jwt_token": jwt_token
             }
 
-            log.print('Adobe_API.init', 'Sending "POST" request to {}'.format(config['imsexchange']))
-            log.print('Adobe_API.init', 'Post body: {}'.format(post_body))
+            # log.print('Adobe_API.init', 'Sending "POST" request to {}'.format(config['imsexchange']))
+            # log.print('Adobe_API.init', 'Post body: {}'.format(post_body))
             request = f_api.API('POST', config["imsexchange"], headers={}, payload=post_body)
             response = request.request()
             return response["access_token"]
@@ -117,9 +117,9 @@ class Adobe_JWT:
         config_parser.read('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/adobe-credentials.ini')
         config = dict(config_parser["default"])
         jwt_token = get_jwt_token()
-        log.print('Adobe_JWT.get_access_token', 'JWT Token: {}'.format(jwt_token))
+        # log.print('Adobe_JWT.get_access_token', 'JWT Token: {}'.format(jwt_token))
 
         # Access Token
         access_token = get_access_token()
-        log.print('Adobe_JWT.get_access_token', 'Access Token: {}'.format(access_token))
+        # log.print('Adobe_JWT.get_access_token', 'Access Token: {}'.format(access_token))
         return access_token

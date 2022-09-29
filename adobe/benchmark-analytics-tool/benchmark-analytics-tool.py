@@ -5,7 +5,7 @@ import pandas as pd
 import sys
 
 # adding libraries folder to the system path
-sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
+sys.path.insert(0, '~/Documents/github enterprise/python-training/libraries')
 
 import constants
 import functions as f

@@ -53,9 +53,10 @@ class Directory:
     @staticmethod
     def create_directory(directory):
         directory = os.path.join(Directory.get_working_directory(), directory)
-        if os.path.isdir(directory):
-            shutil.rmtree(directory)
-        os.makedirs(directory)
+        # if os.path.isdir(directory):
+        #    shutil.rmtree(directory)
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
 
     @staticmethod
     def exists_directory(directory):
