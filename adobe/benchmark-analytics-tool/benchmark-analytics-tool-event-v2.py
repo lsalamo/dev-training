@@ -25,43 +25,38 @@ def init():
     f.Directory.create_directory('csv')
 
 
-def clean_columns(df, platform, to_columns):
-    to_columns = to_columns.replace('{{platform}}', platform).split(',')
-    if not f_df.Dataframe.is_empty(df):
-        df.columns = to_columns
-        df['event'] = df['event'].str.lower().replace(' ', '_', regex=True)
-    return df
-
-
 # =============================================================================
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
 class Adobe:
     def __init__(self):
         self.site_id = variables['site_aa']
+        self.payload = variables['payload_aa']
+        self.column_join = variables['column_join']
         self.columns = variables['columns']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
 
-    def get_adobe(self, file_payload, columns_join):
+    def get_adobe(self):
         # request
         access_token = f_api_adobe.Adobe_JWT.get_access_token()
-        api = f_api_adobe.Adobe_Report_API(self.site_id, file_payload, self.from_date, self.to_date, access_token)
+        api = f_api_adobe.Adobe_Report_API(self.site_id, self.payload, self.from_date, self.to_date, access_token)
         df = api.request()
-        # web
-        from_columns = ('value', 0, 1, 2)
-        df_web = clean_columns(df.loc[:, from_columns], constants.PLATFORM_WEB, self.columns)
-        # android
-        from_columns = ['value', 3, 4, 5]
-        df_and = clean_columns(df.loc[:, from_columns], constants.PLATFORM_ANDROID, self.columns)
-        # ios
-        from_columns = ['value', 6, 7, 8]
-        df_ios = clean_columns(df.loc[:, from_columns], constants.PLATFORM_IOS, self.columns)
-        # join dataframes
-        frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, columns_join, 'outer')
-
-        log.print('get_adobe', 'dataframe loaded <' + file_payload + '>')
+        if not f_df.Dataframe.is_empty(df):
+            # web
+            df_web = df[['value', 0, 1, 2]]
+            df_web.columns = self.columns.replace('{{platform}}', constants.PLATFORM_WEB).split(',')
+            # android
+            df_and = df[['value', 3, 4, 5]]
+            df_and.columns = self.columns.replace('{{platform}}', constants.PLATFORM_ANDROID).split(',')
+            # ios
+            df_ios = df[['value', 6, 7, 8]]
+            df_ios.columns = self.columns.replace('{{platform}}', constants.PLATFORM_IOS).split(',')
+            # join dataframes
+            frames = [df_web, df_and, df_ios]
+            df = f_df.Dataframe.Columns.join_by_columns(frames, self.column_join, 'outer')
+        # log
+        log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
         return df
 
 
@@ -71,6 +66,7 @@ class Adobe:
 class Google:
     def __init__(self):
         self.site_id = variables['site_ga']
+        self.column_join = variables['column_join']
         self.columns = variables['columns']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
@@ -79,41 +75,45 @@ class Google:
         def get_platform(platform):
             df_platform = df.loc[df['platform'] == platform]
             # change column names
-            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['customEvent:custom_link', 'platform'])
+            # df_platform = f_df.Dataframe.Columns.drop(df_platform, ['customEvent:custom_link', 'platform'])
+            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['platform'])
             df_platform.columns = self.columns.replace('{{platform}}', platform[0:3].lower()).split(',')
             return df_platform
 
+        # request
         api = f_api_ga4.GA4_API()
-        dimensions = 'eventName,customEvent:custom_link,platform'
+        # dimensions = 'eventName,customEvent:custom_link,platform'
+        dimensions = 'eventName,platform'
         metrics = 'eventCount,sessions,totalUsers'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
-
-        # Request
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
-
-        # Cast
-        df["customEvent:custom_link"] = df["customEvent:custom_link"].replace("(not set)", None)
-        df.loc[df['customEvent:custom_link'].notnull(), 'eventName'] = df.loc[df['customEvent:custom_link'].notnull(), 'customEvent:custom_link']
-        df['eventName'] = df['eventName'].str.lower().replace(' ', '_', regex=True)
-
-        # Get Platform
-        df_web = get_platform(constants.GA4.platform.web)
-        df_and = get_platform(constants.GA4.platform.android)
-        df_ios = get_platform(constants.GA4.platform.ios)
-
-        # join dataframes
-        frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, 'event', 'outer')
-
+        if not f_df.Dataframe.is_empty(df):
+            # transform
+            # df['eventName'] = df['eventName'].str.lower().replace(' ', '_', regex=True)
+            # platform
+            df_web = get_platform(constants.GA4.platform.web)
+            df_and = get_platform(constants.GA4.platform.android)
+            df_ios = get_platform(constants.GA4.platform.ios)
+            # join dataframes
+            frames = [df_web, df_and, df_ios]
+            df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
+        # log
         log.print('get_google', 'dataframe loaded')
         return df
 
 
 def merge_adobe_google(df_aa, df_ga):
-    df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, ['event'], 'outer', ('-aa', '-ga'))
+    # transform
+    df_aa.loc[(df_aa[variables['column_join']].str.lower().str.endswith('viewed')) & (df_aa[variables['column_join']].str.lower() != 'experiment viewed'), variables['column_join']] = 'Page View'
+    df_aa[variables['column_join']] = df_aa[variables['column_join']].str.lower().replace(' ', '_', regex=True)
+    df_aa[variables['column_join']] = df_aa[variables['column_join']].str.slice(0, 40)
+    df_aa = df_aa.groupby([variables['column_join']], as_index=False).sum()
+    # merge
+    df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, [variables['column_join']], 'outer', ('-aa', '-ga'))
+    # transform
     df = df.fillna(0)
-    df_values = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
-    df[df_values.columns] = df_values
+    df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+    # log
     log.print('merge_adobe_google', 'data loaded')
     return df
 
@@ -147,6 +147,10 @@ if __name__ == '__main__':
     site = {
         'mnet': {'str': 'mnet', 'aa': f_api_adobe.Adobe_API.rs_motosnet, 'ga': f_api_ga4.GA4_API.property_motosnet},
         'cnet': {'str': 'cnet', 'aa': f_api_adobe.Adobe_API.rs_cochesnet, 'ga': f_api_ga4.GA4_API.property_cochesnet},
+        'ma': {'str': 'ma', 'aa': f_api_adobe.Adobe_API.rs_milanuncioscom, 'ga': f_api_ga4.GA4_API.property_milanuncioscom},
+        'ijes': {'str': 'ijes', 'aa': f_api_adobe.Adobe_API.rs_fotocasaes, 'ga': f_api_ga4.GA4_API.property_infojobsnet},
+        'ijit': {'str': 'ijit', 'aa': f_api_adobe.Adobe_API.rs_infojobsit, 'ga': f_api_ga4.GA4_API.property_infojobsit},
+        'fc': {'str': 'fc', 'aa': f_api_adobe.Adobe_API.rs_fotocasaes, 'ga': f_api_ga4.GA4_API.property_fotocasaes}
     }
     site = site[sys.argv[1]]
     variables = {
@@ -154,6 +158,8 @@ if __name__ == '__main__':
         'to_date': sys.argv[3],
         'site_aa': site['aa'],
         'site_ga': site['ga'],
+        'payload_aa': 'aa/request-events.json',
+        'column_join': 'event',
         'columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors',
         'columns_tools': 'event,{{platform}}-count-aa,{{platform}}-count-ga,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga'
     }
@@ -165,12 +171,13 @@ if __name__ == '__main__':
     log.print('site', site['str'])
 
     adobe = Adobe()
-    result['df_aa'] = adobe.get_adobe('aa/request-events.json', ['event'])
+    result['df_aa'] = adobe.get_adobe()
     google = Google()
     result['df_ga'] = google.get_google()
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
     get_csv_by_platform(result['df'])
+    log.print('================ END ================', '')
 
 
 

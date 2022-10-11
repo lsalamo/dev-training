@@ -19,6 +19,9 @@ class GA4_API:
     property_fotocasaes = '296810976'
     property_motosnet = '273930537'
     property_cochesnet = '313836548'
+    property_milanuncioscom = '330577361'
+    property_infojobsnet = '330615843'
+    property_infojobsit = '330589193'
 
     def __init__(self):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google/google-credentials.json"

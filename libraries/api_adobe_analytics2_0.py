@@ -15,6 +15,9 @@ class Adobe_API(api.API):
     rs_fotocasaes = 'vrs_schibs1_fcall'
     rs_cochesnet = 'vrs_schibs1_motorcochesnet'
     rs_motosnet = 'vrs_schibs1_motormotosnet'
+    rs_milanuncioscom = 'vrs_schibs1_generalistmilanuncio'
+    rs_infojobsnet = 'vrs_schibs1_jobsinfojobs'
+    rs_infojobsit = 'vrs_schibs1_jobsitalyall'
 
     def __init__(self, method, url, payload, access_token):
         # Logging

@@ -31,8 +31,10 @@ class Dataframe:
             df_values = Dataframe.Cast.columns_regex_to_int64(df, '(-aa|-ga)$')
             df[df_values.columns] = df_values
             """
-            df = Dataframe.Columns.select_columns_by_regex(df, regex)
-            return df.astype(np.int64)
+            df_values = Dataframe.Columns.select_columns_by_regex(df, regex)
+            df_values = df_values.astype(np.int64)
+            df[df_values.columns] = df_values
+            return df
 
     class Sort:
         def __init__(self):
@@ -40,10 +42,7 @@ class Dataframe:
 
         @staticmethod
         def sort_by_columns(df: pd.DataFrame, columns: list, ascending: bool) -> pd.DataFrame:
-            """ CALL > Dataframe.Sort.sort_by_columns(df, '['col1', 'col2']', False)
-            @param df: pd.DataFrame
-            @type columns: list
-            """
+            """ CALL > Dataframe.Sort.sort_by_columns(df, '['col1', 'col2']', False) """
             return df.sort_values(by=columns, ascending=ascending)
 
     class Rows:
@@ -65,6 +64,11 @@ class Dataframe:
         def reset_index(df) -> pd.DataFrame:
             """ CALL > Dataframe.Rows.reset_index([df) """
             df.reset_index(drop=True)
+
+        @staticmethod
+        def replace(df, val1: str, val2: str) -> pd.DataFrame:
+            """ CALL > Dataframe.Rows.replace([df, 'val1', 'val2') """
+            return df.replace(val1, val2)
 
     class Columns:
         def __init__(self):
@@ -112,7 +116,7 @@ class Dataframe:
 
         @staticmethod
         def drop(df, columns):
-            """ CALL > Dataframe.Columns.drop_columns(df, ['col1','col2'], True) """
+            """ CALL > Dataframe.Columns.drop(df, ['col1','col2']) """
             # df.loc[:, df.columns != 'b']
             # df[df.columns.difference(['b'])]
             return df.drop(columns, axis=1)
