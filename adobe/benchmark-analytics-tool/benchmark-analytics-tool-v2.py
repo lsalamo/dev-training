@@ -85,15 +85,14 @@ class Google:
         metrics = 'sessions,totalUsers,screenPageViews'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
-        # transform
-        # df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y%m%d').astype('str')
-        # platform
-        df_web = get_platform(constants.GA4.platform.web)
-        df_and = get_platform(constants.GA4.platform.android)
-        df_ios = get_platform(constants.GA4.platform.ios)
-        # join dataframes
-        frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
+        if not f_df.Dataframe.is_empty(df):
+            # platform
+            df_web = get_platform(constants.GA4.platform.web)
+            df_and = get_platform(constants.GA4.platform.android)
+            df_ios = get_platform(constants.GA4.platform.ios)
+            # join dataframes
+            frames = [df_web, df_and, df_ios]
+            df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
         # log
         log.print('get_google', 'dataframe loaded')
         return df

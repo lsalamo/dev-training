@@ -88,8 +88,6 @@ class Google:
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
         if not f_df.Dataframe.is_empty(df):
-            # transform
-            # df['eventName'] = df['eventName'].str.lower().replace(' ', '_', regex=True)
             # platform
             df_web = get_platform(constants.GA4.platform.web)
             df_and = get_platform(constants.GA4.platform.android)

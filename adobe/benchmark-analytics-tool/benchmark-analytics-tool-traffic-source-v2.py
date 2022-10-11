@@ -26,18 +26,6 @@ def init():
     f.Directory.create_directory('csv')
 
 
-def clean_columns(df, platform, to_columns):
-    to_columns = to_columns.replace('{{platform}}', platform).split(',')
-    if not f_df.Dataframe.is_empty(df):
-        df.columns = to_columns
-        if f_df.Dataframe.Columns.exists(df, 'day'):
-            df['day'] = pd.to_datetime(df['day']).dt.strftime('%Y%m%d').astype('str')
-    else:
-        for i in to_columns:
-            df[i] = 0
-    return df
-
-
 # =============================================================================
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
@@ -57,18 +45,19 @@ class Adobe:
         df = api.request()
         # transform
         df = f_df.Dataframe.Rows.replace(df, 'Unspecified', 'Internal')
-        # web
-        from_columns = ['value', 0, 1, 2, 3]
-        df_web = clean_columns(df.loc[:, from_columns], constants.PLATFORM_WEB, self.columns)
-        # android
-        from_columns = ['value', 4, 5, 6, 7]
-        df_and = clean_columns(df.loc[:, from_columns], constants.PLATFORM_ANDROID, self.columns)
-        # ios
-        from_columns = ['value', 8, 9, 10, 11]
-        df_ios = clean_columns(df.loc[:, from_columns], constants.PLATFORM_IOS, self.columns)
-        # join dataframes
-        frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
+        if not f_df.Dataframe.is_empty(df):
+            # web
+            df_web = df[['value', 0, 1, 2, 3]]
+            df_web.columns = self.columns.replace('{{platform}}', constants.PLATFORM_WEB).split(',')
+            # android
+            df_and = df[['value', 4, 5, 6, 7]]
+            df_and.columns = self.columns.replace('{{platform}}', constants.PLATFORM_ANDROID).split(',')
+            # ios
+            df_ios = df[['value', 8, 9, 10, 11]]
+            df_ios.columns = self.columns.replace('{{platform}}', constants.PLATFORM_IOS).split(',')
+            # join dataframes
+            frames = [df_web, df_and, df_ios]
+            df = f_df.Dataframe.Columns.join_by_columns(frames, self.column_join, 'outer')
         # log
         log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
         return df
@@ -101,28 +90,31 @@ class Google:
         metrics = 'sessions,totalUsers,screenPageViews,conversions'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
-        # transform
-        df.loc[(df['sessionMedium'] == 'display') & (df['sessionSource'].str.startswith('retargeting-')), 'sessionDefaultChannelGrouping'] = 'Retargeting'
-        df = f_df.Dataframe.Rows.replace(df, 'Organic Search', 'Natural Search')
-        df = f_df.Dataframe.Rows.replace(df, 'Organic Social', 'Social Media')
-        df = f_df.Dataframe.Rows.replace(df, 'Paid Social', 'Social Paid')
-        df = f_df.Dataframe.Rows.replace(df, 'Mobile Push Notifications', 'Push Notification')
-        df = f_df.Dataframe.Rows.replace(df, 'Cross-network', 'Cross Sites')
-        df = f_df.Dataframe.Rows.replace(df, 'Referral', 'Referring Domains')
-        df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '(sessions|totalUsers|screenPageViews|conversions)')
-        # Get Platform
-        df_web = get_platform(constants.GA4.platform.web)
-        df_and = get_platform(constants.GA4.platform.android)
-        df_ios = get_platform(constants.GA4.platform.ios)
-        # join dataframes
-        frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
+        if not f_df.Dataframe.is_empty(df):
+            # transform
+            df.loc[(df['sessionMedium'] == 'display') & (df['sessionSource'].str.startswith('retargeting-')), 'sessionDefaultChannelGrouping'] = 'Retargeting'
+            df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '(sessions|totalUsers|screenPageViews|conversions)')
+            # df = df.groupby(['sessionDefaultChannelGrouping', 'platform'], as_index=False).sum()
+            # platform
+            df_web = get_platform(constants.GA4.platform.web)
+            df_and = get_platform(constants.GA4.platform.android)
+            df_ios = get_platform(constants.GA4.platform.ios)
+            # join dataframes
+            frames = [df_web, df_and, df_ios]
+            df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
         # log
         log.print('get_google', 'dataframe loaded')
         return df
 
 
 def merge_adobe_google(df_aa, df_ga):
+    # transform
+    df_ga = f_df.Dataframe.Rows.replace(df_ga, 'Organic Search', 'Natural Search')
+    df_ga = f_df.Dataframe.Rows.replace(df_ga, 'Organic Social', 'Social Media')
+    df_ga = f_df.Dataframe.Rows.replace(df_ga, 'Paid Social', 'Social Paid')
+    df_ga = f_df.Dataframe.Rows.replace(df_ga, 'Mobile Push Notifications', 'Push Notification')
+    df_ga = f_df.Dataframe.Rows.replace(df_ga, 'Cross-network', 'Cross Sites')
+    df_ga = f_df.Dataframe.Rows.replace(df_ga, 'Referral', 'Referring Domains')
     # merge
     df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, [variables['column_join']], 'outer', ('-aa', '-ga'))
     # transform
@@ -190,5 +182,6 @@ if __name__ == '__main__':
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
     get_csv_by_platform(result['df'])
+    log.print('================ END ================', '')
 
 
