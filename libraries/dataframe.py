@@ -26,10 +26,18 @@ class Dataframe:
             pass
 
         @staticmethod
+        def columns_to_str(df, columns):
+            """ CALL >
+            df_values = Dataframe.Cast.columns_to_str(df, '[col1, col2]')
+            """
+            df_values = df[columns].astype(str)
+            df[df_values.columns] = df_values
+            return df
+
+        @staticmethod
         def columns_regex_to_int64(df, regex):
             """ CALL >
             df_values = Dataframe.Cast.columns_regex_to_int64(df, '(-aa|-ga)$')
-            df[df_values.columns] = df_values
             """
             df_values = Dataframe.Columns.select_columns_by_regex(df, regex)
             df_values = df_values.astype(np.int64)
@@ -123,7 +131,7 @@ class Dataframe:
 
         @staticmethod
         def drop_from_index(df, index, inplace):
-            """ CALL > Dataframe.Columns.drop_columns_from_index(df, 4, True) """
+            """ CALL > Dataframe.Columns.drop_from_index(df, 4, True) """
             return df.drop(df.loc[:, index:], axis=1, inplace=inplace)
 
         @staticmethod

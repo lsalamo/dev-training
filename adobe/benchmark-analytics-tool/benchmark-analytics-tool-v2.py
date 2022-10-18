@@ -37,25 +37,22 @@ class Adobe:
         self.columns = variables['columns']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
+        self.platform = variables['platform']
 
     def get_adobe(self):
         # request
         access_token = f_api_adobe.Adobe_JWT.get_access_token()
         api = f_api_adobe.Adobe_Report_API(self.site_id, self.payload, self.from_date, self.to_date, access_token)
         df = api.request()
-        # web
-        df_web = df[['value', 0, 1, 2]]
-        df_web.columns = self.columns.replace('{{platform}}', constants.PLATFORM_WEB).split(',')
-        # android
-        df_and = df[['value', 3, 4, 5]]
-        df_and.columns = self.columns.replace('{{platform}}', constants.PLATFORM_ANDROID).split(',')
-        # ios
-        df_ios = df[['value', 6, 7, 8]]
-        df_ios.columns = self.columns.replace('{{platform}}', constants.PLATFORM_IOS).split(',')
-        # join dataframes
-        frames = [df_web, df_and, df_ios]
-        df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
-
+        if not f_df.Dataframe.is_empty(df):
+            if self.platform == constants.PLATFORM_WEB:
+                df = df[['value', 0, 1, 2]]
+            elif self.platform == constants.PLATFORM_ANDROID:
+                df = df[['value', 3, 4, 5]]
+            elif self.platform == constants.PLATFORM_IOS:
+                df = df[['value', 6, 7, 8]]
+            df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+        # log
         log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
         return df
 
@@ -70,6 +67,8 @@ class Google:
         self.columns = variables['columns']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
+        self.google_csv_file = variables['google_csv_file']
+        self.platform = variables['platform']
 
     def get_google(self):
         def get_platform(platform):
@@ -86,20 +85,27 @@ class Google:
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
         if not f_df.Dataframe.is_empty(df):
-            # platform
-            df_web = get_platform(constants.GA4.platform.web)
-            df_and = get_platform(constants.GA4.platform.android)
-            df_ios = get_platform(constants.GA4.platform.ios)
-            # join dataframes
-            frames = [df_web, df_and, df_ios]
-            df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
+            if self.platform == constants.PLATFORM_WEB:
+                df = get_platform(constants.GA4.platform.web)
+            elif self.platform == constants.PLATFORM_ANDROID:
+                df = get_platform(constants.GA4.platform.android)
+            elif self.platform == constants.PLATFORM_IOS:
+                df = get_platform(constants.GA4.platform.ios)
         # log
         log.print('get_google', 'dataframe loaded')
+        return df
+
+    def get_google_csv(self):
+        df = f.CSV.csv_to_dataframe(self.google_csv_file)
+        f_df.Dataframe.Columns.drop_from_index(df, 4, True)
+        df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
         return df
 
 
 def merge_adobe_google(df_aa, df_ga):
     # transform
+    df_aa = f_df.Dataframe.Cast.columns_to_str(df_aa, ['day'])
+    df_ga = f_df.Dataframe.Cast.columns_to_str(df_ga, ['day'])
     df_aa[variables['column_join']] = pd.to_datetime(df_aa[variables['column_join']]).dt.strftime('%Y%m%d').astype('str')
     # merge
     df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, [variables['column_join']], 'outer', ('-aa', '-ga'))
@@ -149,8 +155,10 @@ if __name__ == '__main__':
         'to_date': sys.argv[3],
         'site_aa': site['aa'],
         'site_ga': site['ga'],
+        'platform': sys.argv[4],
         'payload_aa': 'aa/request.json',
         'column_join': 'day',
+        'google_csv_file': '/Users/luis.salamo/Downloads/1.csv',
         'columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
         'columns_tools': 'day,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga'
     }
@@ -165,7 +173,17 @@ if __name__ == '__main__':
     result['df_aa'] = adobe.get_adobe()
     google = Google()
     result['df_ga'] = google.get_google()
+    result['df_ga_csv'] = google.get_google_csv()
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
-    get_csv_by_platform(result['df'])
+    result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
+    # get_csv_by_platform(result['df'])
+
+    # export csv
+    columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
+    result['df'] = result['df'][columns]
+    f.CSV.dataframe_to_file(result['df_csv'], 'df_' + variables['platform'] + '.csv')
+    result['df_csv'] = result['df_csv'][columns]
+    f.CSV.dataframe_to_file(result['df_csv'], 'df_csv_' + variables['platform'] + '.csv')
+
     log.print('================ END ================', '')
