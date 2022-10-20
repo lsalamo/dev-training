@@ -35,6 +35,17 @@ class Dataframe:
             return df
 
         @staticmethod
+        def columns_to_datetime(df, columns, pattern):
+            """ CALL >
+            df_values = Dataframe.Cast.columns_to_datetime(df, '[col1, col2]', '%Y%m%d')
+            """
+            # pd.to_datetime(df[columns]).dt.strftime('%Y%m%d')
+            df_values = df[columns].apply(pd.to_datetime)
+            df_values = df_values.apply(lambda x: x.dt.strftime(pattern))
+            df[df_values.columns] = df_values
+            return df
+
+        @staticmethod
         def columns_regex_to_int64(df, regex):
             """ CALL >
             df_values = Dataframe.Cast.columns_regex_to_int64(df, '(-aa|-ga)$')

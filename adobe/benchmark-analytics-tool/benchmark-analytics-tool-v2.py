@@ -104,14 +104,15 @@ class Google:
 
 def merge_adobe_google(df_aa, df_ga):
     # transform
-    df_aa = f_df.Dataframe.Cast.columns_to_str(df_aa, ['day'])
-    df_ga = f_df.Dataframe.Cast.columns_to_str(df_ga, ['day'])
-    df_aa[variables['column_join']] = pd.to_datetime(df_aa[variables['column_join']]).dt.strftime('%Y%m%d').astype('str')
+    df_aa = f_df.Dataframe.Cast.columns_to_datetime(df_aa, [variables['column_join']], '%Y%m%d')
+    df_ga = f_df.Dataframe.Cast.columns_to_datetime(df_ga, [variables['column_join']], '%Y%m%d')
     # merge
     df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, [variables['column_join']], 'outer', ('-aa', '-ga'))
     # transform
     df = df.fillna(0)
     df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+    columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
+    df = df[columns]
     # log
     log.print('merge_adobe_google', 'data loaded')
     return df
@@ -145,7 +146,7 @@ if __name__ == '__main__':
         'mnet': {'str': 'mnet', 'aa': f_api_adobe.Adobe_API.rs_motosnet, 'ga': f_api_ga4.GA4_API.property_motosnet},
         'cnet': {'str': 'cnet', 'aa': f_api_adobe.Adobe_API.rs_cochesnet, 'ga': f_api_ga4.GA4_API.property_cochesnet},
         'ma': {'str': 'ma', 'aa': f_api_adobe.Adobe_API.rs_milanuncioscom, 'ga': f_api_ga4.GA4_API.property_milanuncioscom},
-        'ijes': {'str': 'ijes', 'aa': f_api_adobe.Adobe_API.rs_fotocasaes, 'ga': f_api_ga4.GA4_API.property_infojobsnet},
+        'ijes': {'str': 'ijes', 'aa': f_api_adobe.Adobe_API.rs_infojobsnet, 'ga': f_api_ga4.GA4_API.property_infojobsnet},
         'ijit': {'str': 'ijit', 'aa': f_api_adobe.Adobe_API.rs_infojobsit, 'ga': f_api_ga4.GA4_API.property_infojobsit},
         'fc': {'str': 'fc', 'aa': f_api_adobe.Adobe_API.rs_fotocasaes, 'ga': f_api_ga4.GA4_API.property_fotocasaes}
     }
@@ -180,10 +181,7 @@ if __name__ == '__main__':
     # get_csv_by_platform(result['df'])
 
     # export csv
-    columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
-    result['df'] = result['df'][columns]
-    f.CSV.dataframe_to_file(result['df_csv'], 'df_' + variables['platform'] + '.csv')
-    result['df_csv'] = result['df_csv'][columns]
+    f.CSV.dataframe_to_file(result['df'], 'df_' + variables['platform'] + '.csv')
     f.CSV.dataframe_to_file(result['df_csv'], 'df_csv_' + variables['platform'] + '.csv')
 
     log.print('================ END ================', '')

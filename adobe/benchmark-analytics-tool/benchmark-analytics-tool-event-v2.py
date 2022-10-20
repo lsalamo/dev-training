@@ -104,7 +104,10 @@ class Google:
 
     def get_google_csv(self):
         df = f.CSV.csv_to_dataframe(self.google_csv_file)
+        df = df.groupby(0, as_index=False).sum()
+        # f_df.Dataframe.Columns.drop_from_index(df, 5, True)
         df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+
         return df
 
 
@@ -157,7 +160,7 @@ if __name__ == '__main__':
         'mnet': {'str': 'mnet', 'aa': f_api_adobe.Adobe_API.rs_motosnet, 'ga': f_api_ga4.GA4_API.property_motosnet},
         'cnet': {'str': 'cnet', 'aa': f_api_adobe.Adobe_API.rs_cochesnet, 'ga': f_api_ga4.GA4_API.property_cochesnet},
         'ma': {'str': 'ma', 'aa': f_api_adobe.Adobe_API.rs_milanuncioscom, 'ga': f_api_ga4.GA4_API.property_milanuncioscom},
-        'ijes': {'str': 'ijes', 'aa': f_api_adobe.Adobe_API.rs_fotocasaes, 'ga': f_api_ga4.GA4_API.property_infojobsnet},
+        'ijes': {'str': 'ijes', 'aa': f_api_adobe.Adobe_API.rs_infojobsnet, 'ga': f_api_ga4.GA4_API.property_infojobsnet},
         'ijit': {'str': 'ijit', 'aa': f_api_adobe.Adobe_API.rs_infojobsit, 'ga': f_api_ga4.GA4_API.property_infojobsit},
         'fc': {'str': 'fc', 'aa': f_api_adobe.Adobe_API.rs_fotocasaes, 'ga': f_api_ga4.GA4_API.property_fotocasaes}
     }
@@ -193,9 +196,9 @@ if __name__ == '__main__':
 
     # export csv
     columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
-    result['df'] = result['df'][columns]
-    f.CSV.dataframe_to_file(result['df_csv'], 'df_event_' + variables['platform'] + '.csv')
-    result['df_csv'] = result['df_csv'][columns]
+    # result['df'] = result['df'][columns]
+    f.CSV.dataframe_to_file(result['df'], 'df_event_' + variables['platform'] + '.csv')
+    # result['df_csv'] = result['df_csv'][columns]
     f.CSV.dataframe_to_file(result['df_csv'], 'df_event_csv_' + variables['platform'] + '.csv')
 
     log.print('================ END ================', '')
