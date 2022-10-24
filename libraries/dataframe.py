@@ -107,6 +107,11 @@ class Dataframe:
             return list(df.columns)
 
         @staticmethod
+        def length(df):
+            """ CALL > Dataframe.Columns.len(df) """
+            return len(df.columns)
+
+        @staticmethod
         def add_prefix(df, prefix: str) -> pd.DataFrame:
             """ CALL > Dataframe.Columns.add_prefix(df, 'col_') """
             return df.add_prefix(prefix)

@@ -40,8 +40,10 @@ class Adobe:
 
     def get_adobe(self):
         def get_platform(df_platform, platform):
+            columns = list(df_platform.columns)
+            df_platform.loc[df_platform[columns[-1]] > 0, 'value'] = 'Page View'
+            df_platform = f_df.Dataframe.Columns.drop(df_platform, [columns[-1]])
             df_platform.columns = self.columns.replace('{{platform}}', platform).split(',')
-            df_platform.loc[df_platform[platform + '-views'] > 0, 'event'] = 'Page View'
             df_platform = df_platform.groupby([variables['column_join']], as_index=False).sum()
             return df_platform
 
@@ -86,9 +88,9 @@ class Google:
 
         # request
         api = f_api_ga4.GA4_API()
-        # dimensions = 'eventName,customEvent:custom_link,platform'
         dimensions = 'eventName,platform'
-        metrics = 'eventCount,sessions,totalUsers,screenPageViews'
+        # metrics = 'eventCount,sessions,totalUsers,screenPageViews'
+        metrics = 'eventCount,sessions,totalUsers'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
         if not f_df.Dataframe.is_empty(df):
@@ -125,28 +127,11 @@ def merge_adobe_google(df_aa, df_ga):
     df = df.fillna(0)
     df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
     df.sort_values(by=variables['platform'] + '-count-aa', ascending=False, inplace=True)
+    columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
+    df = df[columns]
     # log
     log.print('merge_adobe_google', 'data loaded')
     return df
-
-
-def get_csv_by_platform(df):
-    def get_platform(platform):
-        columns = variables['columns_tools'].replace('{{platform}}', platform).split(',')
-        df_platform = df[columns]
-        df_platform = df_platform.loc[~((df[platform + '-count-aa'] == 0) & (df[platform + '-count-ga'] == 0))]
-        df_platform.reset_index(drop=True, inplace=True)
-        # Sort
-        df_platform.sort_values(by=platform + '-count-aa', ascending=False, inplace=True)
-        f.CSV.dataframe_to_file(df_platform, 'df_event_' + platform + '.csv')
-        return df_platform
-
-    result['df_web'] = get_platform(constants.PLATFORM_WEB)
-    log.print('get_csv_by_platform', 'web - data loaded')
-    result['df_and'] = get_platform(constants.PLATFORM_ANDROID)
-    log.print('get_csv_by_platform', 'and - data loaded')
-    result['df_ios'] = get_platform(constants.PLATFORM_IOS)
-    log.print('get_csv_by_platform', 'ios - data loaded')
 
 
 # =============================================================================
@@ -174,8 +159,8 @@ if __name__ == '__main__':
         'payload_aa': 'aa/request-events.json',
         'column_join': 'event',
         'google_csv_file': '/Users/luis.salamo/Downloads/1.csv',
-        'columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
-        'columns_tools': 'event,{{platform}}-count-aa,{{platform}}-count-ga,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga'
+        'columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors',
+        'columns_tools': 'event,{{platform}}-count-aa,{{platform}}-count-ga,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga'
     }
 
     # Logging
@@ -188,18 +173,14 @@ if __name__ == '__main__':
     result['df_aa'] = adobe.get_adobe()
     google = Google()
     result['df_ga'] = google.get_google()
-    result['df_ga_csv'] = google.get_google_csv()
+    # result['df_ga_csv'] = google.get_google_csv()
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
-    result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
-    # get_csv_by_platform(result['df'])
+    # result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
 
     # export csv
-    columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
-    # result['df'] = result['df'][columns]
     f.CSV.dataframe_to_file(result['df'], 'df_event_' + variables['platform'] + '.csv')
-    # result['df_csv'] = result['df_csv'][columns]
-    f.CSV.dataframe_to_file(result['df_csv'], 'df_event_csv_' + variables['platform'] + '.csv')
+    # f.CSV.dataframe_to_file(result['df_csv'], 'df_event_csv_' + variables['platform'] + '.csv')
 
     log.print('================ END ================', '')
 

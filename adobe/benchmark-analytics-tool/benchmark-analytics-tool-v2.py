@@ -51,7 +51,11 @@ class Adobe:
                 df = df[['value', 3, 4, 5]]
             elif self.platform == constants.PLATFORM_IOS:
                 df = df[['value', 6, 7, 8]]
+            # transform
             df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+            df = f_df.Dataframe.Cast.columns_to_datetime(df, [variables['column_join']], '%Y%m%d')
+            df.sort_values(by=variables['column_join'], ascending=True, inplace=True)
+            df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
         # log
         log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
         return df
@@ -86,11 +90,16 @@ class Google:
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
         if not f_df.Dataframe.is_empty(df):
             if self.platform == constants.PLATFORM_WEB:
-                df = get_platform(constants.GA4.platform.web)
+                platform = constants.GA4.platform.web
             elif self.platform == constants.PLATFORM_ANDROID:
-                df = get_platform(constants.GA4.platform.android)
+                platform = constants.GA4.platform.android
             elif self.platform == constants.PLATFORM_IOS:
-                df = get_platform(constants.GA4.platform.ios)
+                platform = constants.GA4.platform.ios
+            # transform
+            df = df.loc[df['platform'] == platform]
+            df = f_df.Dataframe.Columns.drop(df, ['platform'])
+            df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+            df = f_df.Dataframe.Cast.columns_to_datetime(df, [variables['column_join']], '%Y%m%d')
         # log
         log.print('get_google', 'dataframe loaded')
         return df
@@ -103,9 +112,6 @@ class Google:
 
 
 def merge_adobe_google(df_aa, df_ga):
-    # transform
-    df_aa = f_df.Dataframe.Cast.columns_to_datetime(df_aa, [variables['column_join']], '%Y%m%d')
-    df_ga = f_df.Dataframe.Cast.columns_to_datetime(df_ga, [variables['column_join']], '%Y%m%d')
     # merge
     df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, [variables['column_join']], 'outer', ('-aa', '-ga'))
     # transform
@@ -116,23 +122,6 @@ def merge_adobe_google(df_aa, df_ga):
     # log
     log.print('merge_adobe_google', 'data loaded')
     return df
-
-
-def get_csv_by_platform(df):
-    def get_platform(platform):
-        columns = variables['columns_tools'].replace('{{platform}}', platform).split(',')
-        df_platform = df[columns]
-        # Sort
-        df_platform = f_df.Dataframe.Sort.sort_by_columns(df_platform, [variables['column_join']], True)
-        f.CSV.dataframe_to_file(df_platform, 'df_' + platform + '.csv')
-        return df_platform
-
-    result['df_web'] = get_platform(constants.PLATFORM_WEB)
-    log.print('get_csv_by_platform', 'web - data loaded')
-    result['df_and'] = get_platform(constants.PLATFORM_ANDROID)
-    log.print('get_csv_by_platform', 'and - data loaded')
-    result['df_ios'] = get_platform(constants.PLATFORM_IOS)
-    log.print('get_csv_by_platform', 'ios - data loaded')
 
 
 # =============================================================================
@@ -178,9 +167,10 @@ if __name__ == '__main__':
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
     result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
-    # get_csv_by_platform(result['df'])
 
     # export csv
+    f.CSV.dataframe_to_file(result['df_aa'], 'df_aa_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df_ga'], 'df_ga_' + variables['platform'] + '.csv')
     f.CSV.dataframe_to_file(result['df'], 'df_' + variables['platform'] + '.csv')
     f.CSV.dataframe_to_file(result['df_csv'], 'df_csv_' + variables['platform'] + '.csv')
 

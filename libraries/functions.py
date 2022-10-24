@@ -22,7 +22,7 @@ class CSV:
         directory = os.path.join(Directory.get_working_directory(), 'csv/')
         if Directory.exists_directory(directory):
             file = os.path.join(directory, file)
-            df.to_csv(file)
+            df.to_csv(file, index=False)
         else:
             Log.print_and_exit('CSV.dataframe_to_file', 'Directory csv does not exist')
 
