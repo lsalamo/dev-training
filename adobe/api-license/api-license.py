@@ -63,7 +63,7 @@ if __name__ == '__main__':
                  'directory': '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/api-license',
                  'from_date': '2022-01-01',
                  'to_date': '2022-12-31',
-                 'file_payload': 'aa/request.json'
+                 'file_payload': 'aa/request-web.json'
                  }
 
     init()

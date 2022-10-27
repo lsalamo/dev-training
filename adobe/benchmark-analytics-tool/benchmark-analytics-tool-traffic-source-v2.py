@@ -32,11 +32,12 @@ def init():
 class Adobe:
     def __init__(self):
         self.site_id = variables['site_aa']
-        self.payload = variables['payload_aa']
+        self.payload = variables['payload_aa'].replace('{{platform}}', variables['platform'])
         self.column_join = variables['column_join']
         self.columns = variables['columns']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
+        self.platform = variables['platform']
 
     def get_adobe(self):
         # request
@@ -46,18 +47,11 @@ class Adobe:
         # transform
         df = f_df.Dataframe.Rows.replace(df, 'Unspecified', 'Internal')
         if not f_df.Dataframe.is_empty(df):
-            # web
-            df_web = df[['value', 0, 1, 2, 3]]
-            df_web.columns = self.columns.replace('{{platform}}', constants.PLATFORM_WEB).split(',')
-            # android
-            df_and = df[['value', 4, 5, 6, 7]]
-            df_and.columns = self.columns.replace('{{platform}}', constants.PLATFORM_ANDROID).split(',')
-            # ios
-            df_ios = df[['value', 8, 9, 10, 11]]
-            df_ios.columns = self.columns.replace('{{platform}}', constants.PLATFORM_IOS).split(',')
-            # join dataframes
-            frames = [df_web, df_and, df_ios]
-            df = f_df.Dataframe.Columns.join_by_columns(frames, self.column_join, 'outer')
+            df = df[['value', 0, 1, 2, 3]]
+            # transform
+            df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+            df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+            df.sort_values(by=self.platform + '-visits', ascending=False, inplace=True)
         # log
         log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
         return df
@@ -73,17 +67,10 @@ class Google:
         self.columns = variables['columns']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
+        self.google_csv_file = variables['google_csv_file']
+        self.platform = variables['platform']
 
     def get_google(self):
-        def get_platform(platform):
-            df_platform = df.loc[df['platform'] == platform]
-
-            # change column names
-            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['sessionMedium', 'sessionSource', 'platform'])
-            df_platform.columns = self.columns.replace('{{platform}}', platform[0:3].lower()).split(',')
-            df_platform = df_platform.groupby(self.column_join, as_index=False).sum()
-            return df_platform
-
         # request
         api = f_api_ga4.GA4_API()
         dimensions = 'sessionDefaultChannelGrouping,sessionMedium,sessionSource,platform'
@@ -91,19 +78,33 @@ class Google:
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
         if not f_df.Dataframe.is_empty(df):
+            if self.platform == constants.PLATFORM_WEB:
+                platform = constants.GA4.platform.web
+            elif self.platform == constants.PLATFORM_ANDROID:
+                platform = constants.GA4.platform.android
+            elif self.platform == constants.PLATFORM_IOS:
+                platform = constants.GA4.platform.ios
             # transform
+            df = df.loc[df['platform'].str.lower() == platform]
             df.loc[(df['sessionMedium'] == 'display') & (df['sessionSource'].str.startswith('retargeting-')), 'sessionDefaultChannelGrouping'] = 'Retargeting'
-            df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '(sessions|totalUsers|screenPageViews|conversions)')
-            # df = df.groupby(['sessionDefaultChannelGrouping', 'platform'], as_index=False).sum()
-            # platform
-            df_web = get_platform(constants.GA4.platform.web)
-            df_and = get_platform(constants.GA4.platform.android)
-            df_ios = get_platform(constants.GA4.platform.ios)
-            # join dataframes
-            frames = [df_web, df_and, df_ios]
-            df = f_df.Dataframe.Columns.join_by_columns(frames, [self.column_join], 'outer')
+            df = f_df.Dataframe.Columns.drop(df, ['sessionMedium', 'sessionSource', 'platform'])
+            df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+            df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+            df = df.groupby(self.column_join, as_index=False).sum()
+            df.sort_values(by=self.platform + '-visits', ascending=False, inplace=True)
         # log
         log.print('get_google', 'dataframe loaded')
+        return df
+
+    def get_google_by_medium_source_csv(self):
+        df = f.CSV.csv_to_dataframe(self.google_csv_file)
+        df.loc[(df[1].str.lower() == 'display') & (df[2].str.lower().str.startswith('retargeting-')), 0] = 'Retargeting'
+        df = f_df.Dataframe.Columns.drop(df, [1, 2])
+        df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+        df = df.groupby([variables['column_join']], as_index=False).sum()
+        df.sort_values(by=self.platform + '-visits', ascending=False, inplace=True)
+        # log
+        log.print('get_google_by_medium_source_csv', 'dataframe loaded')
         return df
 
 
@@ -120,26 +121,11 @@ def merge_adobe_google(df_aa, df_ga):
     # transform
     df = df.fillna(0)
     df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+    columns = variables['columns_tools'].replace('{{platform}}', variables['platform']).split(',')
+    df = df[columns]
     # log
     log.print('merge_adobe_google', 'data loaded')
     return df
-
-
-def get_csv_by_platform(df):
-    def get_platform(platform):
-        columns = variables['columns_tools'].replace('{{platform}}', platform).split(',')
-        df_platform = df[columns]
-        # Sort
-        df_platform = f_df.Dataframe.Sort.sort_by_columns(df_platform, [platform + '-visits-aa'], False)
-        f.CSV.dataframe_to_file(df_platform, 'df_' + platform + '.csv')
-        return df_platform
-
-    result['df_web'] = get_platform(constants.PLATFORM_WEB)
-    log.print('get_csv_by_platform', 'web - data loaded')
-    result['df_and'] = get_platform(constants.PLATFORM_ANDROID)
-    log.print('get_csv_by_platform', 'and - data loaded')
-    result['df_ios'] = get_platform(constants.PLATFORM_IOS)
-    log.print('get_csv_by_platform', 'ios - data loaded')
 
 
 # =============================================================================
@@ -163,8 +149,10 @@ if __name__ == '__main__':
         'to_date': sys.argv[3],
         'site_aa': site['aa'],
         'site_ga': site['ga'],
-        'payload_aa': 'aa/request-traffic-source.json',
+        'platform': sys.argv[4],
+        'payload_aa': 'aa/request-{{platform}}-traffic-source.json',
         'column_join': 'medium',
+        'google_csv_file': '/Users/luis.salamo/Downloads/1.csv',
         'columns': 'medium,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views,{{platform}}-conversions',
         'columns_tools': 'medium,{{platform}}-visits-aa,{{platform}}-visits-ga,{{platform}}-visitors-aa,{{platform}}-visitors-ga,{{platform}}-views-aa,{{platform}}-views-ga,{{platform}}-conversions-aa,{{platform}}-conversions-ga'
     }
@@ -179,9 +167,15 @@ if __name__ == '__main__':
     result['df_aa'] = adobe.get_adobe()
     google = Google()
     result['df_ga'] = google.get_google()
+    result['df_ga_by_session_medium'] = google.get_google_by_medium_source_csv()
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
-    get_csv_by_platform(result['df'])
+    result['df_by_session_medium'] = merge_adobe_google(result['df_aa'], result['df_ga_by_session_medium'])
+
+    # export csv
+    f.CSV.dataframe_to_file(result['df'], 'df_traffic_source_' + site['str'] + '_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df_by_session_medium'], 'df_session_medium_' + site['str'] + '_' + variables['platform'] + '.csv')
+
     log.print('================ END ================', '')
 
 

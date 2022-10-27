@@ -68,7 +68,7 @@ class Adobe:
         return df
 
     def get_adobe(self):
-        return self.get_request('aa/request.json', self.request_columns, ['day'])
+        return self.get_request('aa/request-web.json', self.request_columns, ['day'])
 
     def get_adobe_events(self):
         return self.get_request('aa/request-events.json', self.request_events_columns, ['event'])

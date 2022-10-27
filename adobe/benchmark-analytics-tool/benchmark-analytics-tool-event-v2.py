@@ -38,15 +38,6 @@ class Adobe:
         self.to_date = variables['to_date']
         self.platform = variables['platform']
 
-    def get_adobe(self):
-        def get_platform(df_platform, platform):
-            columns = list(df_platform.columns)
-            df_platform.loc[df_platform[columns[-1]] > 0, 'value'] = 'Page View'
-            df_platform = f_df.Dataframe.Columns.drop(df_platform, [columns[-1]])
-            df_platform.columns = self.columns.replace('{{platform}}', platform).split(',')
-            df_platform = df_platform.groupby([variables['column_join']], as_index=False).sum()
-            return df_platform
-
         # request
         access_token = f_api_adobe.Adobe_JWT.get_access_token()
         api = f_api_adobe.Adobe_Report_API(self.site_id, self.payload, self.from_date, self.to_date, access_token)
@@ -58,9 +49,32 @@ class Adobe:
                 df = df[['value', 4, 5, 6, 7]]
             elif self.platform == constants.PLATFORM_IOS:
                 df = df[['value', 8, 9, 10, 11]]
-            df = get_platform(df, self.platform)
+            self.df = df
+
+    def get_adobe(self):
+        # transform
+        df = self.df.copy()
+        columns = list(df.columns)
+        df = f_df.Dataframe.Columns.drop(df, [columns[-1]])
+        df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+        df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+        df.sort_values(by=self.platform + '-count', ascending=False, inplace=True)
         # log
         log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
+        return df
+
+    def get_adobe_by_page_view(self):
+        # transform
+        df = self.df.copy()
+        columns = list(df.columns)
+        df.loc[self.df[columns[-1]] > 0, 'value'] = 'Page View'
+        df = f_df.Dataframe.Columns.drop(df, [columns[-1]])
+        df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+        df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+        df = df.groupby([variables['column_join']], as_index=False).sum()
+        df.sort_values(by=self.platform + '-count', ascending=False, inplace=True)
+        # log
+        log.print('get_adobe_groupby_pageview', 'dataframe loaded <' + self.payload + '>')
         return df
 
 
@@ -77,39 +91,53 @@ class Google:
         self.google_csv_file = variables['google_csv_file']
         self.platform = variables['platform']
 
-    def get_google(self):
-        def get_platform(platform):
-            df_platform = df.loc[df['platform'] == platform]
-            # change column names
-            # df_platform = f_df.Dataframe.Columns.drop(df_platform, ['customEvent:custom_link', 'platform'])
-            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['platform'])
-            df_platform.columns = self.columns.replace('{{platform}}', self.platform).split(',')
-            return df_platform
-
         # request
         api = f_api_ga4.GA4_API()
+        # dimensions = 'eventName,customEvent:custom_link,platform'
         dimensions = 'eventName,platform'
-        # metrics = 'eventCount,sessions,totalUsers,screenPageViews'
         metrics = 'eventCount,sessions,totalUsers'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
         df = api.request(self.site_id, dimensions, metrics, date_ranges)
         if not f_df.Dataframe.is_empty(df):
             if self.platform == constants.PLATFORM_WEB:
-                df = get_platform(constants.GA4.platform.web)
+                platform = constants.GA4.platform.web
             elif self.platform == constants.PLATFORM_ANDROID:
-                df = get_platform(constants.GA4.platform.android)
+                platform = constants.GA4.platform.android
             elif self.platform == constants.PLATFORM_IOS:
-                df = get_platform(constants.GA4.platform.ios)
+                platform = constants.GA4.platform.ios
+            # transform
+            df = df.loc[df['platform'].str.lower() == platform]
+            df = f_df.Dataframe.Columns.drop(df, ['platform'])
+            df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+            df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+            self.df = df
+
+    def get_google(self):
+        # transform
+        df = self.df.copy()
+        df.sort_values(by=self.platform + '-count', ascending=False, inplace=True)
         # log
         log.print('get_google', 'dataframe loaded')
         return df
 
-    def get_google_csv(self):
-        df = f.CSV.csv_to_dataframe(self.google_csv_file)
-        df = df.groupby(0, as_index=False).sum()
-        # f_df.Dataframe.Columns.drop_from_index(df, 5, True)
-        df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+    def get_google_by_page_view(self):
+        # transform
+        df = self.df.copy()
+        df = df.groupby([variables['column_join']], as_index=False).sum()
+        df.sort_values(by=self.platform + '-count', ascending=False, inplace=True)
+        # log
+        log.print('get_google_by_page_view', 'dataframe loaded')
+        return df
 
+    def get_google_by_page_view_csv(self):
+        df = f.CSV.csv_to_dataframe(self.google_csv_file)
+        df.loc[df[0].str.lower() == 'page_view', 0] = df.loc[df[0].str.lower() == 'page_view', 1]
+        df = f_df.Dataframe.Columns.drop(df, [1])
+        df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
+        df = df.groupby([variables['column_join']], as_index=False).sum()
+        df.sort_values(by=self.platform + '-count', ascending=False, inplace=True)
+        # log
+        log.print('get_google_by_page_view_csv', 'dataframe loaded')
         return df
 
 
@@ -171,16 +199,18 @@ if __name__ == '__main__':
 
     adobe = Adobe()
     result['df_aa'] = adobe.get_adobe()
+    result['df_aa_by_page_view'] = adobe.get_adobe_by_page_view()
     google = Google()
     result['df_ga'] = google.get_google()
-    # result['df_ga_csv'] = google.get_google_csv()
+    # result['df_ga_by_page_view'] = google.get_google_by_page_view()
+    result['df_ga_by_page_view'] = google.get_google_by_page_view_csv()
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
-    # result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
+    result['df_by_page_view'] = merge_adobe_google(result['df_aa'], result['df_ga_by_page_view'])
 
     # export csv
-    f.CSV.dataframe_to_file(result['df'], 'df_event_' + variables['platform'] + '.csv')
-    # f.CSV.dataframe_to_file(result['df_csv'], 'df_event_csv_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df'], 'df_event_' + site['str'] + '_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df_by_page_view'], 'df_event_by_page_view_' + site['str'] + '_' + variables['platform'] + '.csv')
 
     log.print('================ END ================', '')
 

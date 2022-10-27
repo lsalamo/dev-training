@@ -1,0 +1,98 @@
+{
+    "rsid": "{{rs}}",
+    "globalFilters": [
+        {
+            "type": "dateRange",
+            "dateRange": "{{dt}}"
+        }
+    ],
+    "metricContainer": {
+        "metrics": [
+            {
+                "columnId": "1",
+                "id": "metrics/visits",
+                "sort": "desc",
+                "filters": [
+                    "0"
+                ]
+            },
+            {
+                "columnId": "2",
+                "id": "metrics/visitors",
+                "filters": [
+                    "1"
+                ]
+            },
+            {
+                "columnId": "3",
+                "id": "metrics/pageviews",
+                "filters": [
+                    "2"
+                ]
+            },
+            {
+                "columnId": "4",
+                "id": "cm2165_5eb03c450ff4e30ffc3404f1",
+                "filters": [
+                    "3"
+                ]
+            }
+        ],
+        "metricFilters": [
+            {
+                "id": "0",
+                "type": "segment",
+                "segmentId": "s2165_5ce2aa77c0fdcb1990ad2326"
+            },
+            {
+                "id": "1",
+                "type": "segment",
+                "segmentId": "s2165_5ce2aa77c0fdcb1990ad2326"
+            },
+            {
+                "id": "2",
+                "type": "segment",
+                "segmentId": "s2165_5ce2aa77c0fdcb1990ad2326"
+            },
+            {
+                "id": "3",
+                "type": "segment",
+                "segmentId": "s2165_5ce2aa77c0fdcb1990ad2326"
+            }
+        ]
+    },
+    "dimension": "variables/evar101.1",
+    "settings": {
+        "countRepeatInstances": true,
+        "includeAnnotations": true,
+        "limit": 50,
+        "page": 0,
+        "nonesBehavior": "return-nones"
+    },
+    "statistics": {
+        "functions": [
+            "col-max",
+            "col-min"
+        ]
+    },
+    "capacityMetadata": {
+        "associations": [
+            {
+                "name": "applicationName",
+                "value": "Analysis Workspace UI"
+            },
+            {
+                "name": "projectId",
+                "value": "620e68b2ab76dc231fa02541"
+            },
+            {
+                "name": "projectName",
+                "value": "GA4 - heath-metrics-comparison"
+            },
+            {
+                "name": "panelName",
+                "value": "TRAFFIC SOURCE"
+            }
+        ]
+    }
+}

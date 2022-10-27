@@ -32,7 +32,7 @@ def init():
 class Adobe:
     def __init__(self):
         self.site_id = variables['site_aa']
-        self.payload = variables['payload_aa']
+        self.payload = variables['payload_aa'].replace('{{platform}}', variables['platform'])
         self.column_join = variables['column_join']
         self.columns = variables['columns']
         self.from_date = variables['from_date']
@@ -45,17 +45,12 @@ class Adobe:
         api = f_api_adobe.Adobe_Report_API(self.site_id, self.payload, self.from_date, self.to_date, access_token)
         df = api.request()
         if not f_df.Dataframe.is_empty(df):
-            if self.platform == constants.PLATFORM_WEB:
-                df = df[['value', 0, 1, 2]]
-            elif self.platform == constants.PLATFORM_ANDROID:
-                df = df[['value', 3, 4, 5]]
-            elif self.platform == constants.PLATFORM_IOS:
-                df = df[['value', 6, 7, 8]]
+            df = df[['value', 0, 1, 2]]
             # transform
             df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
             df = f_df.Dataframe.Cast.columns_to_datetime(df, [variables['column_join']], '%Y%m%d')
-            df.sort_values(by=variables['column_join'], ascending=True, inplace=True)
             df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
+            df.sort_values(by=variables['column_join'], ascending=True, inplace=True)
         # log
         log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
         return df
@@ -75,13 +70,6 @@ class Google:
         self.platform = variables['platform']
 
     def get_google(self):
-        def get_platform(platform):
-            df_platform = df.loc[df['platform'] == platform]
-            # change column names
-            df_platform = f_df.Dataframe.Columns.drop(df_platform, ['platform'])
-            df_platform.columns = self.columns.replace('{{platform}}', platform[0:3].lower()).split(',')
-            return df_platform
-
         # request
         api = f_api_ga4.GA4_API()
         dimensions = 'date,platform'
@@ -96,7 +84,7 @@ class Google:
             elif self.platform == constants.PLATFORM_IOS:
                 platform = constants.GA4.platform.ios
             # transform
-            df = df.loc[df['platform'] == platform]
+            df = df.loc[df['platform'].str.lower() == platform]
             df = f_df.Dataframe.Columns.drop(df, ['platform'])
             df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
             df = f_df.Dataframe.Cast.columns_to_datetime(df, [variables['column_join']], '%Y%m%d')
@@ -146,7 +134,7 @@ if __name__ == '__main__':
         'site_aa': site['aa'],
         'site_ga': site['ga'],
         'platform': sys.argv[4],
-        'payload_aa': 'aa/request.json',
+        'payload_aa': 'aa/request-{{platform}}.json',
         'column_join': 'day',
         'google_csv_file': '/Users/luis.salamo/Downloads/1.csv',
         'columns': 'day,{{platform}}-visits,{{platform}}-visitors,{{platform}}-views',
@@ -163,15 +151,15 @@ if __name__ == '__main__':
     result['df_aa'] = adobe.get_adobe()
     google = Google()
     result['df_ga'] = google.get_google()
-    result['df_ga_csv'] = google.get_google_csv()
+    # result['df_ga_csv'] = google.get_google_csv()
 
     result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
-    result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
+    # result['df_csv'] = merge_adobe_google(result['df_aa'], result['df_ga_csv'])
 
     # export csv
-    f.CSV.dataframe_to_file(result['df_aa'], 'df_aa_' + variables['platform'] + '.csv')
-    f.CSV.dataframe_to_file(result['df_ga'], 'df_ga_' + variables['platform'] + '.csv')
-    f.CSV.dataframe_to_file(result['df'], 'df_' + variables['platform'] + '.csv')
-    f.CSV.dataframe_to_file(result['df_csv'], 'df_csv_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df_aa'], 'df_aa_' + site['str'] + '_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df_ga'], 'df_ga_' + site['str'] + '_' + variables['platform'] + '.csv')
+    f.CSV.dataframe_to_file(result['df'], 'df_' + site['str'] + '_' + variables['platform'] + '.csv')
+    # f.CSV.dataframe_to_file(result['df_csv'], 'df_csv_' + variables['platform'] + '.csv')
 
     log.print('================ END ================', '')
