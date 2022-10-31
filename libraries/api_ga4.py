@@ -29,7 +29,7 @@ class GA4_API:
         # specified in GOOGLE_APPLICATION_CREDENTIALS environment variable.
         self.client = BetaAnalyticsDataClient()
 
-    def request(self, property_id: str, dimensions: str, metrics: str, date_ranges: dict) -> pd.DataFrame:
+    def request(self, property_id: str, dimensions: str, metrics: str, date_ranges: dict, dimension_filter) -> pd.DataFrame:
         # Dimensions
         list_dimensions = dimensions.split(',')
         for index, dimension in enumerate(list_dimensions):
@@ -50,21 +50,21 @@ class GA4_API:
         #     order_bys = [OrderBy(dimension=OrderBy.MetricOrderBy(metric_name=order_bys['metric']), desc=order_bys['desc'])]
 
         # Dimension Filter
-        # dimension_filter = FilterExpression(
-        #         and_group=FilterExpressionList(
-        #             expressions=[
-        #                 FilterExpression(
-        #                     filter=Filter(
-        #                         field_name=dimension_filter['dimension'],
-        #                         string_filter=Filter.StringFilter(
-        #                             match_type=Filter.StringFilter.MatchType.EXACT,
-        #                             value=dimension_filter['value'],
-        #                         ),
-        #                     )
-        #                 )
-        #             ]
-        #         )
-        #     )
+        dimension_filter = FilterExpression(
+                and_group=FilterExpressionList(
+                    expressions=[
+                        FilterExpression(
+                            filter=Filter(
+                                field_name=dimension_filter['dimension'],
+                                string_filter=Filter.StringFilter(
+                                    match_type=Filter.StringFilter.MatchType.EXACT,
+                                    value=dimension_filter['value'],
+                                ),
+                            )
+                        )
+                    ]
+                )
+            )
 
         request = RunReportRequest(
             property=f'properties/{property_id}',
@@ -72,7 +72,7 @@ class GA4_API:
             metrics=list_metrics,
             date_ranges=date_ranges,
             # order_bys=order_bys,
-            # dimension_filter=dimension_filter
+            dimension_filter=dimension_filter
         )
         response = self.client.run_report(request)
 
