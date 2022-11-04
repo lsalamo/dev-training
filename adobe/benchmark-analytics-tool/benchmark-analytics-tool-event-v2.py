@@ -90,6 +90,7 @@ class Google:
         self.to_date = variables['to_date']
         self.google_csv_file = variables['google_csv_file']
         self.platform = variables['platform']
+        self.app_version = variables['app_version']
 
         # request
         api = f_api_ga4.GA4_API()
@@ -97,7 +98,8 @@ class Google:
         dimensions = 'eventName,platform'
         metrics = 'eventCount,sessions,totalUsers'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
-        df = api.request(self.site_id, dimensions, metrics, date_ranges)
+        dimension_filter = {'dimension': 'appVersion', 'value': self.app_version} if self.app_version else None
+        df = api.request(self.site_id, dimensions, metrics, date_ranges, dimension_filter)
         if not f_df.Dataframe.is_empty(df):
             if self.platform == constants.PLATFORM_WEB:
                 platform = constants.GA4.platform.web
@@ -184,6 +186,7 @@ if __name__ == '__main__':
         'site_aa': site['aa'],
         'site_ga': site['ga'],
         'platform': sys.argv[4],
+        'app_version': sys.argv[5] if len(sys.argv) == 6 else '',
         'payload_aa': 'aa/request-events.json',
         'column_join': 'event',
         'google_csv_file': '/Users/luis.salamo/Downloads/1.csv',

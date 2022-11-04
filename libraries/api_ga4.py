@@ -50,21 +50,22 @@ class GA4_API:
         #     order_bys = [OrderBy(dimension=OrderBy.MetricOrderBy(metric_name=order_bys['metric']), desc=order_bys['desc'])]
 
         # Dimension Filter
-        dimension_filter = FilterExpression(
-                and_group=FilterExpressionList(
-                    expressions=[
-                        FilterExpression(
-                            filter=Filter(
-                                field_name=dimension_filter['dimension'],
-                                string_filter=Filter.StringFilter(
-                                    match_type=Filter.StringFilter.MatchType.EXACT,
-                                    value=dimension_filter['value'],
-                                ),
+        if dimension_filter:
+            dimension_filter = FilterExpression(
+                    and_group=FilterExpressionList(
+                        expressions=[
+                            FilterExpression(
+                                filter=Filter(
+                                    field_name=dimension_filter['dimension'],
+                                    string_filter=Filter.StringFilter(
+                                        match_type=Filter.StringFilter.MatchType.EXACT,
+                                        value=dimension_filter['value'],
+                                    ),
+                                )
                             )
-                        )
-                    ]
+                        ]
+                    )
                 )
-            )
 
         request = RunReportRequest(
             property=f'properties/{property_id}',

@@ -76,8 +76,7 @@ class Google:
         dimensions = 'date,platform'
         metrics = 'sessions,totalUsers,screenPageViews'
         date_ranges = {'start_date': self.from_date, 'end_date': self.to_date}
-        if self.app_version:
-            dimension_filter = {'dimension': 'appVersion', 'value': self.app_version}
+        dimension_filter = {'dimension': 'appVersion', 'value': self.app_version} if self.app_version else None
         df = api.request(self.site_id, dimensions, metrics, date_ranges, dimension_filter)
         if not f_df.Dataframe.is_empty(df):
             if self.platform == constants.PLATFORM_WEB:
