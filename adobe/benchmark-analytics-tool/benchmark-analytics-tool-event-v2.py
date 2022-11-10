@@ -31,7 +31,7 @@ def init():
 class Adobe:
     def __init__(self):
         self.site_id = variables['site_aa']
-        self.payload = variables['payload_aa']
+        self.payload = variables['payload_aa'].replace('{{platform}}', variables['platform'])
         self.column_join = variables['column_join']
         self.columns = variables['columns']
         self.from_date = variables['from_date']
@@ -43,19 +43,13 @@ class Adobe:
         api = f_api_adobe.Adobe_Report_API(self.site_id, self.payload, self.from_date, self.to_date, access_token)
         df = api.request()
         if not f_df.Dataframe.is_empty(df):
-            if self.platform == constants.PLATFORM_WEB:
-                df = df[['value', 0, 1, 2, 3]]
-            elif self.platform == constants.PLATFORM_ANDROID:
-                df = df[['value', 4, 5, 6, 7]]
-            elif self.platform == constants.PLATFORM_IOS:
-                df = df[['value', 8, 9, 10, 11]]
+            df = df[['value', 0, 1, 2, 3]]
             self.df = df
 
     def get_adobe(self):
-        # transform
         df = self.df.copy()
-        columns = list(df.columns)
-        df = f_df.Dataframe.Columns.drop(df, [columns[-1]])
+        # transform
+        df = df[['value', 0, 1, 2]]
         df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
         df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
         df.sort_values(by=self.platform + '-count', ascending=False, inplace=True)
@@ -67,8 +61,8 @@ class Adobe:
         # transform
         df = self.df.copy()
         columns = list(df.columns)
-        df.loc[self.df[columns[-1]] > 0, 'value'] = 'Page View'
-        df = f_df.Dataframe.Columns.drop(df, [columns[-1]])
+        df.loc[df[columns[-1]] > 0, 'value'] = 'Page View'
+        df = df[['value', 0, 1, 2]]
         df.columns = self.columns.replace('{{platform}}', self.platform).split(',')
         df = f_df.Dataframe.Cast.columns_regex_to_int64(df, '^(web-|and-|ios-)')
         df = df.groupby([variables['column_join']], as_index=False).sum()
@@ -187,7 +181,7 @@ if __name__ == '__main__':
         'site_ga': site['ga'],
         'platform': sys.argv[4],
         'app_version': sys.argv[5] if len(sys.argv) == 6 else '',
-        'payload_aa': 'aa/request-events.json',
+        'payload_aa': 'aa/request-{{platform}}-events.json',
         'column_join': 'event',
         'google_csv_file': '/Users/luis.salamo/Downloads/1.csv',
         'columns': 'event,{{platform}}-count,{{platform}}-visits,{{platform}}-visitors',
@@ -208,7 +202,7 @@ if __name__ == '__main__':
     # result['df_ga_by_page_view'] = google.get_google_by_page_view()
     result['df_ga_by_page_view'] = google.get_google_by_page_view_csv()
 
-    result['df'] = merge_adobe_google(result['df_aa'], result['df_ga'])
+    result['df'] = merge_adobe_google(result['df_aa_by_page_view'], result['df_ga'])
     result['df_by_page_view'] = merge_adobe_google(result['df_aa'], result['df_ga_by_page_view'])
 
     # export csv
