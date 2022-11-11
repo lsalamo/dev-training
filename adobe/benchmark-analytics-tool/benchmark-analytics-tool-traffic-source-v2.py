@@ -3,7 +3,7 @@ import sys
 import os
 
 # adding libraries folder to the system path
-sys.path.insert(0, '/Users/luis.salamo/Documents/github enterprise/python-training/libraries')
+sys.path.insert(0, '/Users/luis.salamo/Documents/github/python-training/libraries')
 
 import constants
 import functions as f
@@ -21,7 +21,7 @@ def init():
         log.print('init', 'Argument: ' + sys.argv[i])
 
     # directory
-    os.chdir('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/benchmark-analytics-tool')
+    os.chdir('/Users/luis.salamo/Documents/github/python-training/adobe/benchmark-analytics-tool')
     log.print('directory', os.getcwd())
     f.Directory.create_directory('csv')
 

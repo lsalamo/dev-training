@@ -24,7 +24,7 @@ class GA4_API:
     property_infojobsit = '330589193'
 
     def __init__(self):
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github enterprise/python-training/google/google-credentials.json"
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/Users/luis.salamo/Documents/github/python-training/google/google-credentials.json"
         # Using a default constructor instructs the client to use the credentials
         # specified in GOOGLE_APPLICATION_CREDENTIALS environment variable.
         self.client = BetaAnalyticsDataClient()

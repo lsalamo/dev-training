@@ -85,7 +85,8 @@ class Adobe_JWT:
     @staticmethod
     def get_access_token():
         def get_jwt_token():
-            with open(os.path.join(os.path.expanduser('~'), '.ssh/', config["private_key"]), 'r') as file:
+            # with open(os.path.join(os.path.expanduser('~'), '.ssh/', config["private_key"]), 'r') as file:
+            with open(os.path.join('/Users/luis.salamo/Documents/github/python-training/adobe/', config["private_key"]), 'r') as file:
                 private_key = file.read()
 
             payload = {
@@ -117,7 +118,7 @@ class Adobe_JWT:
 
         # JWT Token
         config_parser = configparser.ConfigParser()
-        config_parser.read('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/adobe-credentials.ini')
+        config_parser.read('/Users/luis.salamo/Documents/github/python-training/adobe/adobe-credentials.ini')
         config = dict(config_parser["default"])
         jwt_token = get_jwt_token()
         # log.print('Adobe_JWT.get_access_token', 'JWT Token: {}'.format(jwt_token))
