@@ -60,10 +60,7 @@ class Directory:
 
     @staticmethod
     def exists_directory(directory):
-        if os.path.isdir(directory):
-            return True
-        else:
-            return False
+        return os.path.isdir(directory)
 
 
 class File:

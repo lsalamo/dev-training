@@ -10,9 +10,8 @@ class Logging:
     def print(self, method, info):
         self.logger.info("Method: {} - {}".format(method, info))
 
-    @staticmethod
-    def print_error(method, info):
-        print('> ERROR - ' + method + '() - ' + info)
+    def print_error(self, method, info):
+        self.logger.info("Method: {} - {}".format(method, info))
 
     @staticmethod
     def print_and_exit(method, info):
