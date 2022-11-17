@@ -13,11 +13,15 @@ import api as f_api
 
 class Adobe_API(api.API):
     rs_fotocasaes = 'vrs_schibs1_fcall'
+    rs_habitaclia = 'schibstedspainrehabitacliaprod'
+    rs_uniquetool = 'schibstedspainreuniquetoolprod'
     rs_cochesnet = 'vrs_schibs1_motorcochesnet'
     rs_motosnet = 'vrs_schibs1_motormotosnet'
+    rs_carfactory = 'schibstedspainmotorcarfactorywebprod'
     rs_milanuncioscom = 'vrs_schibs1_generalistmilanuncio'
     rs_infojobsnet = 'vrs_schibs1_jobsinfojobs'
     rs_infojobsit = 'vrs_schibs1_jobsitalyall'
+    rs_infojobs_epreselec = 'schibstedspainjobsepreselecprod'
 
     def __init__(self, method, url, payload, access_token):
         # Logging
@@ -78,6 +82,31 @@ class Adobe_Report_Suite_API(Adobe_API):
             rows = response['content']
             if len(rows) > 0:
                 df = pd.DataFrame.from_dict(rows)
+        return df
+
+
+class Adobe_Dimensions_API(Adobe_API):
+    def __init__(self, rs, access_token):
+        # endpoint
+        self.rs = rs
+        url = f'https://analytics.adobe.io/api/schibs1/dimensions?rsid={rs}&locale=en_US&classifiable=false'
+        payload = {}
+        super().__init__('GET', url, payload, access_token)
+
+    def request(self):
+        # df = pd.DataFrame()
+        response = super().request()
+        df = pd.DataFrame.from_dict(response)
+        if not f_df.Dataframe.is_empty(df):
+            df = df.loc[df['extraTitleInfo'].notnull()]
+            df = df.loc[df['extraTitleInfo'].str.contains("evar")]
+            df['evar'] = df['extraTitleInfo'].str.replace('evar', '')
+            df['evar'] = df['evar'].astype('int')
+            df = df[['evar', 'name']]
+            df_evars = pd.DataFrame(pd.Series(range(1, 201)), columns=['evar'])
+            df_evars['rsid'] = self.rs
+            # merge
+            df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_evars, df, 'evar', 'left', ('', ''))
         return df
 
 

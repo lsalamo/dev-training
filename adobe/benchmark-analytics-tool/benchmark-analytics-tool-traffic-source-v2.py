@@ -21,7 +21,8 @@ def init():
         log.print('init', 'Argument: ' + sys.argv[i])
 
     # directory
-    os.chdir('/Users/luis.salamo/Documents/github/python-training/adobe/benchmark-analytics-tool')
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(dir_path)
     log.print('directory', os.getcwd())
     f.Directory.create_directory('csv')
 

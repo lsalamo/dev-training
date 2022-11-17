@@ -14,29 +14,27 @@ import dataframe as f_df
 import logs as f_log
 
 
-def init():
-    # args
-    log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
-    log.print('init', 'Name of Python script:: ' + sys.argv[0])
-    for i in range(1, len(sys.argv)):
-        log.print('init', 'Argument: ' + sys.argv[i])
-
-    # directory
-    os.chdir('/Users/luis.salamo/Documents/github/python-training/adobe/api-license')
-    log.print('directory', os.getcwd())
-    f.Directory.create_directory('csv')
-
-
 # =============================================================================
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
-class Adobe:
+class App:
     def __init__(self):
         self.payload = variables['payload']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
         self.access_token = variables['access_token']
         self.columns = variables['columns']
+        # args
+        log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
+        log.print('init', 'Name of Python script:: ' + sys.argv[0])
+        for i in range(1, len(sys.argv)):
+            log.print('init', 'Argument: ' + sys.argv[i])
+
+        # directory
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        os.chdir(dir_path)
+        log.print('directory', os.getcwd())
+        f.Directory.create_directory('csv')
 
     def get_adobe_report_suite(self):
         # request
@@ -101,14 +99,11 @@ if __name__ == '__main__':
 
     # Logging
     log = f_log.Logging()
-
-    init()
-    adobe = Adobe()
-    result['df_rs'] = adobe.get_adobe_report_suite()
-    result['df'] = adobe.get_adobe()
-    result['df_by_site'] = adobe.get_adobe_by_site()
-
+    # app
+    app = App()
+    result['df_rs'] = app.get_adobe_report_suite()
+    result['df'] = app.get_adobe()
+    result['df_by_site'] = app.get_adobe_by_site()
     # export csvx
     f.CSV.dataframe_to_file(result['df_by_site'], 'df.csv')
 
-    log.print('================ END ================', '')

@@ -10,20 +10,6 @@ def print_log(method, info):
     log.info("Method: {} - {}".format(method, info))
 
 
-def init():
-    # args
-    print_log('init', 'Total arguments passed: ' + str(len(sys.argv)))
-    print_log('init', 'Name of Python script:: ' + sys.argv[0])
-    for i in range(1, len(sys.argv)):
-        print_log('init', 'Argument: ' + sys.argv[i])
-    # directory
-    os.chdir('/Users/luis.salamo/Documents/github/python-training/adobe/api-license-digital')
-    print_log('directory', os.getcwd())
-    directory = os.path.join(os.getcwd(), 'csv')
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-
-
 # =============================================================================
 # REQUEST ADOBE ANALYTICS
 # =============================================================================
@@ -40,7 +26,8 @@ class App:
         for i in range(1, len(sys.argv)):
             print_log('init', 'Argument: ' + sys.argv[i])
         # directory
-        os.chdir('/Users/luis.salamo/Documents/github/python-training/adobe/api-license-digital')
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        os.chdir(dir_path)
         print_log('directory', os.getcwd())
         directory = os.path.join(os.getcwd(), 'csv')
         if not os.path.isdir(directory):
@@ -127,8 +114,6 @@ if __name__ == '__main__':
     result['df_rs'] = app.get_adobe_report_suite()
     result['df'] = app.get_adobe()
     result['df_by_site'] = app.get_adobe_by_site()
-
     # export csvx
     app.dataframe_to_file(result['df_by_site'], 'df.csv')
 
-    print_log('================ END ================', '')
