@@ -104,6 +104,6 @@ if __name__ == '__main__':
     result['df_rs'] = app.get_adobe_report_suite()
     result['df'] = app.get_adobe()
     result['df_by_site'] = app.get_adobe_by_site()
-    # export csvx
+    # export csv
     f.CSV.dataframe_to_file(result['df_by_site'], 'df.csv')
 
