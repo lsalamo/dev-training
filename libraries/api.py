@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
-import functions as f
-import dataframe as f_df
+import libraries.functions as f
+import libraries.dataframe as f_df
 
 
 class API:

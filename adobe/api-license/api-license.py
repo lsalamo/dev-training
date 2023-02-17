@@ -1,17 +1,12 @@
 # AA > https://adobedocs.github.io/analytics-2.0-apis/
-
 import pandas as pd
 import sys
 import os
 import numpy as np
-
-# adding libraries folder to the system path
-sys.path.insert(0, '/Users/luis.salamo/Documents/github/python-training/libraries')
-
-import functions as f
-import api_adobe_analytics2_0 as f_api_adobe
-import dataframe as f_df
-import logs as f_log
+import libraries.functions as f
+import libraries.api_adobe_analytics2_0 as f_api_adobe
+import libraries.dataframe as f_df
+import libraries.logs as f_log
 
 
 # =============================================================================

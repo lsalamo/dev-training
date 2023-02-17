@@ -258,6 +258,6 @@ fabric.properties
 csv/
 
 *-credentials.json
-*-credentials.ini
-*-private.key
+*.ini
+*.key
 

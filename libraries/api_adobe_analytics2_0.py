@@ -3,15 +3,14 @@ import configparser
 import datetime
 import os
 import jwt
-import functions as f
-import dt as dt
-import api
-import dataframe as f_df
-import logs as f_log
-import api as f_api
+import libraries.functions as f
+import libraries.api as f_api
+import libraries.dt as f_dt
+import libraries.dataframe as f_df
+import libraries.logs as f_log
 
 
-class Adobe_API(api.API):
+class Adobe_API(f_api.API):
     rs_fotocasaes = 'vrs_schibs1_fcall'
     rs_habitaclia = 'schibstedspainrehabitacliaprod'
     rs_uniquetool = 'schibstedspainreuniquetoolprod'
@@ -42,11 +41,11 @@ class Adobe_Report_API(Adobe_API):
         url = 'https://analytics.adobe.io/api/schibs1/reports'
 
         # date
-        date_from = dt.Datetime.str_to_datetime(date_from, '%Y-%m-%d')
-        date_from = dt.Datetime.datetime_to_str(date_from, '%Y-%m-%dT00:00:00.000')
-        to_date = dt.Datetime.str_to_datetime(to_date, '%Y-%m-%d')
-        to_date = dt.Datetime.datetime_add_days(to_date, 1)
-        to_date = dt.Datetime.datetime_to_str(to_date, '%Y-%m-%dT00:00:00.000')
+        date_from = f_dt.Datetime.str_to_datetime(date_from, '%Y-%m-%d')
+        date_from = f_dt.Datetime.datetime_to_str(date_from, '%Y-%m-%dT00:00:00.000')
+        to_date = f_dt.Datetime.str_to_datetime(to_date, '%Y-%m-%d')
+        to_date = f_dt.Datetime.datetime_add_days(to_date, 1)
+        to_date = f_dt.Datetime.datetime_to_str(to_date, '%Y-%m-%dT00:00:00.000')
         date = date_from + '/' + to_date
 
         # payload
@@ -115,7 +114,8 @@ class Adobe_JWT:
     def get_access_token():
         def get_jwt_token():
             # with open(os.path.join(os.path.expanduser('~'), '.ssh/', config["private_key"]), 'r') as file:
-            with open(os.path.join('/Users/luis.salamo/Documents/github/python-training/adobe/', config["private_key"]), 'r') as file:
+            with open(os.path.join(os.path.dirname(__file__), '../adobe/credentials/' + config["private_key"]),
+                      'r') as file:
                 private_key = file.read()
 
             payload = {
@@ -135,9 +135,6 @@ class Adobe_JWT:
                 "client_secret": config["secret"],
                 "jwt_token": jwt_token
             }
-
-            # log.print('Adobe_API.init', 'Sending "POST" request to {}'.format(config['imsexchange']))
-            # log.print('Adobe_API.init', 'Post body: {}'.format(post_body))
             request = f_api.API('POST', config["imsexchange"], headers={}, payload=post_body)
             response = request.request()
             return response["access_token"]
@@ -145,14 +142,12 @@ class Adobe_JWT:
         # Logging
         log = f_log.Logging()
 
-        # JWT Token
+        # JWT Tokens
         config_parser = configparser.ConfigParser()
-        config_parser.read('/Users/luis.salamo/Documents/github/python-training/adobe/adobe-credentials.ini')
+        config_parser.read(os.path.join(os.path.dirname(__file__), '../adobe/credentials/credentials.ini'))
         config = dict(config_parser["default"])
         jwt_token = get_jwt_token()
-        # log.print('Adobe_JWT.get_access_token', 'JWT Token: {}'.format(jwt_token))
 
         # Access Token
         access_token = get_access_token()
-        # log.print('Adobe_JWT.get_access_token', 'Access Token: {}'.format(access_token))
         return access_token
