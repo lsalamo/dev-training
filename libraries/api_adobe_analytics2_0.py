@@ -3,11 +3,8 @@ import configparser
 import datetime
 import os
 import jwt
-import libraries.functions as f
 import libraries.api as f_api
-import libraries.dt as f_dt
 import libraries.dataframe as f_df
-import libraries.logs as f_log
 
 
 class Adobe_API(f_api.API):
@@ -23,9 +20,6 @@ class Adobe_API(f_api.API):
     rs_infojobs_epreselec = 'schibstedspainjobsepreselecprod'
 
     def __init__(self, method, url, payload):
-        # Logging
-        self.log = f_log.Logging()
-
         # adobe configuration
         config_parser = configparser.ConfigParser()
         config_parser.read(os.path.join(os.path.dirname(__file__), '../adobe/credentials/credentials.ini'))
@@ -74,8 +68,7 @@ class Adobe_API(f_api.API):
         jwt_token = get_jwt_token()
 
         # Access Token
-        access_token = get_access_token()
-        return access_token
+        return get_access_token()
 
 
 class Adobe_Report_API(Adobe_API):
@@ -84,18 +77,18 @@ class Adobe_Report_API(Adobe_API):
         url = 'https://analytics.adobe.io/api/schibs1/reports'
 
         # date
-        date_from = f_dt.Datetime.str_to_datetime(date_from, '%Y-%m-%d')
-        date_from = f_dt.Datetime.datetime_to_str(date_from, '%Y-%m-%dT00:00:00.000')
-        to_date = f_dt.Datetime.str_to_datetime(to_date, '%Y-%m-%d')
-        to_date = f_dt.Datetime.datetime_add_days(to_date, 1)
-        to_date = f_dt.Datetime.datetime_to_str(to_date, '%Y-%m-%dT00:00:00.000')
+        date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d')
+        date_from = date_from.strftime('%Y-%m-%dT00:00:00.000')
+        to_date = datetime.datetime.strptime(to_date, '%Y-%m-%d')
+        to_date = to_date + datetime.timedelta(days=1)
+        to_date = to_date.strftime('%Y-%m-%dT00:00:00.000')
         date = date_from + '/' + to_date
 
         # payload
-        file = f.File(url_request)
-        payload = file.read_file()
-        payload = payload.replace('{{rs}}', rs)
-        payload = payload.replace('{{dt}}', date)
+        with open(os.path.join(os.getcwd(), url_request), 'r') as file:
+            payload = file.read()
+            payload = payload.replace('{{rs}}', rs)
+            payload = payload.replace('{{dt}}', date)
 
         super().__init__('POST', url, payload)
 
@@ -106,7 +99,8 @@ class Adobe_Report_API(Adobe_API):
             rows = response['rows']
             if len(rows) > 0:
                 df = pd.DataFrame.from_dict(rows)
-                df = f_df.Dataframe.Columns.split_column_array_into_columns(df, 'data')
+                df_values = pd.DataFrame(df['data'].tolist(), index=df.index)
+                df = pd.merge(left=df, right=df_values, left_index=True, right_index=True, how='inner')
         return df
 
 

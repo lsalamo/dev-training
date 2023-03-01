@@ -10,64 +10,74 @@ import os
 import numpy as np
 import argparse
 import libraries.functions as f
-import libraries.api_adobe_analytics2_0 as f_api_adobe
+import libraries.api_adobe_analytics2_0 as api_adobe
 import libraries.dataframe as f_df
 import libraries.dt as f_dt
 import libraries.logs as f_log
 
 
-# =============================================================================
-# REQUEST ADOBE ANALYTICS
-# =============================================================================
 class App:
     def __init__(self):
         self.payload = variables['payload']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
         self.columns = variables['columns']
+        self.log = f_log.Logging()
 
         # args
-        log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
-        log.print('init', 'Name of Python script:: ' + sys.argv[0])
+        self.log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
+        self.log.print('init', 'Name of Python script: ' + sys.argv[0])
         for i in range(1, len(sys.argv)):
-            log.print('init', 'Argument: ' + sys.argv[i])
+            self.log.print('init', 'Argument: ' + sys.argv[i])
 
         # directory
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        f.Directory.set_working_directory(dir_path)
-        log.print('directory', f.Directory.get_working_directory())
+        self.directory = os.path.dirname(os.path.realpath(__file__))
+        f.Directory.set_working_directory(self.directory)
         f.Directory.create_directory('csv')
+        self.log.print('init', f'working_directory: {f.Directory.get_working_directory()}')
+
+    def request(self):
+        try:
+            rs = self.get_adobe_report_suite()
+            df = self.get_adobe_api_calls(rs)
+            df = self.get_adobe_api_calls_by_site(df)
+            self.log.print(f'request', 'DONE!!')
+            return df
+        except Exception as e:
+            self.log.print_error(str(e))
 
     def get_adobe_report_suite(self):
-        # request
-        api = f_api_adobe.Adobe_Report_Suite_API()
-        df = api.request()
-        df = df.loc[df['collectionItemType'] == 'reportsuite']
-        log.print('get_adobe_report_suite', 'dataframe loaded')
-        return df
+        try:
+            api = api_adobe.Adobe_Report_Suite_API()
+            df = api.request()
+            df = df.loc[df['collectionItemType'] == 'reportsuite']
+            self.log.print('get_adobe_report_suite', 'dataframe loaded')
+            return df
+        except Exception as e:
+            raise Exception(f'get_adobe_report_suite()::something went wrong: {str(e)}')
 
-    def get_adobe(self):
+    def get_adobe_api_calls(self, rs):
         df = pd.DataFrame()
-        for index, row in result['df_rs'].iterrows():
-            log.print('get_adobe', str(index) + '::rsid::' + row['rsid'])
-            # request
-            api = f_api_adobe.Adobe_Report_API(row['rsid'], self.payload, self.from_date, self.to_date)
-            df_request = api.request()
-            if not f_df.Dataframe.is_empty(df_request):
-                df_request = df_request[['value', 0, 1]]
-                # transform
-                df_request.insert(loc=0, column='rs', value=row['rsid'])
-                df_request.columns = self.columns.split(',')
-                df_request = f_df.Dataframe.Cast.columns_to_datetime(df_request, ['month'], '%Y-%m')
-                df_request = f_df.Dataframe.Cast.columns_regex_to_int64(df_request, '^(page_).*$')
-                df_request.sort_values(by='month', ascending=True, inplace=True)
-                df = f_df.Dataframe.Rows.concat_two_frames(df, df_request)
-        # log
-        log.print('get_adobe', 'dataframe loaded <' + self.payload + '>')
-        return df
+        try:
+            for index, row in rs.iterrows():
+                self.log.print('get_adobe_api_calls', f'{str(index)}::rsid::{row["rsid"]}')
+                # request
+                api = api_adobe.Adobe_Report_API(row['rsid'], self.payload, self.from_date, self.to_date)
+                df_request = api.request()
+                if not f_df.Dataframe.is_empty(df_request):
+                    df_request = df_request[['value', 0, 1]]
+                    df_request.insert(loc=0, column='rs', value=row['rsid'])
+                    df_request.columns = self.columns.split(',')
+                    df_request = f_df.Dataframe.Cast.columns_to_datetime(df_request, ['month'], '%Y-%m')
+                    df_request = f_df.Dataframe.Cast.columns_regex_to_int64(df_request, '^(page_).*$')
+                    df_request.sort_values(by='month', ascending=True, inplace=True)
+                    df = f_df.Dataframe.Rows.concat_two_frames(df, df_request)
+            self.log.print('get_adobe_api_calls', 'dataframe loaded')
+            return df
+        except Exception as e:
+            raise Exception(f'get_adobe_api_calls()::something went wrong: {str(e)}')
 
-    def get_adobe_by_site(self):
-        df = result['df']
+    def get_adobe_api_calls_by_site(self, df):
         df['site'] = 'others'
         df['total'] = df['page_views'] + df['page_events']
         df.loc[df['report_suite'].str.contains("fotocasa"), 'site'] = 'realestate'
@@ -84,7 +94,7 @@ class App:
         df = df.reset_index()
         df = df[['month', 'realestate', 'jobs', 'motor', 'generalist', 'others']]
         # log
-        log.print('get_adobe_by_site', 'dataframe loaded')
+        self.log.print('get_adobe_by_site', 'dataframe loaded')
         return df
 
 
@@ -104,16 +114,10 @@ if __name__ == '__main__':
         'payload': 'aa/request.json',
         'columns': 'report_suite,month,page_views,page_events'
     }
-
-    # Logging
-    log = f_log.Logging()
     # app
-    try:
-        app = App()
-        result['df_rs'] = app.get_adobe_report_suite()
-        result['df'] = app.get_adobe()
-        result['df_by_site'] = app.get_adobe_by_site()
-        f.CSV.dataframe_to_file(result['df_by_site'], 'df.csv')
-    except Exception as e:
-        log.print("> ERROR - App", "something went wrong " + str(e))
+    app = App()
+    # csv
+    df = app.request()
+    f.CSV.dataframe_to_file(df, 'df.csv')
+
 
