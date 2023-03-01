@@ -1,11 +1,18 @@
 # AA > https://adobedocs.github.io/analytics-2.0-apis/
+# parameters > -i 2023-01-01 -e 2023-02-01
+# usage > ./api-license.sh [-h] [-i INITDATE] [-e ENDDATE]
+#   -i    Inital date (YYYY-MM-DD)
+#   -e    End date (YYYY-MM-DD)
+#   -h    Help
 import pandas as pd
 import sys
 import os
 import numpy as np
+import argparse
 import libraries.functions as f
 import libraries.api_adobe_analytics2_0 as f_api_adobe
 import libraries.dataframe as f_df
+import libraries.dt as f_dt
 import libraries.logs as f_log
 
 
@@ -27,8 +34,8 @@ class App:
 
         # directory
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        os.chdir(dir_path)
-        log.print('directory', os.getcwd())
+        f.Directory.set_working_directory(dir_path)
+        log.print('directory', f.Directory.get_working_directory())
         f.Directory.create_directory('csv')
 
     def get_adobe_report_suite(self):
@@ -83,10 +90,17 @@ class App:
 
 # main function
 if __name__ == '__main__':
+    # args
+    parser = argparse.ArgumentParser()
+    dt_default = f_dt.Datetime.get_current_datetime()
+    parser.add_argument("-i", "--initdate", help="Initial Date (YY-MM-DD)", default=f_dt.Datetime.datetime_to_str(dt_default, '%Y-%m-01'))
+    parser.add_argument("-e", "--enddate", help="End Date (YY-MM-DD)", default=f_dt.Datetime.datetime_to_str(dt_default, '%Y-%m-31'))
+    args = parser.parse_args()
+
     result = {}
     variables = {
-        'from_date': sys.argv[1],
-        'to_date': sys.argv[2],
+        'from_date': args.initdate,
+        'to_date': args.enddate,
         'payload': 'aa/request.json',
         'access_token': f_api_adobe.Adobe_JWT.get_access_token(),
         'columns': 'report_suite,month,page_views,page_events'
@@ -95,10 +109,12 @@ if __name__ == '__main__':
     # Logging
     log = f_log.Logging()
     # app
-    app = App()
-    result['df_rs'] = app.get_adobe_report_suite()
-    result['df'] = app.get_adobe()
-    result['df_by_site'] = app.get_adobe_by_site()
-    # export csv
-    f.CSV.dataframe_to_file(result['df_by_site'], 'df.csv')
+    try:
+        app = App()
+        result['df_rs'] = app.get_adobe_report_suite()
+        result['df'] = app.get_adobe()
+        result['df_by_site'] = app.get_adobe_by_site()
+        f.CSV.dataframe_to_file(result['df_by_site'], 'df.csv')
+    except Exception as e:
+        log.print("> ERROR - App", "something went wrong " + str(e))
 

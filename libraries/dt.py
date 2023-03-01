@@ -6,6 +6,22 @@ from dateutil.relativedelta import relativedelta
 # https://docs.python.org/3.8/library/datetime.html
 class Datetime:
     @staticmethod
+    def get_current_datetime():
+        return datetime.now()
+
+    @staticmethod
+    def get_current_day():
+        return datetime.now().day
+
+    @staticmethod
+    def get_current_month():
+        return datetime.now().month
+
+    @staticmethod
+    def get_current_year():
+        return datetime.now().year
+
+    @staticmethod
     def get_day(value: datetime):
         """ CALL > Datetime.str_to_datetime('2022-05-01', '%Y-%m-%d') """
         return value.day

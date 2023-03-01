@@ -46,8 +46,16 @@ class Directory:
         os.chdir(directory)
 
     @staticmethod
+    def set_working_directory(directory):
+        return os.chdir(directory)
+
+    @staticmethod
     def get_working_directory():
         return os.getcwd()
+
+    @staticmethod
+    def get_directory(path):
+        return os.path.dirname(path)
 
     @staticmethod
     def create_directory(directory):
