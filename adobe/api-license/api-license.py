@@ -24,8 +24,8 @@ class App:
         self.payload = variables['payload']
         self.from_date = variables['from_date']
         self.to_date = variables['to_date']
-        self.access_token = variables['access_token']
         self.columns = variables['columns']
+
         # args
         log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
         log.print('init', 'Name of Python script:: ' + sys.argv[0])
@@ -40,7 +40,7 @@ class App:
 
     def get_adobe_report_suite(self):
         # request
-        api = f_api_adobe.Adobe_Report_Suite_API(self.access_token)
+        api = f_api_adobe.Adobe_Report_Suite_API()
         df = api.request()
         df = df.loc[df['collectionItemType'] == 'reportsuite']
         log.print('get_adobe_report_suite', 'dataframe loaded')
@@ -51,7 +51,7 @@ class App:
         for index, row in result['df_rs'].iterrows():
             log.print('get_adobe', str(index) + '::rsid::' + row['rsid'])
             # request
-            api = f_api_adobe.Adobe_Report_API(row['rsid'], self.payload, self.from_date, self.to_date, self.access_token)
+            api = f_api_adobe.Adobe_Report_API(row['rsid'], self.payload, self.from_date, self.to_date)
             df_request = api.request()
             if not f_df.Dataframe.is_empty(df_request):
                 df_request = df_request[['value', 0, 1]]
@@ -102,7 +102,6 @@ if __name__ == '__main__':
         'from_date': args.initdate,
         'to_date': args.enddate,
         'payload': 'aa/request.json',
-        'access_token': f_api_adobe.Adobe_JWT.get_access_token(),
         'columns': 'report_suite,month,page_views,page_events'
     }
 
