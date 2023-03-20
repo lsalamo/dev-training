@@ -27,6 +27,7 @@ class Adobe_API(f_api.API):
 
         # access token
         self.access_token = self.get_access_token()
+        # self.access_token = 'eyJhbGciOiJSUzI1NiIsIng1dSI6Imltc19uYTEta2V5LWF0LTEuY2VyIiwia2lkIjoiaW1zX25hMS1rZXktYXQtMSIsIml0dCI6ImF0In0.eyJpZCI6IjE2Nzg4MjY2ODQ1NDZfODVkYzhlMzEtYjdkNy00MzI0LTlhOTEtOThlOTNiZjY0NmZkX2V3MSIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJjbGllbnRfaWQiOiI1YThkY2MyY2ZhNzE0NzJjYmZhNGZiNTM2NzFjNDVlZCIsInVzZXJfaWQiOiI3NjREN0Y4RDVFQjJDRDUwMEE0OTVFMUJAMmRkMjM0Mzg1ZTYxMDdkNzBhNDk1Y2E0Iiwic3RhdGUiOiIiLCJhcyI6Imltcy1uYTEiLCJhYV9pZCI6Ijc2NEQ3RjhENUVCMkNENTAwQTQ5NUUxQkAyZGQyMzQzODVlNjEwN2Q3MGE0OTVjYTQiLCJjdHAiOjAsImZnIjoiWElZWFk0VkVGUE41TVA0S0VNUVZaSFFBUVE9PT09PT0iLCJzaWQiOiIxNjc4ODI2Njg0MjY2XzBmM2RhMDQ0LTllM2UtNGVlNS1hYWQ4LTA2YTg4MDcwMDI3NF91ZTEiLCJydGlkIjoiMTY3ODgyNjY4NDU0Nl8wZWJlOWY3Zi0xOTUxLTQwZTItYmRmNC03YTI4YzQ0ZTQ3M2RfZXcxIiwibW9pIjoiYzZhNmE1MiIsInBiYSI6Ik1lZFNlY05vRVYsTG93U2VjIiwicnRlYSI6IjE2ODAwMzYyODQ1NDYiLCJleHBpcmVzX2luIjoiODY0MDAwMDAiLCJzY29wZSI6Im9wZW5pZCxBZG9iZUlELHJlYWRfb3JnYW5pemF0aW9ucyxhZGRpdGlvbmFsX2luZm8ucHJvamVjdGVkUHJvZHVjdENvbnRleHQsYWRkaXRpb25hbF9pbmZvLmpvYl9mdW5jdGlvbiIsImNyZWF0ZWRfYXQiOiIxNjc4ODI2Njg0NTQ2In0.J5pRFhX7VriDl6OzhqD6FQmY6lB7YG6zZ4r6P3sBjYTVtlYu_-6DpMJvX-VZOabF04Vz7EsZqCkHRcwL3TdgyoJ1tfS4v8YASdCQR81qUfnTmMoGXA8Jk8YPBgdi0bUYyZct8m29dtQm0hL82NLn7Xl9DnSGV33SAaAqO6UslmO7F9wgXNChzAopBTNY9itul2OmNMMwqAMxbL6hpbn9zTxsZ7NkFbqCyemShhxd81wZJa-Idm98r_cy-QQj5TQtRRMDsuBUiJMqJffi-S1eUe9UipOOFWVF0eSdWvK6Vks3wGH7MN8VJM0_RbkK93fTnFAl4WsL53C2euzPLyAUdQ'
 
         headers = {
             'Accept': 'application/json',
@@ -143,3 +144,26 @@ class Adobe_Dimensions_API(Adobe_API):
             df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_evars, df, 'evar', 'left', ('', ''))
         return df
 
+
+class usage_logs(Adobe_API):
+    def __init__(self, config):
+        url = f'https://analytics.adobe.io/api/schibs1/auditlogs/usage?startDate={config["from_date"]}&endDate={config["to_date"]}&eventType=2&limit=1000&page=PAGE_VAR'
+        payload = {}
+        super().__init__('GET', url, payload)
+
+    def request(self):
+        url = self.url
+        self.url = url.replace('PAGE_VAR', '0')
+        response = super().request()
+        if 'content' in response:
+            rows = response['content']
+            if len(rows) > 0:
+                df_total = pd.DataFrame(rows)
+                pagination = int(response['totalPages'])
+                for i in range(1, pagination):
+                    self.url = url.replace('PAGE_VAR', str(i))
+                    response = super().request()
+                    rows = response['content']
+                    df = pd.DataFrame(rows)
+                    df_total = pd.concat([df, df_total])
+        return df_total
