@@ -257,8 +257,8 @@ fabric.properties
 .idea/
 csv/
 
-*-credentials.json
-*.ini
+credentials.ini
+config.yaml
 *.key
 
 

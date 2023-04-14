@@ -67,8 +67,7 @@ def get_users_me(config, global_company_id, access_token):
 
 
 config_parser = configparser.ConfigParser()
-config_parser.read(
-    '/Users/luis.salamo/Documents/github enterprise/python-training/adobe/credentials.ini')
+config_parser.read('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/credentials/credentials.ini')
 
 config = dict(config_parser["default"])
 jwt_token = get_jwt_token(config)

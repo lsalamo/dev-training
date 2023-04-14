@@ -121,7 +121,7 @@ class Adobe_JWT:
 
         # JWT Token
         config_parser = configparser.ConfigParser()
-        config_parser.read('/Users/luis.salamo/Documents/github/python-training/adobe/adobe-credentials.ini')
+        config_parser.read('/Users/luis.salamo/Documents/github/python-training/adobe/credentials/credentials.ini')
         config = dict(config_parser["default"])
         jwt_token = get_jwt_token()
 
