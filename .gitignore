@@ -260,5 +260,6 @@ csv/
 credentials.ini
 config.yaml
 *.key
+test
 
 
