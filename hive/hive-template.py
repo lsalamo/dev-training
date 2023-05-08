@@ -1,5 +1,6 @@
 from pyhive import hive
-​
+
+
 def main():
     query = 'show databases'
     query = """select
@@ -15,6 +16,7 @@ def main():
     cursor.arraysize = 100000
     cursor.execute(query)
     print (cursor.fetchall())
-​
+
+
 if __name__=="__main__":
     main()
