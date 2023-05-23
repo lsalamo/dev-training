@@ -261,5 +261,6 @@ credentials.ini
 config.yaml
 *.key
 test
+*.json
 
 
