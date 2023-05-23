@@ -65,21 +65,21 @@ class App:
                 products_ios = ",".join(self.config['verticals'][vertical]['ios'].values())
 
                 # report_downloads
-                self.log.print('request', f'VERTICAL: {vertical};API: downloads')
+                self.log.print('request', f'VERTICAL:{vertical}::API:downloads')
                 df = api_report_downloads.request(vertical, products_and)
                 df_report_downloads = f_df.Dataframe.Rows.concat_two_frames(df_report_downloads, df)
                 df = api_report_downloads.request(vertical, products_ios)
                 df_report_downloads = f_df.Dataframe.Rows.concat_two_frames(df_report_downloads, df)
 
                 # ratings_history
-                self.log.print('request', f'VERTICAL: {vertical};API: ranting history')
+                self.log.print('request', f'VERTICAL:{vertical}::API:ranting history')
                 df = api_ratings_history.request_and(vertical, products_and)
                 df_ratings_history = f_df.Dataframe.Rows.concat_two_frames(df_ratings_history, df)
                 df = api_ratings_history.request_ios(vertical, products_ios)
                 df_ratings_history = f_df.Dataframe.Rows.concat_two_frames(df_ratings_history, df)
 
                 # active_users
-                self.log.print('request', f'VERTICAL: {vertical};API: active users')
+                self.log.print('request', f'VERTICAL:{vertical}::API:active users')
                 df = api_active_users.request(vertical, products_and)
                 df_active_users = f_df.Dataframe.Rows.concat_two_frames(df_active_users, df)
                 df = api_active_users.request(vertical, products_ios)
@@ -87,9 +87,10 @@ class App:
 
             self.log.print('request', 'JOINING DATAFRAMES...')
             df = f_df.Dataframe.Columns.join_by_columns([df_report_downloads, df_ratings_history, df_active_users], ['date', 'vertical', 'platform', 'product_id'], 'outer')
-            df = df[['date', 'vertical', 'platform', 'product_x', 'downloads', 'average', 'total_rating', 'rating_five', 'rating_four', 'rating_three', 'rating_two', 'rating_one', 'active_users']]
-            f_df.Dataframe.Columns.columns_renames(df, dict(proudct_x='product'))
-            a = {'product_x': 'product'}
+            df['product'] = df['product_x'].fillna(df['product_y'])
+            df = df[['date', 'vertical', 'platform', 'product', 'downloads', 'average', 'total_rating', 'rating_five', 'rating_four', 'rating_three', 'rating_two', 'rating_one', 'active_users']]
+            df = df[df['product'].notna()]
+            df = df.fillna(0)
             self.log.print(f'request', 'DONE!!')
             return df
         except Exception as e:
