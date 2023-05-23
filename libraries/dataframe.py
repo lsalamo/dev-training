@@ -107,6 +107,32 @@ class Dataframe:
             return list(df.columns)
 
         @staticmethod
+        def renames_specific_columns(df: pd.DataFrame, columns: dict) -> pd.DataFrame:
+            """
+                Desc: Rename Specific Columns
+                Usage: Dataframe.Columns.columns_renames(columns = dict(old_col1='new_col1',old_col2:'new_col2'), inplace = True)
+            """
+            return df.rename(columns=columns, inplace=True)
+
+        @staticmethod
+        def renames_all_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
+            """
+                Desc: Rename All Columns
+                Usage: Dataframe.Columns.columns_renames(columns = list(("new_col1", "new_col2", "new_col3"))), inplace = True)
+            """
+            df.columns = columns
+            return df
+
+        @staticmethod
+        def replace_specific_characters(df: pd.DataFrame, old_value: str, new_value: str) -> pd.DataFrame:
+            """
+                Desc: Replace Specific Characters in Columns
+                Usage: Dataframe.Columns.replace_specific_characters(df, 'old_char', 'new_char'), inplace = True)
+            """
+            df.columns = df.columns.str.replace(old_value, new_value)
+            return df
+
+        @staticmethod
         def length(df):
             """ CALL > Dataframe.Columns.len(df) """
             return len(df.columns)
