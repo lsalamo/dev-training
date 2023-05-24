@@ -38,7 +38,7 @@ class report_downloads(DataaiApi):
         }
 
         # STEP-1: SCHEDULE A REPORT
-        df = pd.DataFrame(columns=['date', 'vertical', 'platform', 'product', 'product_id', 'downloads'])
+        df = pd.DataFrame(columns=['date', 'vertical', 'platform', 'product', 'product_id', 'downloads', 'downloads_organic', 'downloads_paid'])
         self.url = f'https://api.data.ai/v2.0/portfolio/download-channel?{urllib.parse.urlencode(parameters)}'
         response = super().request()
         if 'report_id' in response:
@@ -63,13 +63,17 @@ class report_downloads(DataaiApi):
                             platform = str(product['device_code']).replace('-all', '')
                             product_name = str(product["unified_product_name"]).lower()
                             for product_detail in product['download_channel']:
+                                downloads = product_detail["est_download"]
+                                downloads_paid = product_detail["est_paid_ads_download"] + product_detail["est_paid_search_download"]
                                 row_values = [{
                                     'date': product_detail["start_date"],
                                     'vertical': vertical,
                                     'platform': platform,
                                     'product': product_name,
                                     'product_id': product_id,
-                                    'downloads': product_detail["est_download"]
+                                    'downloads': downloads,
+                                    'downloads_organic': downloads - downloads_paid,
+                                    'downloads_paid': downloads_paid
                                 }]
                                 df_row = pd.DataFrame(row_values)
                                 df = pd.concat([df, df_row], ignore_index=True)

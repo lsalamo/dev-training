@@ -88,7 +88,7 @@ class App:
             self.log.print('request', 'JOINING DATAFRAMES...')
             df = f_df.Dataframe.Columns.join_by_columns([df_report_downloads, df_ratings_history, df_active_users], ['date', 'vertical', 'platform', 'product_id'], 'outer')
             df['product'] = df['product_x'].fillna(df['product_y'])
-            df = df[['date', 'vertical', 'platform', 'product', 'downloads', 'average', 'total_rating', 'rating_five', 'rating_four', 'rating_three', 'rating_two', 'rating_one', 'active_users']]
+            df = df[['date', 'vertical', 'platform', 'product', 'downloads', 'downloads_organic', 'downloads_paid', 'average', 'total_rating', 'rating_five', 'rating_four', 'rating_three', 'rating_two', 'rating_one', 'active_users']]
             df = df[df['product'].notna()]
             df = df.fillna(0)
             self.log.print(f'request', 'DONE!!')
