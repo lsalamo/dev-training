@@ -1,5 +1,3 @@
-# https://github.com/AdobeDocs/analytics-2.0-apis/tree/main/resources/python
-
 import configparser
 import logging
 import datetime
@@ -12,7 +10,8 @@ logger = logging.getLogger()
 
 
 def get_jwt_token(config):
-    with open(os.path.join(os.path.expanduser('~'), '.ssh/', config["private_key"]), 'r') as file:
+    file_private_key = os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../adobe/credentials/adobe-private.key'))
+    with open(file_private_key, 'r') as file:
         private_key = file.read()
 
     payload = {
@@ -67,7 +66,8 @@ def get_users_me(config, global_company_id, access_token):
 
 
 config_parser = configparser.ConfigParser()
-config_parser.read('/Users/luis.salamo/Documents/github enterprise/python-training/adobe/credentials/credentials.ini')
+file_credentials = os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../adobe/credentials/credentials.ini'))
+config_parser.read(file_credentials)
 
 config = dict(config_parser["default"])
 jwt_token = get_jwt_token(config)
