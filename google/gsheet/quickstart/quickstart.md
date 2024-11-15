@@ -20,7 +20,6 @@
 
 2. Cómo configurar la pantalla de consentimiento de OAuth
 
-- Enable the [Google Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com).
 ```
 > APIs and services > OAuth consent screen > User Type (Internal) > Create > [fill app data] > Save and continue
 ```

@@ -1,7 +1,3 @@
-"""
-API: https://github.com/googleapis/python-analytics-data
-"""
-
 import os
 import pandas as pd
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
