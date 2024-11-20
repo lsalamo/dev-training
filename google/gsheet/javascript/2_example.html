@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sheets API Quickstart</title>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <h1>Google Sheets Data</h1>
+    <div id="sheet-data"></div>
+
+    <script type="text/javascript">
+        const API_KEY = 'AIzaSyB1REVgYjPHTtT2RVtf7XkTjqBsLl51tqw';
+        const SPREADSHEET_ID = '12MTYf03CoI_wTuT5CEgsnBq4At9tCZ4Cr5esHruzg7E';
+        const RANGE = 'Channels!A2:J';
+
+        // Google Sheets API URL
+        const URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+        let affiliate = [], display = [], email = [], metasearch = [], paid_search = [], retargeting = [], social_media = [], social_paid = [], push_notification = [], cross_sites = [];
+
+        fetch(URL)
+            .then(response => response.json())
+            .then(data => {
+                const values = data.values;
+                if (!values) {
+                    document.getElementById('sheet-data').innerText = 'No data found!';
+                    return;
+                }
+
+                // Generate HTML table
+                data.values.forEach(function (row) {
+                    if ((row[0] || '') != '') affiliate.push(row[0]);
+                    if ((row[1] || '') != '') display.push(row[1]);
+                    if ((row[2] || '') != '') email.push(row[2]);
+                    if ((row[3] || '') != '') metasearch.push(row[3]);
+                    if ((row[4] || '') != '') paid_search.push(row[4]);
+                    if ((row[5] || '') != '') retargeting.push(row[5]);
+                    if ((row[6] || '') != '') social_media.push(row[6]);
+                    if ((row[7] || '') != '') social_paid.push(row[7]);
+                    if ((row[8] || '') != '') push_notification.push(row[8]);
+                    if ((row[9] || '') != '') cross_sites.push(row[9]);
+                });
+                let table = '<table border="1">';
+                table += `<tr><td>affiliate: ${affiliate}</td></tr>`;
+                table += `<tr><td>display: ${display}</td></tr>`;
+                table += `<tr><td>email: ${email}</td></tr>`;
+                table += '</table>';    
+                document.getElementById('sheet-data').innerHTML = table;            
+
+                console.log(`affiliate: ${affiliate}`);
+                console.log(`display: ${display}`);
+                console.log(`email: ${email}`);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                document.getElementById('sheet-data').innerText = 'Error fetching data!';
+            });
+    </script>
+</body>
+
+</html>

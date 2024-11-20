@@ -28,7 +28,8 @@ def main():
     if creds and creds.expired and creds.refresh_token:
       creds.refresh(Request())
     else:
-      path_creds = os.path.join(os.path.dirname(__file__), "credentials.json")
+      # path_creds = os.path.join(os.path.dirname(__file__), "credentials.json")
+      path_creds = os.path.join(os.getcwd(), "google/gsheet/credentials.json")
       flow = InstalledAppFlow.from_client_secrets_file(
           path_creds, SCOPES
       )

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Sheets API Quickstart</title>
+  <meta charset="utf-8" />
+</head>
+
+<body>
+  <p>Sheets API Quickstart</p>
+
+  <script type="text/javascript">
+    /* exported gapiLoaded */
+    /* exported gisLoaded */
+    /* exported handleAuthClick */
+    /* exported handleSignoutClick */
+
+    // TODO(developer): Set to client ID and API key from the Developer Console
+    const CLIENT_ID = '329785109876-13degk6dp2h4sh4jsg64ri1hnd2av0nu.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyB1REVgYjPHTtT2RVtf7XkTjqBsLl51tqw';
+
+    // Discovery doc URL for APIs used by the quickstart
+    const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+
+    // Authorization scopes required by the API; multiple scopes can be
+    // included, separated by spaces.
+    const SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+
+    const SPREADSHEET_ID = '12MTYf03CoI_wTuT5CEgsnBq4At9tCZ4Cr5esHruzg7ED';
+    const RANGE = 'Channels!A2:J';
+
+    /**
+     * Callback after api.js is loaded.
+     */
+    function gapiLoaded() {
+      gapi.load('client', initializeGapiClient);
+    }
+
+    /**
+     * Callback after the API client is loaded. Loads the
+     * discovery doc to initialize the API.
+     */
+    async function initializeGapiClient() {
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+      }).then(function () {
+        return gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: RANGE
+        });
+      }).then(function (data) {
+        let affiliate = [], display = [], email = [], metasearch = [], paid_search = [], retargeting = [], social_media = [], social_paid = [], push_notification = [], cross_sites = [];
+        data.result.values.forEach(function (row, index) {
+          if ((row[0] || '') != '') affiliate.push(row[0]);
+          if ((row[1] || '') != '') display.push(row[1]);
+          if ((row[2] || '') != '') email.push(row[2]);
+          if ((row[3] || '') != '') metasearch.push(row[3]);
+          if ((row[4] || '') != '') paid_search.push(row[4]);
+          if ((row[5] || '') != '') retargeting.push(row[5]);
+          if ((row[6] || '') != '') social_media.push(row[6]);
+          if ((row[7] || '') != '') social_paid.push(row[7]);
+          if ((row[8] || '') != '') push_notification.push(row[8]);
+          if ((row[9] || '') != '') cross_sites.push(row[9]);
+        });
+        console.log(`affiliate: ${affiliate}`);
+        console.log(`display: ${display}`);
+        console.log(`email: ${email}`);
+      }, function (reason) {
+        console.error('Error: ' + reason.result.error.message);
+      });
+
+    }
+
+  </script>
+  <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+
+</body>
+
+</html>

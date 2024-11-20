@@ -1,8 +1,8 @@
-# Connecting to a Restricted Google Sheet with Python
+# Connecting to Google Sheet with Python
 
 ## Docs
 
-- [Google Dev](https://developers.google.com/sheets/api/quickstart/python?hl=es-419)
+- [Google Dev](https://developers.google.com/sheets/api/quickstart/python)
 - [GitHub](https://github.com/googleworkspace/python-samples/blob/main/sheets/quickstart/quickstart.py)
 - [GitHub Snippets](https://github.com/googleworkspace/python-samples/tree/main/sheets/snippets)
 - [API Reference](https://developers.google.com/sheets/api/reference/rest)
@@ -28,7 +28,7 @@ Por ahora, puedes omitir el paso de agregar permisos y hacer clic en **Guardar y
 
 3. Autoriza credenciales para una aplicación de escritorio
 
-- Create a OAuth Client ID
+- Create OAuth Client ID
 ```
 > APIs and services > Credentials > Create Credentials > OAuth Client ID > [Type Application Type "Desktop App" and name "API Google Sheet Credential"] > Download JSON 
 ```

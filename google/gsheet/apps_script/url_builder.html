@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+<div id="msg" class="alert alert-success" role="alert">
+    Fill out all the required fields above and a URL will be automatically generated for you here.
+</div>
+
+<div class="container">
+
+    <div id="formShadow" class="shadow-none p-3 mb-5 bg-light rounded border">
+        <form class="needs-validation" novalidate>
+            <div class="form-group">
+                <label for="url"><span class="text-danger">*</span> URL</label>
+                <input type="text" id="url" class="form-control" required>
+                <div class="invalid-feedback">
+                    The full landing URL (e.g. https://www.example.com)
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="medium"><span class="text-danger">*</span> Medium</label>
+                    <select id="medium" class="custom-select" required>
+                        <option value="" selected>Select the marketing channel...</option>
+                        <option>affiliate</option>
+                        <option>display</option>
+                        <option>email</option>
+                        <option>metasearch</option>
+                        <option>paid search</option>
+                        <option>retargeting</option>
+                        <option>social media</option>
+                        <option>social paid</option>
+                        <option>push notification</option>
+                        <option>cross sites</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        The Marketing Channel: (e.g. affiliate, display, email)
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <div class="form-inline" style="padding-bottom: 4px;">
+                        <label for="source"><span class="text-danger">*</span>&nbsp;Source</label>&nbsp;
+                        <a style="color:white" class="btn btn-primary btn-sm"
+                            href="https://docs.google.com/spreadsheets/d/12MTYf03CoI_wTuT5CEgsnBq4At9tCZ4Cr5esHruzg7E/edit#gid=0"
+                            role="button" target="_blank">+</a>
+                    </div>
+                    <select id="source" class="custom-select" required>
+                        <option value="" selected>Select the traffic source...</option>
+                    </select>
+                    <small class="form-text text-muted"></small>
+                    <div class="invalid-feedback">
+                        The Traffic Source: (e.g. google, newsletter)
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="campaignId">Campaign ID (type Numerical)</label>
+                    <input type="number" id="campaignId" class="form-control">
+                    <div class="invalid-feedback">
+                        Numerical Campaign Identification (e.g 12345)
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="campaignName"><span class="text-danger">*</span> Campaign Name</label>
+                    <input type="text" id="campaignName" class="form-control" required>
+                    <div class="invalid-feedback">
+                        Product, promo code, or slogan
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="campaignContent">Content</label>
+                <div class="input-group">
+                    <input type="text" id="campaignContent" class="form-control" placeholder="Use to differentiate ads">
+                    <div class="input-group-prepend d-none" id="btnSemContent">
+                        <button class="btn btn-outline-secondary" type="button" id="btnSemContentOthers">Others</button>
+                        <button class="btn btn-outline-secondary" type="button" id="btnSemContentDSA">DSA</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="campaignkeyword">Keyword</label>
+                <div class="input-group">
+                    <input type="text" id="campaignkeyword" class="form-control"
+                        placeholder="Identify the paid keywords">
+                    <div class="btn-group d-none" role="group" id="btnSemKeyword">
+                        <button class="btn btn-outline-secondary" type="button" id="btnSemKeywordOthers">Others</button>
+                        <button class="btn btn-outline-secondary" type="button" id="btnSemKeywordDSA">DSA</button>
+                    </div>
+                </div>
+            </div>
+            <div class="shadow p-3 mb-5 bg-white rounded">
+                <div class="form-group">
+                    <button id="btnRun" type="button" class="btn btn-primary">Generar URL!</button>
+                    <button id="btnCopy" type="button" class="btn btn-outline-primary" disabled>Copy URL</button>
+                    <button id="btnOpen" type="button" class="btn btn-outline-primary" disabled>Open URL</button>
+                </div>
+                <div class="form-group">
+                    <textarea class="form-control" id="result" rows="3" disabled></textarea>
+                    <small class="form-text text-muted">Use this URL in any promotional channels you want to be
+                        associated with this custom campaign</small>
+                </div>
+            </div>
+        </form>
+    </div> <!--div formShadow-->
+
+</div> <!--div container-->
+
+<script>
+
+    (function () {
+        var init = function (data) {
+
+            var showMsg = function (value) {
+                var msg = document.getElementById("msg");
+                var msgCurrent = msg.innerHTML;
+                msg.innerHTML = value;
+                setTimeout(function () { msg.innerHTML = msgCurrent; }, 5000);
+            }
+
+            var reset = function (e) {
+                //vars
+                var medium = document.getElementById("medium");
+                var source = document.getElementById("source");
+                var campaignId = document.getElementById("campaignId");
+                var campaignName = document.getElementById("campaignName");
+                var content = document.getElementById("campaignContent");
+                var keyword = document.getElementById("campaignkeyword");
+
+                //medium
+                if (e.target.id === "medium") {
+                    source.length = 0;
+                    var option = document.createElement("option");
+                    option.value = "";
+                    option.text = "Select the traffic source...";
+                    source.appendChild(option);
+                }
+
+                //source
+                if (e.target.id === "medium" || e.target.id === "source") {
+                    if (medium.value === "paid search" && source.value === "google") {
+                        //google DSA
+                        btnSemContent.classList.remove("d-none");
+                        btnSemKeyword.classList.remove("d-none")
+                    } else {
+                        //reset
+                        campaignId.value = "";
+                        campaignName.value = "";
+                        content.value = "";
+                        keyword.value = "";
+                        content.removeAttribute("disabled", "");
+                        keyword.removeAttribute("disabled", "");
+                        btnSemContent.classList.add("d-none");
+                        btnSemKeyword.classList.add("d-none");
+                    }
+                }
+            };
+
+            var changeMedium = function (e) {
+                if (data !== undefined) {
+                    reset(e);
+                    var medium = document.getElementById("medium").value;
+                    if (medium !== "") {
+                        sources = data[medium];
+                        if (sources !== undefined) {
+                            sources.forEach(function (source) {
+                                var option = document.createElement("option");
+                                option.value = source;
+                                option.text = source;
+                                document.getElementById("source").appendChild(option);
+                            });
+                        }
+                    }
+                }
+            };
+
+            var changeSource = function (e) {
+                reset(e);
+            }
+
+            var valFieldRequired = function () {
+                var result = false;
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function (form) {
+                    if (form.checkValidity() === true) result = true;
+                    form.classList.add('was-validated');
+                });
+                return result;
+            }
+
+            var runURL = function () {
+                var replaceUrlMedium = function (value) {
+                    return value.replace(/affiliate/gi, "aff").replace(/display/gi, "dis").replace(/email/gi, "em").replace(/metasearch/gi, "met").replace(/paid search/gi, "sem").replace(/retargeting/gi, "rt").replace(/social media/gi, "sm").replace(/social paid/gi, "sp").replace(/push notification/gi, "pn").replace(/cross sites/gi, "cs").toLowerCase();
+                }
+
+                var replaceUrl = function (value) {
+                    var result = value.replace(/-/gi, "_").toLowerCase();
+                    //result = result.replace(/ /gi, "%20").replace(/-/gi, "_").replace(/[àáâãäå]/gi, "a").replace(/[èéêë]/gi, "e").replace(/[ìíîï]/gi, "i").replace(/[òóôõö]/gi, "o").replace(/[ùúûü]/gi, "u").replace(/ñ/gi, "n").replace(/ç/gi, "c");
+                    return encodeURIComponent(result);
+                }
+
+                //vars
+                var result = "";
+                var url = document.getElementById("url").value;
+                var medium = replaceUrlMedium(document.getElementById("medium").value);
+                var source = replaceUrl(document.getElementById("source").value);
+                var campaignId = document.getElementById("campaignId").value;
+                var campaignName = document.getElementById("campaignName").value;
+                campaignName = replaceUrl(campaignId !== "" && campaignName !== "" ? campaignId + ":" + campaignName : campaignName);
+
+                var content = document.getElementById("campaignContent");
+                content = (content.hasAttribute("disabled") ? content.value : replaceUrl(content.value));
+                var keyword = document.getElementById("campaignkeyword");
+                keyword = (keyword.hasAttribute("disabled") ? keyword.value : replaceUrl(keyword.value));
+                var btnCopy = document.getElementById("btnCopy");
+                var btnOpen = document.getElementById("btnOpen");
+                var urlResult = document.getElementById("result");
+
+                //Validate
+                if (!valFieldRequired()) {
+                    if (!btnCopy.hasAttribute("disabled")) btnCopy.setAttribute("disabled", "");
+                    if (!btnOpen.hasAttribute("disabled")) btnOpen.setAttribute("disabled", "");
+                    urlResult.value = "";
+                    return false;
+                } else {
+                    if (btnCopy.hasAttribute("disabled")) btnCopy.removeAttribute("disabled", "");
+                    if (btnOpen.hasAttribute("disabled")) btnOpen.removeAttribute("disabled", "");
+                }
+
+                //build url
+                result = url;
+                var connector = (url.indexOf("?") > 0 ? "&" : "?");
+                result += connector + "stc=";
+                result += medium;
+                result += "-" + source;
+                result += "-" + campaignName;
+
+                if (keyword !== "") {
+                    result += "-" + (content !== "" ? content : "na") + "-" + keyword;
+                } else if (content !== "") {
+                    result += "-" + content;
+                }
+                urlResult.value = result;
+            }
+
+            var runCopy = function () {
+                var copyText = document.getElementById("result");
+
+                // Create a temporary text area element
+                const tempTextArea = document.createElement('textarea');
+
+                // Assign the element's value or text content to the text area
+                tempTextArea.value = copyText.value || copyText.textContent;
+
+                // Append the text area to the body (required for copying)
+                document.body.appendChild(tempTextArea);
+
+                // Select the content in the text area
+                tempTextArea.select();
+
+                // Copy the selected text to the clipboard
+                document.execCommand('copy');
+
+                // Remove the temporary text area from the DOM
+                document.body.removeChild(tempTextArea);
+
+                // Show a success message
+                showMsg("URL copied");
+            }
+
+            var runOpen = function () {
+                var copyText = document.getElementById("result").value;
+                window.open(copyText, '_blank');
+            }
+
+            var runDSA = function (e) {
+                //vars
+                var content = document.getElementById("campaignContent");
+                var keyword = document.getElementById("campaignkeyword");
+
+                switch (e.target.id) {
+                    case "btnSemContentDSA":
+                        content.value = "{ifContent:C}{ifSearch:S}";
+                        content.setAttribute("disabled", "");
+                        break;
+                    case "btnSemContentOthers":
+                        content.value = "";
+                        content.removeAttribute("disabled", "");
+                        break;
+                    case "btnSemKeywordDSA":
+                        keyword.value = "{keyword}";
+                        keyword.setAttribute("disabled", "");
+                        break;
+                    case "btnSemKeywordOthers":
+                        keyword.value = "";
+                        keyword.removeAttribute("disabled", "");
+                        break;
+                }
+            }
+
+            document.getElementById("medium").addEventListener("change", changeMedium);
+            document.getElementById("source").addEventListener("change", changeSource);
+
+            document.getElementById("btnRun").addEventListener("click", runURL, false);
+            document.getElementById("btnCopy").addEventListener("click", runCopy);
+            document.getElementById("btnOpen").addEventListener("click", runOpen);
+
+            document.getElementById("btnSemContentDSA").addEventListener("click", runDSA);
+            document.getElementById("btnSemContentOthers").addEventListener("click", runDSA);
+            document.getElementById("btnSemKeywordDSA").addEventListener("click", runDSA);
+            document.getElementById("btnSemKeywordOthers").addEventListener("click", runDSA);
+        }
+
+        var getSources = function () {
+            var result = {};
+            const URL = "https://script.google.com/macros/s/AKfycbxQ82X6ERrgMCFS9HHkcRulBZH0ZEEFxWNeFTx1-VlGXZ0ubRuUua7J7xJTXm6qscb0HA/exec";
+
+            let affiliate = [], display = [], email = [], metasearch = [], paid_search = [], retargeting = [], social_media = [], social_paid = [], push_notification = [], cross_sites = [];
+
+            fetch(URL)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data) {
+                        // document.getElementById('sheet-data').innerText = 'No data found!';
+                        console.error("No data found!");
+                        return;
+                    }
+
+                    // Generate HTML table
+                    data.forEach(function (row) {
+                        if ((row[0] || '') != '') affiliate.push(row[0]);
+                        if ((row[1] || '') != '') display.push(row[1]);
+                        if ((row[2] || '') != '') email.push(row[2]);
+                        if ((row[3] || '') != '') metasearch.push(row[3]);
+                        if ((row[4] || '') != '') paid_search.push(row[4]);
+                        if ((row[5] || '') != '') retargeting.push(row[5]);
+                        if ((row[6] || '') != '') social_media.push(row[6]);
+                        if ((row[7] || '') != '') social_paid.push(row[7]);
+                        if ((row[8] || '') != '') push_notification.push(row[8]);
+                        if ((row[9] || '') != '') cross_sites.push(row[9]);
+                    });
+                    result['affiliate'] = affiliate;
+                    result['display'] = display;
+                    result['email'] = email;
+                    result['metasearch'] = metasearch;
+                    result['paid search'] = paid_search;
+                    result['retargeting'] = retargeting;
+                    result['social media'] = social_media;
+                    result['social paid'] = social_paid;
+                    result['push notification'] = push_notification;
+                    result['cross sites'] = cross_sites;
+                    init(result);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    // document.getElementById('sheet-data').innerText = 'Error fetching data!';
+                });
+        };
+
+        getSources();
+    }
+    )();
+</script>

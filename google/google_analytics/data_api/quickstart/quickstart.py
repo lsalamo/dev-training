@@ -67,6 +67,7 @@ def sample_run_report(property_id="273930537"):
 
 if __name__ == "__main__":
     # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
-    path_creds = os.path.join(os.path.dirname(__file__), "credentials.json")
+    # path_creds = os.path.join(os.path.dirname(__file__), "credentials.json")
+    path_creds = os.path.join(os.getcwd(), "google/google_analytics/credentials.json")
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path_creds
     sample_run_report()
