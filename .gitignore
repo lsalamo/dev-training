@@ -262,5 +262,6 @@ config.yaml
 *.key
 test
 *.json
+*.lse
 
 
