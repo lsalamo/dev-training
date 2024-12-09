@@ -3,23 +3,27 @@ import configparser
 import datetime
 import os
 import jwt
-import libraries.api as f_api
-import libraries.dataframe as f_df
+import libs.api as f_api
+import libs.dataframe as f_df
 
 
 class Adobe_API(f_api.API):
-    rs_fotocasaes = 'vrs_schibs1_fcall'
-    rs_habitaclia = 'schibstedspainrehabitacliaprod'
-    rs_uniquetool = 'schibstedspainreuniquetoolprod'
-    rs_cochesnet = 'vrs_schibs1_motorcochesnet'
-    rs_motosnet = 'vrs_schibs1_motormotosnet'
-    rs_carfactory = 'schibstedspainmotorcarfactorywebprod'
-    rs_milanuncioscom = 'vrs_schibs1_generalistmilanuncio'
-    rs_infojobsnet = 'vrs_schibs1_jobsinfojobs'
-    rs_infojobsit = 'vrs_schibs1_jobsitalyall'
-    rs_infojobs_epreselec = 'schibstedspainjobsepreselecprod'
+
 
     def __init__(self, method, url, payload):
+        # Public properties
+        self.rs_fotocasaes = 'vrs_schibs1_fcall'
+        self.rs_habitaclia = 'schibstedspainrehabitacliaprod'
+        self.rs_uniquetool = 'schibstedspainreuniquetoolprod'
+        self.rs_cochesnet = 'vrs_schibs1_motorcochesnet'
+        self.rs_motosnet = 'vrs_schibs1_motormotosnet'
+        self.rs_carfactory = 'schibstedspainmotorcarfactorywebprod'
+        self.rs_milanuncioscom = 'vrs_schibs1_generalistmilanuncio'
+        self.rs_infojobsnet = 'vrs_schibs1_jobsinfojobs'
+        self.rs_infojobsit = 'vrs_schibs1_jobsitalyall'
+        self.rs_infojobs_epreselec = 'schibstedspainjobsepreselecprod'
+
+
         # adobe configuration
         config_parser = configparser.ConfigParser()
         config_parser.read(os.path.join(os.path.dirname(__file__), '../adobe/credentials/credentials.ini'))

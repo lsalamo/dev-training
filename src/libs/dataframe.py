@@ -39,10 +39,7 @@ class Dataframe:
             """ CALL >
             df_values = Dataframe.Cast.columns_to_datetime(df, '[col1, col2]', '%Y%m%d')
             """
-            # pd.to_datetime(df[columns]).dt.strftime('%Y%m%d')
-            df_values = df[columns].apply(pd.to_datetime)
-            df_values = df_values.apply(lambda x: x.dt.strftime(pattern))
-            df[df_values.columns] = df_values
+            df[columns] = df[columns].apply(lambda x: pd.to_datetime(x, format=pattern))
             return df
 
         @staticmethod

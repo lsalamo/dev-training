@@ -9,11 +9,11 @@ import sys
 import os
 import numpy as np
 import argparse
-import libraries.functions as f
-import libraries.api_adobe_analytics2_0 as api_adobe
-import libraries.dataframe as f_df
-import libraries.dt as f_dt
-import libraries.logs as f_log
+import libs.csv as f
+import libs.api_adobe_analytics2_0 as api_adobe
+import libs.dataframe as f_df
+import libs.dt as f_dt
+import libs.log as f_log
 
 
 class App:

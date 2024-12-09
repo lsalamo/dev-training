@@ -1,5 +1,5 @@
 import pandas as pd
-import libraries.api as api
+import libs.api as api
 import urllib
 import time
 

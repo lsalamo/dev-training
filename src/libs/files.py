@@ -1,44 +1,4 @@
 import os
-import shutil
-import sys
-import pandas as pd
-
-
-class CSV:
-    @staticmethod
-    def csv_to_dataframe(file):
-        df = pd.DataFrame()
-        file = File(file)
-        if file.exists_file():
-            try:
-                df = pd.read_csv(file.path_file, header=None)
-            except BaseException as e:
-                Log.print_and_exit('CSV.csv_to_dataframe', format(e))
-        return df
-
-    @staticmethod
-    def dataframe_to_file(df, file):
-        directory = os.path.join(Directory.get_working_directory(), 'csv/')
-        if Directory.exists_directory(directory):
-            file = os.path.join(directory, file)
-            df.to_csv(file, index=False)
-        else:
-            Log.print_and_exit('CSV.dataframe_to_file', 'Directory csv does not exist')
-
-
-class Log:
-    @staticmethod
-    def print(method, info):
-        print('> ' + method + '() - ' + info)
-
-    @staticmethod
-    def print_error(method, info):
-        print('> ERROR - ' + method + '() - ' + info)
-
-    @staticmethod
-    def print_and_exit(method, info):
-        sys.exit('> ERROR - ' + method + '() - ' + info)
-
 
 class Directory:
     @staticmethod
@@ -59,11 +19,10 @@ class Directory:
 
     @staticmethod
     def create_directory(directory):
-        directory = os.path.join(Directory.get_working_directory(), directory)
         # if os.path.isdir(directory):
         #    shutil.rmtree(directory)
         if not os.path.isdir(directory):
-            os.makedirs(directory)
+            os.makedirs(directory, exist_ok=True)
 
     @staticmethod
     def exists_directory(directory):

@@ -7,11 +7,11 @@ import pandas as pd
 import sys
 import os
 import argparse
-import libraries.functions as f
-import libraries.api_dataai_2_0 as api_dataai
-import libraries.dataframe as f_df
-import libraries.dt as f_dt
-import libraries.logs as f_log
+import libs.csv as f
+import libs.api_dataai_2_0 as api_dataai
+import libs.dataframe as f_df
+import libs.dt as f_dt
+import libs.log as f_log
 import yaml
 
 

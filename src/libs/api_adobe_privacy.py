@@ -3,8 +3,8 @@ import configparser
 import datetime
 import os
 import jwt
-import libraries.api as f_api
-import libraries.dataframe as f_df
+import libs.api as f_api
+import libs.dataframe as f_df
 
 
 class Adobe_API(f_api.API):
