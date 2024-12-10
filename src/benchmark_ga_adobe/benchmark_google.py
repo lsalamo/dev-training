@@ -3,41 +3,49 @@ import os
 
 # adding libraries folder to the system path
 from libs import (
-    api_ga4 as api_google,
     log as f_log,
     dataframe as f_df,
     csv as f_csv,
+    json as f_json,
 )
+from libs.google import api_google_analytics_data as api_google
 
 class Google:
     def __init__(self, property, from_date, end_date, platform, app_version):
+        # configuration
         self.property = property
         self.platform = platform
-        self.app_version = app_version
+        self.app_version = app_version        
+        file_config = os.path.join(os.getcwd(), "src/google/config.json")
+        config = f_json.JSON.load_json(file_config) 
+        self.config = config['google']
+        config['google']['property'] = property
+        config['google']['platform'] = platform
+        
+        # dimensions, metrics and data_ranges
         self.dimensions = 'date,platform,appVersion' if app_version else 'date,platform'
         self.metrics = 'sessions,totalUsers,screenPageViews'
         self.date_ranges = {'start_date': from_date, 'end_date': end_date}
-
         # dimension filter
-        dimesion_filter = [{'dimension': 'platform', 'value': self.platform}]
+        dimesion_filter = [{'dimension': 'platform', 'value': platform}]
         if app_version:
             dimesion_filter.append({'dimension': 'appVersion', 'value': app_version})
         self.dimension_filter = dimesion_filter     
-
+        # order_bys
         self.order_bys = {'type': 'dimension', 'value': 'date', 'desc': True}
 
-    def get_columns(self, df):
+    def set_columns(self, df):
         columns = 'date,platform,version,' if self.app_version else 'date,platform,'
         columns += f'{self.platform}-visits,{self.platform}-visitors,{self.platform}-views'
         df.columns = columns.split(',')           
 
     def get_google(self):
-        google = api_google.GA4_API(self.property)
+        google = api_google.GoogleAnalyticsData(self.config)
         df = google.request(self.dimensions, self.metrics, self.date_ranges, self.dimension_filter, self.order_bys)
         if not f_df.Dataframe.is_empty(df):
             # df = df.loc[df['platform'].str.lower() == self.platform]
             # df = f_df.Dataframe.Columns.drop(df, ['platform'])    
-            self.get_columns(df)
+            self.set_columns(df)
             df = f_df.Dataframe.Cast.columns_to_datetime(df, 'date', '%Y%m%d')
 
             # csv
@@ -47,12 +55,10 @@ class Google:
         log.print('google.get_google', 'dataframe loaded')
         return df 
 
-
-
     def get_google_csv(self):
         df = csv.csv_to_dataframe('google.csv')
         # f_df.Dataframe.Columns.drop_from_index(df, 4, True)
-        self.get_columns(df)
+        # self.get_columns(df)
         
         # log
         log.print('google.get_google_csv', 'dataframe loaded')

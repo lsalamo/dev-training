@@ -30,23 +30,22 @@ class Directory:
 
 
 class File:
-    def __init__(self, file):
-        self.working_directory = Directory.get_working_directory()
-        self.file = file
-        self.path_file = os.path.join(self.working_directory, self.file)
-
-    def exists_file(self):
-        if os.path.isfile(self.path_file):
+    @staticmethod
+    def exists_file(file:str):
+        # file = os.path.join(Directory.get_working_directory(), file)
+        if os.path.isfile(file):
             return True
         else:
             return False
-
-    def read_file(self):
-        result = ''
-        if self.exists_file():
-            file = open(self.path_file)
-            result = file.read()
-            file.close()
+    
+    @staticmethod
+    def read_file(file):
+        if File.exists_file(file):
+            with open(file, 'r') as f:
+                result = f.read()
+            f.close()
         else:
             print('> ERROR > File.read_file() - File not found')
         return result
+    
+

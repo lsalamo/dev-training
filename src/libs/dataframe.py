@@ -171,12 +171,12 @@ class Dataframe:
         @staticmethod
         def drop_from_index(df, index, inplace):
             """ CALL > Dataframe.Columns.drop_from_index(df, 4, True) """
-            return df.drop(df.loc[:, index:], axis=1, inplace=inplace)
+            return df.drop(df.iloc[:, index:], axis=1, inplace=inplace)
 
         @staticmethod
         def drop_to_index(df, index, inplace):
             """ CALL > Dataframe.Columns.drop_columns_from_index(df, 4, True) """
-            return df.drop(df.loc[:, :index], axis=1, inplace=inplace)
+            return df.drop(df.iloc[:, :index], axis=1, inplace=inplace)
 
         @staticmethod
         def split_column_string_into_columns(df, column, char):

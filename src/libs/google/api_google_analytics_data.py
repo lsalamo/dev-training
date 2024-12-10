@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import array
 
+# adding libraries folder to the system path
+from libs.google import api_google_authentication as google_authentication
+
 # importing GA4 API class
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
@@ -15,9 +18,9 @@ from google.analytics.data_v1beta.types import (
     RunReportRequest,
 )
 
-class GA4_API:
-    def __init__(self, property):
-        # Public properties
+class GoogleAnalyticsData():
+    def __init__(self, config):
+        # Properties
         self.property_fotocasaes = '296810976'
         # self.property_motosnet = '273930537'
         self.property_motosnet = '468831764'
@@ -28,7 +31,6 @@ class GA4_API:
         self.platform_web = 'web'
         self.platform_android = 'android'
         self.platform_ios = 'ios'
-
         properties = {
             'mnet': {'str': 'mnet', 'ga': self.property_motosnet},
             'cnet': {'str': 'cnet', 'ga': self.property_cochesnet},
@@ -37,12 +39,13 @@ class GA4_API:
             'ijit': {'str': 'ijit', 'ga': self.property_infojobsit},
             'fc': {'str': 'fc', 'ga': self.property_fotocasaes}
         }  
-        self.property = property     
-        self.property_id = properties[property]['ga']    
+        self.property = config['property']     
+        self.property_id = properties[self.property]['ga']   
+        self.platform = config['platform']
 
-        # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
-        path_creds = os.path.join(os.getcwd(), "src/google/google_analytics/credentials.json")
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path_creds        
+        # authentication
+        file_creds = config['credentials']['path_service_account']
+        google_authentication.GoogleAuthentication.service_account(file_creds)
 
         # Initialize client specified in GOOGLE_APPLICATION_CREDENTIALS environment variable.
         self.client = BetaAnalyticsDataClient()
