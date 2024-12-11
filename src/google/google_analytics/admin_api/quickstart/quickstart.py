@@ -82,5 +82,16 @@ if __name__ == "__main__":
     # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
     # path_creds = os.path.join(os.path.dirname(__file__), "../credentials.json")
     path_creds = os.path.join(os.getcwd(), "google/google_analytics/credentials.json")
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path_creds    
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path_creds  
+
+    # configuration
+    from libs import json as f_json
+    file_config = os.path.join(os.getcwd(), "src/google/config.json")
+    config = f_json.JSON.load_json(file_config)     
+
+    # authentication
+    file_creds = config['credentials']['path_service_account']
+    google_authentication.GoogleAuthentication.service_account(file_creds)
+
+
     list_accounts()

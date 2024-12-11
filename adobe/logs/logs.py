@@ -10,7 +10,7 @@ import os
 import numpy as np
 import argparse
 import libs.csv as f
-import libs.api_adobe_analytics2_0 as api
+import libs.adobe.api_adobe_analytics as api
 import libs.dataframe as f_df
 import libs.dt as f_dt
 import libs.log as f_log

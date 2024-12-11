@@ -1,10 +1,9 @@
 import requests
-import pandas as pd
+from abc import ABC, abstractmethod
 
 # adding libraries folder to the system path
 from libs import (
     log as f_log,
-    dataframe as f_df,
 )
 
 class API:
@@ -20,4 +19,8 @@ class API:
             f_log.Log.print_and_exit('API.request', str(response.status_code) + ' > ' + response.text)
         else:
             return response.json()
+        
+    @abstractmethod
+    def __authentication(self):
+        pass        
 

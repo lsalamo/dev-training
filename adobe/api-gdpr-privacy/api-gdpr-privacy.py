@@ -3,7 +3,7 @@ import sys
 import os
 import argparse
 import libs.csv as f
-import libs.api_adobe_privacy as api_adobe
+import libs.adobe.api_adobe_privacy as api_adobe
 import libs.dt as f_dt
 import libs.log as f_log
 

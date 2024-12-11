@@ -9,7 +9,6 @@ from googleapiclient.discovery import build
 class GoogleAuthentication:
     @staticmethod
     def service_account(file_credentials):
-        # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = file_credentials   
 
     @staticmethod

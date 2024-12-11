@@ -8,7 +8,7 @@ import sys
 import os
 import argparse
 import libs.csv as f
-import libs.api_dataai_2_0 as api_dataai
+import libs.dataai.api_dataai as api_dataai
 import libs.dataframe as f_df
 import libs.dt as f_dt
 import libs.log as f_log
