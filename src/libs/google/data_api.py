@@ -3,7 +3,10 @@ import pandas as pd
 from typing import List, Dict
 
 # adding libraries folder to the system path
-from libs import api as f_api
+from libs import (
+    api as f_api,
+    dataframe as f_df,
+)
 
 # importing GA4 API class
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
@@ -19,7 +22,7 @@ from google.analytics.data_v1beta.types import (
 )
 
 
-class GoogleAnalyticsData(f_api.API):
+class DataAPI(f_api.API):
     PROPERTIES = {
         "mnet": {"str": "mnet", "ga": "468831764"},
         "cnet": {"str": "cnet", "ga": "313836548"},
@@ -31,10 +34,11 @@ class GoogleAnalyticsData(f_api.API):
 
     def __init__(self, config):
         # configuration
-        self.config = config
-        self.property = config["property"]
+        self.config = config["google"]
+        self.file = self.config["__file__"]
+        self.property = self.config["property"]
         self.property_id = self.PROPERTIES[self.property]["ga"]
-        self.platform = config["platform"]
+        self.platform = self.config["platform"]
 
         # authentication
         self.__authentication()
@@ -45,6 +49,9 @@ class GoogleAnalyticsData(f_api.API):
     def __authentication(self):
         file_creds = self.config["credentials"]["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
+
+    def save_csv(self, df):
+        return super().save_csv(self.file, df)
 
     def request(
         self,
@@ -85,8 +92,8 @@ class GoogleAnalyticsData(f_api.API):
                 dict_row[metric] = row.metric_values[index].value
             output.append(dict_row)
 
-        df = pd.DataFrame(output)
-        return df
+        # save dataframe and csv
+        return pd.DataFrame(output)
 
     def __get_dimension_filter(self, dimension_filter: List[Dict[str, str]]) -> FilterExpression:
         filter_expressions = [

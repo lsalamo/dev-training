@@ -8,7 +8,7 @@ from libs import (
     csv as f_csv,
     json as f_json,
 )
-from libs.google import api_google_analytics_data as api_google
+from libs.google import data_api as api_google
 
 
 class Google:
@@ -18,10 +18,10 @@ class Google:
         self.platform = platform
         self.app_version = app_version
         file_config = os.path.join(os.getcwd(), "src/google/config.json")
-        config = f_json.JSON.load_json(file_config)
-        self.config = config["google"]
-        config["google"]["property"] = property
-        config["google"]["platform"] = platform
+        self.config = f_json.JSON.load_json(file_config)
+        self.config["google"]["__file__"] = __file__
+        self.config["google"]["property"] = property
+        self.config["google"]["platform"] = platform
 
         # dimensions, metrics and data_ranges
         self.dimensions = "date,platform,appVersion" if app_version else "date,platform"
@@ -38,25 +38,16 @@ class Google:
     def set_columns(self, df):
         columns = "date,platform,version," if self.app_version else "date,platform,"
         columns += f"{self.platform}-visits,{self.platform}-visitors,{self.platform}-views"
-        df.columns = columns.split(",")
+        return columns.split(",")
 
     def get_google(self):
-        google = api_google.GoogleAnalyticsData(self.config)
-        df = google.request(
-            self.dimensions,
-            self.metrics,
-            self.date_ranges,
-            self.dimension_filter,
-            self.order_bys,
-        )
+        google = api_google.DataAPI(self.config)
+        df = google.request(self.dimensions, self.metrics, self.date_ranges, self.dimension_filter, self.order_bys)
         if not f_df.Dataframe.is_empty(df):
-            # df = df.loc[df['platform'].str.lower() == self.platform]
-            # df = f_df.Dataframe.Columns.drop(df, ['platform'])
             self.set_columns(df)
             df = f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y%m%d")
-
             # csv
-            csv.dataframe_to_csv(df, "google.csv")
+            google.save_csv(df)
 
         # log
         log.print("google.get_google", "dataframe loaded")

@@ -52,6 +52,7 @@ To install the latest published package dependency, execute the following:
 import os
 from google.analytics.admin import AnalyticsAdminServiceClient
 
+
 # [START ga_admin_list_accounts]
 def list_accounts(transport: str = None):
     """
@@ -61,7 +62,7 @@ def list_accounts(transport: str = None):
         transport(str): The transport to use. For example, "grpc"
             or "rest". If set to None, a transport is chosen automatically.
     """
-    
+
     # Using a default constructor instructs the client to use the credentials
     # specified in GOOGLE_APPLICATION_CREDENTIALS environment variable.
     client = AnalyticsAdminServiceClient(transport=transport)
@@ -79,19 +80,14 @@ def list_accounts(transport: str = None):
 
 
 if __name__ == "__main__":
-    # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
-    # path_creds = os.path.join(os.path.dirname(__file__), "../credentials.json")
-    path_creds = os.path.join(os.getcwd(), "google/google_analytics/credentials.json")
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path_creds  
-
     # configuration
     from libs import json as f_json
+
     file_config = os.path.join(os.getcwd(), "src/google/config.json")
-    config = f_json.JSON.load_json(file_config)     
+    config = f_json.JSON.load_json(file_config)
 
     # authentication
-    file_creds = config['credentials']['path_service_account']
-    google_authentication.GoogleAuthentication.service_account(file_creds)
-
+    file_creds = config["google"]["credentials"]["path_service_account"]
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
 
     list_accounts()

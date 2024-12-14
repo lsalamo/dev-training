@@ -25,6 +25,9 @@ Usage:
 """
 # [START analyticsdata_quickstart]
 import os
+from libs import json as f_json
+
+# importing GA4 API class
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
     DateRange,
@@ -62,12 +65,17 @@ def sample_run_report(property_id="273930537"):
         print(row.dimension_values[0].value, row.metric_values[0].value)
     # [END analyticsdata_run_report_response]
 
+
 # [END analyticsdata_quickstart]
 
 
 if __name__ == "__main__":
-    # export GOOGLE_APPLICATION_CREDENTIALS = / path / to / credentials.json
-    # path_creds = os.path.join(os.path.dirname(__file__), "credentials.json")
-    path_creds = os.path.join(os.getcwd(), "src/google/google_analytics/credentials.json")
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path_creds
+    # configuration
+    file_config = os.path.join(os.getcwd(), "src/google/config.json")
+    config = f_json.JSON.load_json(file_config)
+
+    # authentication
+    file_creds = config["google"]["credentials"]["path_service_account"]
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
+
     sample_run_report()
