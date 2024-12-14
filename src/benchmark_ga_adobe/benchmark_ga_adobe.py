@@ -48,7 +48,6 @@ class Google:
             df = f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y%m%d")
             if not f_df.Dataframe.is_empty(df):
                 self.set_columns(df)
-                # csv
                 google.save_csv(df)
 
         # log
