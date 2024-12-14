@@ -38,7 +38,7 @@ class Google:
     def set_columns(self, df):
         columns = "date,platform,version," if self.app_version else "date,platform,"
         columns += f"{self.platform}-visits,{self.platform}-visitors,{self.platform}-views"
-        return columns.split(",")
+        df.columns = columns.split(",")
 
     def get_google(self):
         google = api_google.DataAPI(self.config)
@@ -46,8 +46,10 @@ class Google:
         if not f_df.Dataframe.is_empty(df):
             self.set_columns(df)
             df = f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y%m%d")
-            # csv
-            google.save_csv(df)
+            if not f_df.Dataframe.is_empty(df):
+                self.set_columns(df)
+                # csv
+                google.save_csv(df)
 
         # log
         log.print("google.get_google", "dataframe loaded")
