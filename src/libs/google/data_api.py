@@ -5,7 +5,6 @@ from typing import List, Dict
 # adding libraries folder to the system path
 from libs import (
     api as f_api,
-    dataframe as f_df,
 )
 
 # importing GA4 API class
@@ -23,21 +22,23 @@ from google.analytics.data_v1beta.types import (
 
 
 class DataAPI(f_api.API):
-    PROPERTIES = {
-        "mnet": {"str": "mnet", "ga": "468831764"},
-        "cnet": {"str": "cnet", "ga": "313836548"},
-        "ma": {"str": "ma", "ga": "330577361"},
-        "ijes": {"str": "ijes", "ga": "330615843"},
-        "ijit": {"str": "ijit", "ga": "330589193"},
-        "fc": {"str": "fc", "ga": "296810976"},
+    SITES = {
+        "mnet": {"str": "mnet", "id": "468831764"},
+        "cnet": {"str": "cnet", "id": "313836548"},
+        "car_factory": {"str": "car_factory", "id": ""},
+        "ma": {"str": "ma", "id": "330577361"},
+        "ijes": {"str": "ijes", "id": "330615843"},
+        "ijit": {"str": "ijit", "id": "330589193"},
+        "ij_epreselec": {"str": "ij_epreselec", "id": ""},
+        "fc": {"str": "fc", "id": "296810976"},
+        "hab": {"str": "hab", "id": ""},
     }
 
     def __init__(self, config):
         # configuration
         self.config = config["google"]
-        self.file = self.config["__file__"]
-        self.property = self.config["property"]
-        self.property_id = self.PROPERTIES[self.property]["ga"]
+        self.site = self.config["site"]
+        self.site_id = self.SITES[self.site]["id"]
         self.platform = self.config["platform"]
 
         # authentication
@@ -46,12 +47,19 @@ class DataAPI(f_api.API):
         # initialization constructor analytics data
         self.client = BetaAnalyticsDataClient()
 
+        # initialization constructor api
+        file = self.config["__file__"]
+        super().__init__(file)
+
     def __authentication(self):
         file_creds = self.config["credentials"]["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
 
     def save_csv(self, df):
-        return super().save_csv(self.file, df)
+        super().save_csv(df)
+
+    def load_csv(self):
+        return super().load_csv()
 
     def request(
         self,
@@ -66,14 +74,14 @@ class DataAPI(f_api.API):
         google_date_ranges = [
             DateRange(
                 start_date=date_ranges["start_date"],
-                end_date=date_ranges["end_date"],
+                end_date=date_ranges["to_date"],
             )
         ]
         google_dimension_filter = self.__get_dimension_filter(dimension_filter) if dimension_filter else None
         google_order_bys = self.__get_order_bys(order_bys) if order_bys else None
 
         request = RunReportRequest(
-            property=f"properties/{self.property_id}",
+            property=f"properties/{self.site_id}",
             dimensions=google_dimensions,
             metrics=google_metrics,
             date_ranges=google_date_ranges,
