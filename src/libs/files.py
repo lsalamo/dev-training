@@ -1,5 +1,6 @@
 import os
 
+
 class Directory:
     @staticmethod
     def change_working_directory(directory):
@@ -19,8 +20,6 @@ class Directory:
 
     @staticmethod
     def create_directory(directory):
-        # if os.path.isdir(directory):
-        #    shutil.rmtree(directory)
         if not os.path.isdir(directory):
             os.makedirs(directory, exist_ok=True)
 
@@ -31,21 +30,15 @@ class Directory:
 
 class File:
     @staticmethod
-    def exists_file(file:str):
-        # file = os.path.join(Directory.get_working_directory(), file)
-        if os.path.isfile(file):
-            return True
-        else:
-            return False
-    
+    def exists_file(file: str) -> bool:
+        return os.path.isfile(file)
+
     @staticmethod
     def read_file(file):
         if File.exists_file(file):
-            with open(file, 'r') as f:
+            with open(file, "r") as f:
                 result = f.read()
             f.close()
         else:
-            print('> ERROR > File.read_file() - File not found')
+            raise FileNotFoundError(f"CSV file not found: {file}")
         return result
-    
-

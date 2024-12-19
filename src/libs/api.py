@@ -19,7 +19,6 @@ class API:
         self.log = f_log.Log()
 
         # csv
-        self.csv_name = os.path.basename(self.file).replace(".py", ".csv")
         self.csv = f_csv.CSV(self.file)
 
     def request(self, method, url, headers, payload):
@@ -41,13 +40,12 @@ class API:
     def __authentication(self):
         pass
 
-    @abstractmethod
     def save_csv(self, df: pd.DataFrame):
-        self.csv.dataframe_to_csv(df, self.csv_name)
-        self.log.print("API.save_csv", f"file {self.csv_name} saved")
+        """
+        Save a pandas DataFrame to a CSV file.
 
-    @abstractmethod
-    def load_csv(self) -> pd.DataFrame:
-        df = self.csv.csv_to_dataframe(self.csv_name)
-        self.log.print("API.load_csv", f"dataframe loaded from file {self.csv_name}")
-        return df
+        Parameters:
+        df (pd.DataFrame): The pandas DataFrame containing the data to be saved.
+        """
+        self.csv.dataframe_to_csv(df)
+        self.log.print("API.save_csv", f"file {self.csv.csv_name} saved")

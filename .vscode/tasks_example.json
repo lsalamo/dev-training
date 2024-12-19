@@ -1,0 +1,97 @@
+{
+    "version": "2.0.0",
+    "inputs": [
+        {
+            "id": "arg1",
+            "type": "promptString",
+            "description": "Site (e.g., mnet, cnet, car_factory, ma, ijes, ijit, ij_epreselec, fc, hab)"
+        },
+        {
+            "id": "arg2",
+            "type": "promptString",
+            "default": "web",
+            "description": "Platform (e.g., web, android, ios)"
+        },     
+        {
+            "id": "arg3",
+            "type": "promptString",
+            "default": "7daysAgo",
+            "description": "Date From (e.g., 2025-01-01, 7daysAgo)"
+        },  
+        {
+            "id": "arg4",
+            "type": "promptString",
+            "default": "today",
+            "description": "Date To (e.g., 2025-01-01, today)"
+        }               
+    ],         
+    "tasks": [  
+        {
+            "label": "Run Benchmark Google",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "${workspaceFolder}/src/benchmark_ga_adobe/benchmark_ga.py", "${input:arg1}", "${input:arg2}", "${input:arg3}", "${input:arg4}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}/src/"
+                }
+            },          
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "group": "scriptGroup"                
+            }            
+        },
+        {
+            "label": "Run Benchmark Adobe",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "${workspaceFolder}/src/benchmark_ga_adobe/benchmark_adobe.py", "${input:arg1}", "${input:arg2}", "${input:arg3}", "${input:arg4}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}/src/"
+                }
+            },   
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "group": "scriptGroup"                
+            }                   
+        },
+        {
+            "label": "Run Benchmark",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "${workspaceFolder}/src/benchmark_ga_adobe/benchmark.py", "${input:arg1}", "${input:arg2}", "${input:arg3}", "${input:arg4}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}/src/"
+                }
+            },         
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "group": "scriptGroup"                
+            }             
+        },
+        {
+            "label": "Run All Benchmarks",
+            "dependsOn": ["Run Benchmark", "Run Benchmark Google", "Run Benchmark Adobe"],
+            "dependsOrder": "parallel",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
+

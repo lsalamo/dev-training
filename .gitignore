@@ -262,6 +262,8 @@ config.yaml
 *.key
 test
 *.json
-*.lse
+!.vscode/*.json
+!src/benchmark_ga_adobe/adobe/*.json
+
 
 

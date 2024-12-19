@@ -55,12 +55,6 @@ class DataAPI(f_api.API):
         file_creds = self.config["credentials"]["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
 
-    def save_csv(self, df):
-        super().save_csv(df)
-
-    def load_csv(self):
-        return super().load_csv()
-
     def request(
         self,
         dimensions: str,

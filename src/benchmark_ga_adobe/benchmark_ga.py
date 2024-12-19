@@ -1,5 +1,6 @@
 import sys
 import os
+from typing import Dict
 
 # adding libraries folder to the system path
 from libs import (
@@ -11,41 +12,56 @@ from libs.google import data_api as api_google
 
 
 class App:
-    def __init__(self, site, from_date, to_date, platform, app_version):
-        # configuration
-        self.site = site
-        self.platform = platform
-        self.app_version = app_version
-        file_config = os.path.join(os.getcwd(), "src/google/config.json")
-        self.config = f_json.JSON.load_json(file_config)
-        self.config["google"]["__file__"] = __file__
-        self.config["google"]["site"] = site
-        self.config["google"]["platform"] = platform
+    def __init__(self, site, platform, from_date, to_date):
+        # logging
+        self._log_init_info()
 
-        # dimensions, metrics and data_ranges
-        self.dimensions = "date,platform,appVersion" if app_version else "date,platform"
-        self.metrics = "sessions,totalUsers,screenPageViews"
-        self.date_ranges = {"start_date": from_date, "to_date": to_date}
-        # dimension filter
-        dimesion_filter = [{"dimension": "platform", "value": platform}]
-        if app_version:
-            dimesion_filter.append({"dimension": "appVersion", "value": app_version})
-        self.dimension_filter = dimesion_filter
-        # order_bys
-        self.order_bys = {"type": "dimension", "value": "date", "desc": True}
+        # configuration
+        self.config = self._load_config(site, platform, from_date, to_date)
 
         # client
         self.google = api_google.DataAPI(self.config)
 
-    def set_columns(self, df):
-        columns = "date,platform,version," if self.app_version else "date,platform,"
-        columns += f"{self.platform}-visits,{self.platform}-visitors,{self.platform}-views"
+    def _log_init_info(self):
+        log.print("init", f"Current working directory: {os.getcwd()}")
+        log.print("init", f"Python search paths: {sys.path}")
+        log.print("init", f"Name of Python script: {sys.argv[0]}")
+        log.print("init", f"Total arguments passed: {len(sys.argv)}")
+        for i, arg in enumerate(sys.argv[1:], start=1):
+            log.print("init", f"Argument {i}: {arg}")
+
+    def _load_config(self, site: str, platform: str, from_date: str, to_date: str) -> Dict[str, str]:
+        file_config = os.path.join(os.getcwd(), "src/google/config.json")
+        config = f_json.JSON.load_json(file_config)
+        config["google"].update(
+            {"__file__": __file__, "site": site, "platform": platform, "from_date": from_date, "to_date": to_date}
+        )
+        return config
+
+    def _set_columns(self, df):
+        platform = self.config["google"]["platform"]
+        columns = f"date,{platform}-visits,{platform}-visitors,{platform}-views"
         df.columns = columns.split(",")
 
     def request(self):
+        # dimensions, metrics and data_ranges
+        self.dimensions = "date"
+        self.metrics = "sessions,totalUsers,screenPageViews"
+        self.date_ranges = {
+            "start_date": self.config["google"]["from_date"],
+            "to_date": self.config["google"]["to_date"],
+        }
+        # dimension filter
+        dimesion_filter = [{"dimension": "platform", "value": self.config["google"]["platform"]}]
+        # if app_version:
+        #     dimesion_filter.append({"dimension": "appVersion", "value": app_version})
+        self.dimension_filter = dimesion_filter
+        # order_bys
+        self.order_bys = {"type": "dimension", "value": "date", "desc": True}
+
         df = self.google.request(self.dimensions, self.metrics, self.date_ranges, self.dimension_filter, self.order_bys)
         if not f_df.Dataframe.is_empty(df):
-            self.set_columns(df)
+            self._set_columns(df)
             df = f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y%m%d")
             self.google.save_csv(df)
 
@@ -53,36 +69,27 @@ class App:
         log.print("App.request", "completed")
         return df
 
-    def load_csv(self):
-        df = self.google.load_csv()
-        log.print("App.load_csv", "completed")
-        return df
+
+def parse_arguments() -> Dict[str, str]:
+    if len(sys.argv) < 4:
+        raise ValueError("Not enough arguments provided")
+
+    result = {
+        "site": sys.argv[1],
+        "platform": sys.argv[2],
+        "from_date": sys.argv[3],
+        "to_date": sys.argv[4],
+    }
+    return result
 
 
 if __name__ == "__main__":
-    # Logging
-    log = f_log.Log()
-    log.print("init", f"Current working directory: {os.getcwd()}")
-    log.print("init", f"Python search paths: {sys.path}")
-    log.print("init", f"Name of Python script: {sys.argv[0]}")
-    log.print("init", f"Total arguments passed: {str(len(sys.argv))}")
-    for i in range(1, len(sys.argv)):
-        log.print("init", f"Argument: {sys.argv[i]}")
-
-    # result
-    result = {}
-    result["site"] = sys.argv[1]
-    result["from_date"] = sys.argv[2]
-    result["to_date"] = sys.argv[3]
-    result["platform"] = sys.argv[4]
-    result["app_version"] = sys.argv[5] if result["platform"] != "web" else None
-
-    app = App(
-        site=result["site"],
-        from_date=result["from_date"],
-        to_date=result["to_date"],
-        platform=result["platform"],
-        app_version=result["app_version"],
-    )
-    result["df_ga"] = app.request()
-    result["df_ga_csv"] = app.load_csv()
+    try:
+        log = f_log.Log()
+        args = parse_arguments()
+        app = App(**args)
+        df = app.request()
+        log.print("App.main", "completed")
+    except Exception as e:
+        log.print("App.main", f"An error occurred: {str(e)}")
+        sys.exit(1)

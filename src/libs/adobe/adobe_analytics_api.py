@@ -27,20 +27,7 @@ class AdobeAPI(f_api.API):
         self.platform = self.config["platform"]
 
         # date
-        from_date = self.config["from_date"]
-        if from_date == "7daysAgo":
-            from_date = f_dt.Datetime.datetime_add_days(days=-7)
-        else:
-            from_date = f_dt.Datetime.str_to_datetime(from_date, "%Y-%m-%d")
-        from_date = f_dt.Datetime.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
-        to_date = self.config["to_date"]
-        if to_date == "today":
-            to_date = f_dt.Datetime.get_current_datetime()
-        else:
-            to_date = f_dt.Datetime.str_to_datetime(to_date, "%Y-%m-%d")
-        to_date = f_dt.Datetime.datetime_add_days(days=1)
-        to_date = f_dt.Datetime.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
-        self.date = from_date + "/" + to_date
+        self.date = self._process_dates()
 
         # authentication
         self.access_token = self.__authentication()
@@ -48,6 +35,25 @@ class AdobeAPI(f_api.API):
         # initialization constructor api
         file = self.config["__file__"]
         super().__init__(file)
+
+    def _process_dates(self):
+        # from_date
+        from_date = self.config["from_date"]
+        if from_date == "7daysAgo":
+            from_date = f_dt.Datetime.datetime_add_days(days=-7)
+        else:
+            from_date = f_dt.Datetime.str_to_datetime(from_date, "%Y-%m-%d")
+        from_date = f_dt.Datetime.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
+
+        # to_date
+        to_date = self.config["to_date"]
+        if to_date == "today":
+            to_date = f_dt.Datetime.get_current_datetime()
+        else:
+            to_date = f_dt.Datetime.str_to_datetime(to_date, "%Y-%m-%d")
+        to_date = f_dt.Datetime.datetime_add_days(days=1)
+        to_date = f_dt.Datetime.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
+        return f"{from_date}/{to_date}"
 
     def __authentication(self):
         url = "https://ims-na1.adobelogin.com/ims/token/v3"
