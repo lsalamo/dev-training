@@ -29,6 +29,32 @@
     ],         
     "tasks": [  
         {
+            "label": "Run All Benchmarks (Shell Script)",
+            "type": "shell",
+            "command": "${workspaceFolder}/.vscode/tasks/shell_script/run_benchmark_tasks.sh",
+            "args": [
+                "${input:arg1}",
+                "${input:arg2}",
+                "${input:arg3}",
+                "${input:arg4}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}/src/"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "group": "scriptGroup"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },        
+        {
             "label": "Run All Benchmarks",
             "type": "shell",
             "command": "${command:python.interpreterPath}",
@@ -51,7 +77,7 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }                       
+        }                      
     ]
 }
 

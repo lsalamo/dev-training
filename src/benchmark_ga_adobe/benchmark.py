@@ -1,5 +1,6 @@
 import sys
 import os
+from colorama import init, Fore, Style  # https://patorjk.com/software/taag/#p=display&f=Doom&t=Benchmark
 
 # adding libraries folder to the system path
 from libs import (
@@ -12,6 +13,42 @@ from libs import (
 class App:
     def __init__(self, platform):
         self.platform = platform
+
+        # logging
+        self._log_init_info()
+
+    def _log_init_info(self):
+        # init(autoreset=True)
+
+        # Header
+        log.print_header(
+            """
+▗▄▄▖ ▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▖ ▗▖▗▖  ▗▖ ▗▄▖ ▗▄▄▖ ▗▖ ▗▖
+▐▌ ▐▌▐▌   ▐▛▚▖▐▌▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌ ▐▌▐▌ ▐▌▐▌▗▞▘
+▐▛▀▚▖▐▛▀▀▘▐▌ ▝▜▌▐▌   ▐▛▀▜▌▐▌  ▐▌▐▛▀▜▌▐▛▀▚▖▐▛▚▖ 
+▐▙▄▞▘▐▙▄▄▖▐▌  ▐▌▝▚▄▄▖▐▌ ▐▌▐▌  ▐▌▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌
+        """
+        )
+
+        # Archivo y parámetros
+        script_name = sys.argv[0]
+        arguments = sys.argv[1:]
+
+        # Mostrar el encabezado
+        log.print_params("Name of python script:", script_name)
+        # print(f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}Name of Python script: {Style.NORMAL}{Fore.CYAN}{script_name}")
+        # print(f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}Current working directory: {Fore.LIGHTGREEN_EX}{os.getcwd()}")
+        # print(f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}Python search paths: {Fore.LIGHTGREEN_EX}{sys.path}")
+
+        log.print_params("Arguments:", "")
+        if arguments:
+            for i, arg in enumerate(arguments, start=1):
+                log.print_params(f"  {i}.", f"{arg}")
+        else:
+            log.print_error(f"No se proporcionaron parámetros.")
+
+        # Línea final decorativa
+        log.print_line()
 
     def load_csv(self, file):
         file_path = os.path.join(os.getcwd(), file)
@@ -50,5 +87,3 @@ if __name__ == "__main__":
     # csv
     csv = f_csv.CSV(__file__)
     csv.dataframe_to_csv(df)
-
-    print("fin")

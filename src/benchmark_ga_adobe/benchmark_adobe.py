@@ -23,12 +23,27 @@ class App:
         self.adobe = api_adobe.AdobeAPI(self.config)
 
     def _log_init_info(self):
-        log.print("init", f"Current working directory: {os.getcwd()}")
-        log.print("init", f"Python search paths: {sys.path}")
-        log.print("init", f"Name of Python script: {sys.argv[0]}")
-        log.print("init", f"Total arguments passed: {len(sys.argv)}")
-        for i, arg in enumerate(sys.argv[1:], start=1):
-            log.print("init", f"Argument {i}: {arg}")
+        log.print_header(
+            """
+ ▗▄▖ ▗▄▄▄  ▗▄▖ ▗▄▄▖ ▗▄▄▄▖
+▐▌ ▐▌▐▌  █▐▌ ▐▌▐▌ ▐▌▐▌   
+▐▛▀▜▌▐▌  █▐▌ ▐▌▐▛▀▚▖▐▛▀▀▘
+▐▌ ▐▌▐▙▄▄▀▝▚▄▞▘▐▙▄▞▘▐▙▄▄▖
+        """
+        )
+
+        # log.print("init", f"Current working directory: {os.getcwd()}")
+        # log.print("init", f"Python search paths: {sys.path}")
+        log.print_params("Name of python script:", sys.argv[0])
+        # log.print("init", f"Total arguments passed: {len(sys.argv)}")
+        log.print_params("Arguments:", "")
+        arguments = sys.argv[1:]
+        if arguments:
+            for i, arg in enumerate(arguments, start=1):
+                log.print_params(f"  {i}.", f"{arg}")
+        else:
+            log.print_error(f"No se proporcionaron parámetros.")
+        log.print_line()
 
     def _load_config(self, site: str, platform: str, from_date: str, to_date: str) -> Dict[str, str]:
         file_config = os.path.join(os.getcwd(), "src/adobe/_credentials/bearer_token/config.json")
