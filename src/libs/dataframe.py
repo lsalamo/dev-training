@@ -40,7 +40,6 @@ class Dataframe:
             df_values = Dataframe.Cast.columns_to_datetime(df, ['col1', 'col2'], '%Y%m%d')
             """
             df[columns] = df[columns].apply(lambda x: pd.to_datetime(x, format=pattern))
-            return df
 
         @staticmethod
         def columns_regex_to_int64(df, regex):
@@ -50,7 +49,14 @@ class Dataframe:
             df_values = Dataframe.Columns.select_columns_by_regex(df, regex)
             df_values = df_values.astype(np.int64)
             df[df_values.columns] = df_values
-            return df
+
+        @staticmethod
+        def columns_to_float64(df, columns, decimals):
+            """CALL >
+            Dataframe.Cast.columns_to_datetime(df, ['col1', 'col2'], 2)
+            """
+            # df[columns] = df[columns].apply(lambda x: round(x, decimals))
+            df[columns] = df[columns].round(decimals)
 
     class Sort:
         def __init__(self):

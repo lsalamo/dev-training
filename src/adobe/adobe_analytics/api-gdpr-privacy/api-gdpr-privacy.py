@@ -4,27 +4,27 @@ import os
 import argparse
 import libs.csv as f
 import libs.adobe.api_adobe_privacy as api_adobe
-import libs.dt as f_dt
+import libs.datetime_formatter as f_dt
 import libs.log as f_log
 
 
 class App:
     def __init__(self):
-        self.from_date = variables['from_date']
-        self.to_date = variables['to_date']
+        self.from_date = variables["from_date"]
+        self.to_date = variables["to_date"]
         self.log = f_log.Logging()
 
         # args
-        self.log.print('init', 'Total arguments passed: ' + str(len(sys.argv)))
-        self.log.print('init', 'Name of Python script: ' + sys.argv[0])
+        self.log.print("init", "Total arguments passed: " + str(len(sys.argv)))
+        self.log.print("init", "Name of Python script: " + sys.argv[0])
         for i in range(1, len(sys.argv)):
-            self.log.print('init', 'Argument: ' + sys.argv[i])
+            self.log.print("init", "Argument: " + sys.argv[i])
 
         # directory
         self.directory = os.path.dirname(os.path.realpath(__file__))
         f.Directory.set_working_directory(self.directory)
-        f.Directory.create_directory('csv')
-        self.log.print('init', f'working_directory: {f.Directory.get_working_directory()}')
+        f.Directory.create_directory("csv")
+        self.log.print("init", f"working_directory: {f.Directory.get_working_directory()}")
 
     def request(self):
         try:
@@ -33,32 +33,36 @@ class App:
             # clean
             df = df[df["userKey"].str.startswith("Analytics-") & df["userKey"].str.contains("sdrn:")]
             # transform
-            df['realm'] = df["userKey"].str.extract('Analytics-(?:delete|access)-(sdrn:.*):user:', expand=False)
+            df["realm"] = df["userKey"].str.extract("Analytics-(?:delete|access)-(sdrn:.*):user:", expand=False)
             df = df.groupby(["realm", "action", "status"], as_index=False).size()
-            self.log.print(f'request', 'DONE!!')
+            self.log.print(f"request", "DONE!!")
             return df
         except Exception as e:
             self.log.print_error(str(e))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # args
     parser = argparse.ArgumentParser()
     dt_default = f_dt.Datetime.get_current_datetime()
-    parser.add_argument("-i", "--initdate", help="Initial Date (YY-MM-DD)", default=f_dt.Datetime.datetime_to_str(dt_default, '%Y-%m-01'))
-    parser.add_argument("-e", "--enddate", help="End Date (YY-MM-DD)", default=f_dt.Datetime.datetime_to_str(dt_default, '%Y-%m-31'))
+    parser.add_argument(
+        "-i",
+        "--initdate",
+        help="Initial Date (YY-MM-DD)",
+        default=f_dt.Datetime.datetime_to_str(dt_default, "%Y-%m-01"),
+    )
+    parser.add_argument(
+        "-e", "--enddate", help="End Date (YY-MM-DD)", default=f_dt.Datetime.datetime_to_str(dt_default, "%Y-%m-31")
+    )
     args = parser.parse_args()
 
     result = {}
-    variables = {
-        'from_date': args.initdate,
-        'to_date': args.enddate
-    }
+    variables = {"from_date": args.initdate, "to_date": args.enddate}
     # app
     app = App()
     # csv
     df_result = app.request()
-    f.CSV.dataframe_to_file(df_result, 'df.csv')
+    f.CSV.dataframe_to_file(df_result, "df.csv")
 
 
 # # =============================================================================

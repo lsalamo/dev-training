@@ -24,7 +24,7 @@ from google.analytics.data_v1beta.types import (
 class DataAPI(f_api.API):
     SITES = {
         "mnet": {"str": "mnet", "id": "468831764"},
-        "cnet": {"str": "cnet", "id": "313836548"},
+        "cnet": {"str": "cnet", "id": "468895087"},
         "car_factory": {"str": "car_factory", "id": ""},
         "ma": {"str": "ma", "id": "330577361"},
         "ijes": {"str": "ijes", "id": "330615843"},

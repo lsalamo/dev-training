@@ -3,7 +3,7 @@ import pandas as pd
 
 # import datetime
 
-from libs import api as f_api, files as f_files, dt as f_dt
+from libs import api as f_api, datetime_formatter as f_dt, files as f_files
 
 
 class AdobeAPI(f_api.API):
@@ -40,19 +40,19 @@ class AdobeAPI(f_api.API):
         # from_date
         from_date = self.config["from_date"]
         if from_date == "7daysAgo":
-            from_date = f_dt.Datetime.datetime_add_days(days=-7)
+            from_date = f_dt.DatetimeFormatter.datetime_add_days(days=-7)
         else:
-            from_date = f_dt.Datetime.str_to_datetime(from_date, "%Y-%m-%d")
-        from_date = f_dt.Datetime.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
+            from_date = f_dt.DatetimeFormatter.str_to_datetime(from_date, "%Y-%m-%d")
+        from_date = f_dt.DatetimeFormatter.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
 
         # to_date
         to_date = self.config["to_date"]
         if to_date == "today":
-            to_date = f_dt.Datetime.get_current_datetime()
+            to_date = f_dt.DatetimeFormatter.get_current_datetime()
         else:
-            to_date = f_dt.Datetime.str_to_datetime(to_date, "%Y-%m-%d")
-        to_date = f_dt.Datetime.datetime_add_days(days=1)
-        to_date = f_dt.Datetime.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
+            to_date = f_dt.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
+        to_date = f_dt.DatetimeFormatter.datetime_add_days(days=1)
+        to_date = f_dt.DatetimeFormatter.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
         return f"{from_date}/{to_date}"
 
     def __authentication(self):

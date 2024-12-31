@@ -7,8 +7,9 @@ class Log:
         init(autoreset=True)
         # self.logger = logging.getLogger(__name__)
         self.logger = logging.getLogger()
+        logging.getLogger("matplotlib.font_manager").disabled = True
+        # self.logger.setLevel(logging.DEBUG)
         # logging.basicConfig(format="%(levelname)s::%(message)s", level=logging.DEBUG)
-        # logging.basicConfig(format="%(message)s", level=logging.DEBUG)
         logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
     def print_header(self, value):

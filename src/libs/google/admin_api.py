@@ -25,12 +25,13 @@ class AdminAPI(f_api.API):
         # transport(str): The transport to use. For example, "grpc" or "rest". If set to None, a transport is chosen automatically.
         self.client = AnalyticsAdminServiceClient(transport=transport)
 
+        # initialization constructor api
+        file = self.config["__file__"]
+        super().__init__(file)
+
     def __authentication(self):
         file_creds = self.config["credentials"]["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
-
-    def save_csv(self, df):
-        return super().save_csv(self.file, df)
 
     def list_accounts(self) -> pd.DataFrame:
         output = []

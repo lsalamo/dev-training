@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 
 
 # https://docs.python.org/3.8/library/datetime.html
-class Datetime:
+class DatetimeFormatter:
     @staticmethod
     def get_current_datetime() -> datetime:
         # datetime.date.today()
