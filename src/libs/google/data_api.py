@@ -34,12 +34,12 @@ class DataAPI(f_api.API):
         "hab": {"str": "hab", "id": ""},
     }
 
-    def __init__(self, config):
+    def __init__(self, file: str):
+        super().__init__(file)
+
         # configuration
-        self.config = config["google"]
-        self.site = self.config["site"]
-        self.site_id = self.SITES[self.site]["id"]
-        self.platform = self.config["platform"]
+        self.config = self.load_config()
+        # self.config.update({"file": file})
 
         # authentication
         self.__authentication()
@@ -47,16 +47,18 @@ class DataAPI(f_api.API):
         # initialization constructor analytics data
         self.client = BetaAnalyticsDataClient()
 
-        # initialization constructor api
-        file = self.config["__file__"]
-        super().__init__(file)
-
     def __authentication(self):
         file_creds = self.config["credentials"]["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
 
+    def __process_site(self, site: str):
+        site_id = self.SITES[site]["id"]
+        self.log.print("DataAPI.__process_site", f"site_id: {site_id}")
+        return site_id
+
     def request(
         self,
+        site: str,
         dimensions: str,
         metrics: str,
         date_ranges: Dict[str, str],
@@ -75,7 +77,7 @@ class DataAPI(f_api.API):
         google_order_bys = self.__get_order_bys(order_bys) if order_bys else None
 
         request = RunReportRequest(
-            property=f"properties/{self.site_id}",
+            property=f"properties/{self.__process_site(site)}",
             dimensions=google_dimensions,
             metrics=google_metrics,
             date_ranges=google_date_ranges,
@@ -94,7 +96,8 @@ class DataAPI(f_api.API):
                 dict_row[metric] = row.metric_values[index].value
             output.append(dict_row)
 
-        # save dataframe and csv
+        # return dataframe
+        self.log.print("DataAPI.request", "completed")
         return pd.DataFrame(output)
 
     def __get_dimension_filter(self, dimension_filter: List[Dict[str, str]]) -> FilterExpression:

@@ -8,6 +8,7 @@ from colorama import init, Fore, Style  # https://patorjk.com/software/taag/#p=d
 
 # adding libraries folder to the system path
 from libs import log as f_log, dataframe as f_df, csv as f_csv, number_formatter as f_number_formatter
+from libs.google import gsheet_api
 
 
 class App:
@@ -209,6 +210,8 @@ if __name__ == "__main__":
     # analyze data
     app.set_kpis(df)
     app.show_plot(df)
+
+    gsheet_api.GsheetAPI()
 
     # csv
     csv = f_csv.CSV(__file__)

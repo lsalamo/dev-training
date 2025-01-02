@@ -1,8 +1,6 @@
 import os
 import pandas as pd
 
-# import datetime
-
 from libs import api as f_api, datetime_formatter as f_dt, files as f_files
 
 
@@ -19,41 +17,15 @@ class AdobeAPI(f_api.API):
         "hab": {"str": "fc", "id": "schibstedspainrehabitacliaprod"},
     }
 
-    def __init__(self, config):
-        # configuration
-        self.config = config["adobe"]
-        self.site = self.config["site"]
-        self.site_id = self.SITES[self.site]["id"]
-        self.platform = self.config["platform"]
+    def __init__(self, file: str):
+        super().__init__(file)
 
-        # date
-        self.date = self._process_dates()
+        # configuration
+        self.config = self.load_config()
+        # self.config.update({"file": file})
 
         # authentication
         self.access_token = self.__authentication()
-
-        # initialization constructor api
-        file = self.config["__file__"]
-        super().__init__(file)
-
-    def _process_dates(self):
-        # from_date
-        from_date = self.config["from_date"]
-        if from_date == "7daysAgo":
-            from_date = f_dt.DatetimeFormatter.datetime_add_days(days=-7)
-        else:
-            from_date = f_dt.DatetimeFormatter.str_to_datetime(from_date, "%Y-%m-%d")
-        from_date = f_dt.DatetimeFormatter.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
-
-        # to_date
-        to_date = self.config["to_date"]
-        if to_date == "today":
-            to_date = f_dt.DatetimeFormatter.get_current_datetime()
-        else:
-            to_date = f_dt.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
-        to_date = f_dt.DatetimeFormatter.datetime_add_days(days=1)
-        to_date = f_dt.DatetimeFormatter.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
-        return f"{from_date}/{to_date}"
 
     def __authentication(self):
         url = "https://ims-na1.adobelogin.com/ims/token/v3"
@@ -69,7 +41,32 @@ class AdobeAPI(f_api.API):
         response = self.request("POST", url, headers, payload=post_body)
         return response["access_token"]
 
-    def reports(self, file_request):
+    def __process_site(self, site: str):
+        site_id = self.SITES[site]["id"]
+        self.log.print("AdobeAPI.__process_site", f"site_id: {site_id}")
+        return site_id
+
+    def __process_dates(self, from_date: str, to_date: str):
+        # from_date
+        if from_date == "7daysAgo":
+            from_date = f_dt.DatetimeFormatter.datetime_add_days(days=-7)
+        else:
+            from_date = f_dt.DatetimeFormatter.str_to_datetime(from_date, "%Y-%m-%d")
+        from_date = f_dt.DatetimeFormatter.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
+
+        # to_date
+        if to_date == "today":
+            to_date = f_dt.DatetimeFormatter.get_current_datetime()
+        else:
+            to_date = f_dt.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
+        to_date = f_dt.DatetimeFormatter.datetime_add_days(days=1)
+        to_date = f_dt.DatetimeFormatter.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
+
+        date = f"{from_date}/{to_date}"
+        self.log.print("AdobeAPI.__process_dates", f"date: {date}")
+        return date
+
+    def reports(self, file_request: str, site: str, from_date: str, to_date: str) -> pd.DataFrame:
         url = "https://analytics.adobe.io/api/schibs1/reports"
 
         # payload
@@ -77,8 +74,8 @@ class AdobeAPI(f_api.API):
         url_request = os.path.join(url_request, file_request)
         with open(url_request, "r") as file:
             payload = file.read()
-            payload = payload.replace("{{rs}}", self.site_id)
-            payload = payload.replace("{{dt}}", self.date)
+            payload = payload.replace("{{rs}}", self.__process_site(site))
+            payload = payload.replace("{{dt}}", self.__process_dates(from_date, to_date))
 
         headers = {
             "Accept": "application/json",
@@ -95,6 +92,9 @@ class AdobeAPI(f_api.API):
                 df = pd.DataFrame.from_dict(rows)
                 df_values = pd.DataFrame(df["data"].tolist(), index=df.index)
                 df = pd.merge(left=df, right=df_values, left_index=True, right_index=True, how="inner")
+
+        # return dataframe
+        self.log.print("AdobeAPI.reports", "completed")
         return df
 
 
