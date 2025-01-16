@@ -1,31 +1,53 @@
 import sys
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
 import pandas as pd
-from colorama import init, Fore, Style  # https://patorjk.com/software/taag/#p=display&f=Doom&t=Benchmark
+from typing import Dict
 
 # adding libraries folder to the system path
-from libs import log as f_log, dataframe as f_df, csv as f_csv, number_formatter as f_number_formatter
-from libs.google import gsheet_api
+from libs import (
+    dataframe as f_df,
+    csv as f_csv,
+    plot as f_plot,
+    number_formatter as nf,
+    datetime_formatter as f_datetime_formatter,
+    files as f_files,
+    libs_base,
+)
+from libs.google import gmail_smtplib_api, gsheet_api
 
 
-class App:
+class App(libs_base.LibsBase):
+    PLATFORMS = ["web", "and", "ios"]
     COLS = ["visits", "visitors", "views"]
 
-    def __init__(self, platform):
-        self.platform = platform
-        self.kpis = {}
+    def __init__(self):
+        super().__init__(__file__)
+
+        # arguments
+        self.args = self._parse_arguments()
+
+        # configuration
+        self.config = self.load_config()
 
         # logging
         self._log_init_info()
 
-    def _log_init_info(self):
-        # init(autoreset=True)
+    def _parse_arguments(self) -> Dict[str, str]:
+        if len(sys.argv) < 4:
+            raise ValueError("Not enough arguments provided")
 
-        # Header
-        log.print_header(
+        result = {
+            "site": sys.argv[1],
+            "from_date": sys.argv[2],
+            "to_date": sys.argv[3],
+            "app_version": sys.argv[4],
+        }
+        return result
+
+    def _log_init_info(self):
+        # print header
+        self.log.print_header(
             """
 ▗▄▄▖ ▗▄▄▄▖▗▖  ▗▖ ▗▄▄▖▗▖ ▗▖▗▖  ▗▖ ▗▄▖ ▗▄▄▖ ▗▖ ▗▖
 ▐▌ ▐▌▐▌   ▐▛▚▖▐▌▐▌   ▐▌ ▐▌▐▛▚▞▜▌▐▌ ▐▌▐▌ ▐▌▐▌▗▞▘
@@ -34,187 +56,211 @@ class App:
         """
         )
 
-        # Archivo y parámetros
+        # print name script and arguments
         script_name = sys.argv[0]
         arguments = sys.argv[1:]
-
-        # Mostrar el encabezado
-        log.print_params("Name of python script:", script_name)
-        # print(f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}Name of Python script: {Style.NORMAL}{Fore.CYAN}{script_name}")
-        # print(f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}Current working directory: {Fore.LIGHTGREEN_EX}{os.getcwd()}")
-        # print(f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}Python search paths: {Fore.LIGHTGREEN_EX}{sys.path}")
-
-        log.print_params("Arguments:", "")
+        self.log.print("Name of python script:", script_name)
+        self.log.print("Arguments:", "")
         if arguments:
             for i, arg in enumerate(arguments, start=1):
-                log.print_params(f"  {i}.", f"{arg}")
+                self.log.print(f"  {i}.", f"{arg}")
         else:
-            log.print_error(f"No se proporcionaron parámetros.")
+            self.log.print_error(f"No se proporcionaron parámetros.")
 
-        # Línea final decorativa
-        log.print_line()
+    def merge_adobe_google(self) -> pd.DataFrame:
+        # load csv files
+        df_ga = self._load_csv("benchmark_ga.csv")
+        df_aa = self._load_csv("benchmark_adobe.csv")
 
-    def load_csv(self, file):
-        file_path = os.path.join(os.getcwd(), file)
-        df = f_csv.CSV.csv_to_dataframe(file_path)
-        log.print("App.load_csv", f"dataframe loaded from file {file_path}")
-        return df
+        # merge dataframes
+        df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, "date", "outer", ("_aa", "_ga"))
 
-    def merge_adobe_google(self, df_aa, df_ga):
-        # merge
-        df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, "date", "outer", ("-aa", "-ga"))
+        # process dataframe
+        df = f_df.Dataframe.Sort.sort_by_columns(df, columns="date", ascending=False)
+        df.pipe
+
         # cast
-        df = df.fillna(0)
-        f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web-|android-|ios-)")
-        f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y-%m-%d")
-
-        # columns
-        columns = f"date,{self.platform}_visits_aa,{self.platform}_visits_ga,{self.platform}_visitors_aa,{self.platform}_visitors_ga,{self.platform}_views_aa,{self.platform}_views_ga"
-        df.columns = columns.split(",")
+        df = df.sort_values("date", ascending=False).fillna(0).pipe(self._cast_columns)
 
         # log
-        log.print("App.merge_adobe_google", "completed")
+        self.log.print("App.merge_adobe_google", "dataframes merged successfully!")
         return df
 
-    def set_kpis(self, df):
-        formatter = f_number_formatter.NumberFormatter(decimal_places=2)
-        for metric in self.COLS:
-            col = f"{self.platform}_{metric}"
-            df[f"{col}_diff"] = df[f"{col}_aa"] - df[f"{col}_ga"]
-            df[f"{col}_percentage_diff"] = (df[f"{col}_aa"] - df[f"{col}_ga"]) / df[f"{col}_ga"] * 100
-            f_df.Dataframe.Cast.columns_to_float64(df, f"{col}_percentage_diff", 2)
+    def _load_csv(self, filename: str) -> pd.DataFrame:
+        file_path = os.path.join(self.file_directory, "csv", filename)
+        df = f_csv.CSV.csv_to_dataframe(file_path)
+        self.log.print("App.merge_adobe_google", f"dataframe loaded from file {file_path}")
+        return df
 
-            stats_summary = df[[f"{col}_diff", f"{col}_percentage_diff"]].agg(["mean", "std", "min", "max"])
-            print(stats_summary)
-            # stats_summary[f"{col}_diff"]["mean"]
+    def _cast_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web_|and_|ios_)")
+        f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y-%m-%d")
+        return df
 
-            self.kpis[f"{col}_aa_sum"] = df[f"{col}_aa"].sum()
-            self.kpis[f"{col}_ga_sum"] = df[f"{col}_ga"].sum()
-            self.kpis[f"{col}_aa_mean"] = df[f"{col}_aa"].mean()
-            self.kpis[f"{col}_ga_mean"] = df[f"{col}_ga"].mean()
-            self.kpis[f"{col}_aa_std"] = df[f"{col}_aa"].std()
-            self.kpis[f"{col}_ga_std"] = df[f"{col}_ga"].std()
-            self.kpis[f"{col}_percentage_diff_min"] = df[f"{col}_percentage_diff"].min()
-            self.kpis[f"{col}_percentage_diff_max"] = df[f"{col}_percentage_diff"].max()
-            self.kpis[f"{col}_mean_diff"] = (df[f"{col}_aa"] - df[f"{col}_ga"]).mean()
-            self.kpis[f"{col}_median_diff"] = (df[f"{col}_aa"] - df[f"{col}_ga"]).median()
-            self.kpis[f"{col}_std_diff"] = (df[f"{col}_aa"] - df[f"{col}_ga"]).std()
-            self.kpis[f"{col}_percentage_sum_diff"] = (
-                (df[f"{col}_aa"].sum() - df[f"{col}_ga"].sum()) / df[f"{col}_ga"].sum() * 100
-            )
-            self.kpis[f"{col}_percentage_mean_diff"] = (
-                (df[f"{col}_aa"].mean() - df[f"{col}_ga"].mean()) / df[f"{col}_ga"].mean() * 100
-            )
-            self.kpis[f"{col}_threshold"] = df[f"{col}_diff"].mean() + 2 * df[f"{col}_diff"].std()
+    def save_csv(self, df: pd.DataFrame):
+        file_path = os.path.join(self.file_directory, "csv", "benchmark.csv")
+        f_csv.CSV.dataframe_to_csv(file_path, df)
+        self.log.print("App.save_csv", f"CSV file saved to {file_path}")
 
-            # print results
-            log.print("App.set_kpis", f"Total:")
-            log.print("App.set_kpis", f"{col}_aa: {formatter.format_number(self.kpis[f"{col}_aa_sum"])}")
-            log.print("App.set_kpis", f"{col}_ga: {formatter.format_number(self.kpis[f"{col}_ga_sum"])}")
-            log.print(
-                "App.set_kpis",
-                f"AA are about {formatter.format_percentage(self.kpis[f"{col}_percentage_sum_diff"])} higher than GA",
-            )
+    def save_spreadsheet(self, df):
+        gsheet = gsheet_api.GsheetAPI(__file__)
+        spreadsheet = gsheet.delete_and_create_spreadsheet(
+            f"Benchmark AdobeGA - {f_datetime_formatter.DatetimeFormatter.today_to_str()}"
+        )
+        gsheet.share_spreadsheet(spreadsheet, "lsalamo@gmail.com")
 
-            log.print("\nApp.set_kpis", f"Average Daily:")
-            log.print("App.set_kpis", f"{col}_aa: {formatter.format_number(self.kpis[f"{col}_aa_mean"])}")
-            log.print("App.set_kpis", f"{col}_ga: {formatter.format_number(self.kpis[f"{col}_ga_mean"])}")
-            log.print(
-                "App.set_kpis",
-                f"AA are about {formatter.format_percentage(self.kpis[f"{col}_percentage_mean_diff"])} higher than GA",
-            )
+        # update worksheet
+        site = self.args["site"]
+        if site == "cnet":
+            color_code = "#ff0000"  # Red
+        elif site == "ma":
+            color_code = "#00ff00"  # Green
+        elif site == "fc":
+            color_code = "#0000ff"  # Blue
+        elif site == "ij":
+            color_code = "#3d85c6"  # Blue lighter
+        else:
+            color_code = "#ffffff"  # Default to white if site is not recognized
+        gsheet.update_worksheet(spreadsheet, df, site, color_code)
 
-            log.print("\nApp.set_kpis", f"Day-to_Day Comparison {col}:")
-            log.print(
-                "App.set_kpis",
-                f"The difference ranges from {formatter.format_percentage(self.kpis[f"{col}_percentage_diff_min"])} to {formatter.format_percentage(self.kpis[f"{col}_percentage_diff_max"])} higher for AA.",
-            )
-            log.print_line()
+    def get_kpis(self, df):
+        kpis = {}
+        for platform in self.PLATFORMS:
+            for metric in self.COLS:
+                col = f"{platform}_{metric}"
+                aa_col, ga_col = f"{col}_aa", f"{col}_ga"
 
-    def show_plot(self, df):
-        # fig, axes = plt.subplots(1, 3, figsize=(20, 15))
-        fig, axes = plt.subplots(1, 3, figsize=(10, 5))
-        for i, metric in enumerate(self.COLS):
-            # Visualizations
-            col = f"{self.platform}_{metric}"
-            axes[i].scatter(df["date"], df[f"{col}_aa"], color="blue", label=f"Data points AA {metric.capitalize()}")
-            axes[i].plot(df["date"], df[f"{col}_aa"], color="blue")
-            axes[i].scatter(df["date"], df[f"{col}_ga"], color="red", label=f"Data points GA {metric.capitalize()}")
-            axes[i].plot(df["date"], df[f"{col}_ga"], color="red")
+                # update kpis
+                df[f"{col}_diff"] = df[aa_col] - df[ga_col]
+                df[f"{col}_percentage_diff"] = (df[aa_col] - df[ga_col]) / df[ga_col] * 100
+                stats_summary = df[[aa_col, ga_col, f"{col}_diff", f"{col}_percentage_diff"]].agg(
+                    ["sum", "min", "max", "mean", "std"]
+                )
+                print(stats_summary)
+                # stats_summary[f"{col}_diff"]["mean"]
+                kpis.update(
+                    {
+                        f"{col}_aa_sum": df[aa_col].sum(),  # stats_summary[aa_col]["sum"]
+                        f"{col}_ga_sum": df[ga_col].sum(),  # stats_summary[ga_col]["sum"]
+                        f"{col}_percentage_sum_diff": (df[aa_col].sum() - df[ga_col].sum()) / df[ga_col].sum() * 100,
+                        f"{col}_aa_mean": df[aa_col].mean(),
+                        f"{col}_ga_mean": df[ga_col].mean(),
+                        f"{col}_percentage_mean_diff": (df[aa_col].mean() - df[ga_col].mean())
+                        / df[ga_col].mean()
+                        * 100,
+                        f"{col}_aa_std": df[aa_col].std(),
+                        f"{col}_ga_std": df[ga_col].std(),
+                        f"{col}_percentage_diff_min": df[f"{col}_percentage_diff"].min(),
+                        f"{col}_percentage_diff_max": df[f"{col}_percentage_diff"].max(),
+                        f"{col}_mean_diff": df[f"{col}_diff"].mean(),
+                        f"{col}_median_diff": df[f"{col}_diff"].median(),
+                        f"{col}_std_diff": df[f"{col}_diff"].std(),
+                        f"{col}_threshold": df[f"{col}_diff"].mean() + 2 * df[f"{col}_diff"].std(),
+                    }
+                )
 
-            # Add lines for mean
-            mean = self.kpis[f"{col}_aa_mean"]
-            axes[i].axhline(y=mean, color="green", linestyle="--", label=f"Mean AA (μ = {mean:.2f})")
+                # log.print("\nApp.set_kpis", f"Day-to_Day Comparison {col}:")
+                # log.print(
+                #     "App.set_kpis",
+                #     f"The difference ranges from {formatter.format_percentage(kpis[f"{col}_percentage_diff_min"])} to {formatter.format_percentage(kpis[f"{col}_percentage_diff_max"])} higher for AA.",
+                # )
+                # self.log.print_line()
+        return kpis
 
-            # Add lines for mean ± standard deviation
-            std = self.kpis[f"{col}_aa_std"]
-            axes[i].axhline(
-                mean + std, color="green", linestyle="--", label=f"Mean + Std Dev (μ + σ): {mean + std:.2f}"
-            )
-            axes[i].axhline(
-                mean - std, color="green", linestyle="--", label=f"Mean - Std Dev (μ - σ): {mean - std:.2f}"
-            )
+    def save_plot(self, df, kpis: Dict[str, str]):
+        for platform in self.PLATFORMS:
+            # fig, axes = plt.subplots(1, 3, figsize=(20, 15))
+            fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+            for i, metric in enumerate(self.COLS):
+                # Visualizations
+                col = f"{platform}_{metric}"
+                axes[i].scatter(df["date"], df[f"{col}_aa"], color="blue", label=f"Adobe {metric.capitalize()}")
+                axes[i].plot(df["date"], df[f"{col}_aa"], color="blue")
+                axes[i].scatter(df["date"], df[f"{col}_ga"], color="red", label=f"GA {metric.capitalize()}")
+                axes[i].plot(df["date"], df[f"{col}_ga"], color="red")
 
-            axes[i].set_title(f"Comparison of Daily {metric.capitalize()}")
-            axes[i].set_xlabel("Date")
-            axes[i].set_ylabel(f"Number of {metric.capitalize()}")
-            axes[i].legend()
-            axes[i].grid(True)
-            axes[i].tick_params(axis="x", rotation=45)
+                # Add lines for mean
+                mean = kpis[f"{col}_aa_mean"]
+                label = nf.NumberFormatter.format_number(mean)
+                axes[i].axhline(y=mean, color="green", linestyle="--", label=f"Mean AA: {label})")
 
-        plt.tight_layout()
-        plt.show()
+                # Add lines for mean ± standard deviation
+                std = kpis[f"{col}_aa_std"]
+                label = nf.NumberFormatter.format_number(mean + std)
+                axes[i].axhline(mean + std, color="green", linestyle="--", label=f"Mean + Std Dev: {label}")
+                label = nf.NumberFormatter.format_number(mean - std)
+                axes[i].axhline(mean - std, color="green", linestyle="--", label=f"Mean - Std Dev: {label}")
 
-    def analyze_data(self, df):
-        # Detect anomalies
-        for metric in ["visits", "visitors", "views"]:
-            diff_col = f"{metric}_diff"
-            threshold = df[diff_col].mean() + 2 * df[diff_col].std()
-            anomalies = df[np.abs(df[diff_col]) > threshold]
-            print(f"\nAnomalies in {metric}:")
-            print(anomalies[["date", f"{platform}-{metric}-aa", f"{platform}-{metric}-ga", diff_col]])
+                axes[i].set_title(f"Comparison of Daily {metric.capitalize()}")
+                axes[i].set_xlabel("Date")
+                axes[i].set_ylabel(f"Number of {metric.capitalize()}")
+                axes[i].legend()
+                axes[i].grid(True)
+                axes[i].tick_params(axis="x", rotation=45)
 
-        # Correlation heatmap
-        correlation_matrix = df[
-            [
-                f"{platform}-visits-aa",
-                f"{platform}-visits-ga",
-                f"{platform}-visitors-aa",
-                f"{platform}-visitors-ga",
-                f"{platform}-views-aa",
-                f"{platform}-views-ga",
-            ]
-        ].corr()
+            plt.tight_layout()
+            # plt.show()
 
-        plt.figure(figsize=(10, 8))
-        sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", vmin=-1, vmax=1, center=0)
-        plt.title("Correlation Heatmap")
-        plt.show()
+            # Save the plot
+            file_path = os.path.join(self.file_directory, f"img/benchmark_{platform}.png")
+            f_plot.Plot.plot_to_file(file_path=file_path, plot=plt)
+            self.log.print("App.save_plot", f"image saved to {file_path}")
+
+    def send_email(self, kpis: Dict[str, str]):
+        email = gmail_smtplib_api.GmailSmtplibAPI(self.config)
+        subject = title
+
+        image_paths = [
+            os.path.join(self.file_directory, "img", "benchmark_web.png"),
+            os.path.join(self.file_directory, "img", "benchmark_and.png"),
+            os.path.join(self.file_directory, "img", "benchmark_ios.png"),
+        ]
+        html_file_path = os.path.join(self.file_directory, "report/benchmark.html")
+        html_body = f_files.File.read_file(html_file_path)
+
+        for platform in self.PLATFORMS:
+            for metric in self.COLS:
+                col = f"{platform}_{metric}"
+                html_body = html_body.replace(
+                    f"[[{col}_aa_sum]]", nf.NumberFormatter.format_number(kpis[f"{col}_aa_sum"])
+                )
+                html_body = html_body.replace(
+                    f"[[{col}_ga_sum]]", nf.NumberFormatter.format_number(kpis[f"{col}_ga_sum"])
+                )
+                html_body = html_body.replace(
+                    f"[[{col}_percentage_sum_diff]]",
+                    nf.NumberFormatter.format_percentage(kpis[f"{col}_percentage_sum_diff"]),
+                )
+                html_body = html_body.replace(
+                    f"[[{col}_aa_mean]]", nf.NumberFormatter.format_number(kpis[f"{col}_aa_mean"])
+                )
+                html_body = html_body.replace(
+                    f"[[{col}_ga_mean]]", nf.NumberFormatter.format_number(kpis[f"{col}_ga_mean"])
+                )
+                html_body = html_body.replace(
+                    f"[[{col}_percentage_mean_diff]]",
+                    nf.NumberFormatter.format_percentage(kpis[f"{col}_percentage_mean_diff"]),
+                )
+        email.send_email("lsalamo@gmail.com", subject, image_paths, html_body)
+        # Print success message
+        self.log.print("App.send_email", "email sent successfully!")
+
+    def print_end(self):
+        self.log.print("App.main", "application finished!")
+        self.log.print_line()
 
 
 if __name__ == "__main__":
-    # Logging
-    log = f_log.Log()
-
-    platform = sys.argv[2]
-
-    app = App(platform)
-
-    # merge
-    df_ga = app.load_csv("src/benchmark_ga_adobe/csv/benchmark_ga.csv")
-    df_aa = app.load_csv("src/benchmark_ga_adobe/csv/benchmark_adobe.csv")
-    df = app.merge_adobe_google(df_ga, df_aa)
-    df = f_df.Dataframe.Sort.sort_by_columns(df, columns="date", ascending=False)
-    log.print_line()
-
-    # analyze data
-    app.set_kpis(df)
-    app.show_plot(df)
-
-    gsheet_api.GsheetAPI()
-
-    # csv
-    csv = f_csv.CSV(__file__)
-    csv.dataframe_to_csv(df)
-
-    log.print("App.main", "completed")
+    try:
+        title = f"Benchmark AdobeGA - {f_datetime_formatter.DatetimeFormatter.today_to_str()}"
+        app = App()
+        df = app.merge_adobe_google()
+        app.save_csv(df)
+        # app.save_spreadsheet(df)
+        kpis = app.get_kpis(df)
+        app.save_plot(df, kpis)
+        app.send_email(kpis)
+        app.print_end()
+    except Exception as e:
+        print(f"App.main: An error occurred: {str(e)}")
+        sys.exit(1)

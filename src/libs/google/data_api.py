@@ -1,10 +1,12 @@
 import os
 import pandas as pd
+from datetime import datetime
 from typing import List, Dict
 
 # adding libraries folder to the system path
 from libs import (
     api as f_api,
+    datetime_formatter as df,
 )
 
 # importing GA4 API class
@@ -34,12 +36,11 @@ class DataAPI(f_api.API):
         "hab": {"str": "hab", "id": ""},
     }
 
-    def __init__(self, file: str):
-        super().__init__(file)
+    def __init__(self, config: Dict[str, str]):
+        super().__init__()
 
         # configuration
-        self.config = self.load_config()
-        # self.config.update({"file": file})
+        self.config = config
 
         # authentication
         self.__authentication()
@@ -48,15 +49,37 @@ class DataAPI(f_api.API):
         self.client = BetaAnalyticsDataClient()
 
     def __authentication(self):
-        file_creds = self.config["credentials"]["path_service_account"]
+        config = self.config["google"]["credentials"]
+        file_creds = config["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
 
-    def __process_site(self, site: str):
+    def _process_site(self, site: str):
         site_id = self.SITES[site]["id"]
-        self.log.print("DataAPI.__process_site", f"site_id: {site_id}")
+        self.log.print("DataAPI._process_site", f"site_id: {site_id}")
         return site_id
 
-    def request(
+    def _process_dates(self, from_date: str, to_date: str) -> str:
+        def parse_date(date_str: str) -> datetime:
+            if date_str == "today":
+                return df.DatetimeFormatter.get_current_datetime()
+            elif date_str == "yesterday":
+                return df.DatetimeFormatter.datetime_add_days(days=-1)
+            elif date_str == "7daysAgo":
+                return df.DatetimeFormatter.datetime_add_days(days=-7)
+            else:
+                return df.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
+
+        from_datetime = parse_date(from_date)
+        to_datetime = parse_date(to_date)
+
+        from_date = df.DatetimeFormatter.datetime_to_str(from_datetime, "%Y-%m-%d")
+        to_date = df.DatetimeFormatter.datetime_to_str(to_datetime, "%Y-%m-%d")
+
+        date_range = f"{from_date}/{to_date}"
+        self.log.print("DataAPI._process_dates", f"date: {date_range}")
+        return from_date, to_date
+
+    def reports(
         self,
         site: str,
         dimensions: str,
@@ -67,17 +90,20 @@ class DataAPI(f_api.API):
     ) -> pd.DataFrame:
         google_dimensions = [Dimension(name=dimension.strip()) for dimension in dimensions.split(",")]
         google_metrics = [Metric(name=metric.strip()) for metric in metrics.split(",")]
+
+        # date ranges
+        from_date, to_date = self._process_dates(date_ranges["start_date"], date_ranges["to_date"])
         google_date_ranges = [
             DateRange(
-                start_date=date_ranges["start_date"],
-                end_date=date_ranges["to_date"],
+                start_date=from_date,
+                end_date=to_date,
             )
         ]
         google_dimension_filter = self.__get_dimension_filter(dimension_filter) if dimension_filter else None
         google_order_bys = self.__get_order_bys(order_bys) if order_bys else None
 
         request = RunReportRequest(
-            property=f"properties/{self.__process_site(site)}",
+            property=f"properties/{self._process_site(site)}",
             dimensions=google_dimensions,
             metrics=google_metrics,
             date_ranges=google_date_ranges,
@@ -96,8 +122,7 @@ class DataAPI(f_api.API):
                 dict_row[metric] = row.metric_values[index].value
             output.append(dict_row)
 
-        # return dataframe
-        self.log.print("DataAPI.request", "completed")
+        self.log.print("DataAPI.reports", "report requested successfully!")
         return pd.DataFrame(output)
 
     def __get_dimension_filter(self, dimension_filter: List[Dict[str, str]]) -> FilterExpression:

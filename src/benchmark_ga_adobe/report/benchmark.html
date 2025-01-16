@@ -1,0 +1,171 @@
+<html>
+    <head>
+        <style>
+        .table_component {
+            overflow: auto;
+            width: 100%;
+        }
+
+        .table_component table {
+            border: 1px solid #dededf;
+            height: 100%;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            border-spacing: 1px;
+            text-align: left;
+        }
+        
+        .table_component th {
+            border: 1px solid #dededf;
+            background-color: #eceff1;
+            color: #000000;
+            padding: 5px;
+        }
+
+        .table_component td {
+            border: 1px solid #dededf;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 5px;
+        }        
+        </style>
+    </head>    
+    <body>
+        <h1>Benchmark Adobe-GA</h1>
+        hola mundo!
+        <p><a href="https://datascientest.com">mon_lien_incroyable</a></p>
+        <h2>WEB</h2>
+        <table class="table_component">
+        <thead>        
+        <tr>
+            <th></th>
+            <th>Visits (Sum)</th>
+            <th>Visits (Avg)</th>
+            <th>Visitors (Sum)</th>
+            <th>Visitors (Avg)</th>
+            <th>Page Views (Sum)</th>
+            <th>Page Views (Avg)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Adobe:</td>
+            <td>[[web_visits_aa_sum]]</td>
+            <td>[[web_visits_aa_mean]]</td>
+            <td>[[web_visitors_aa_sum]]</td>
+            <td>[[web_visitors_aa_mean]]</td>
+            <td>[[web_views_aa_sum]]</td>
+            <td>[[web_views_aa_mean]]</td>
+        </tr>
+        <tr>
+            <td>Google:</td>
+            <td>[[web_visits_ga_sum]]</td>
+            <td>[[web_visits_ga_mean]]</td>
+            <td>[[web_visitors_ga_sum]]</td>
+            <td>[[web_visitors_ga_mean]]</td>
+            <td>[[web_views_ga_sum]]</td>
+            <td>[[web_views_ga_mean]]</td>
+        </tr>
+        <tr>
+            <td>Percentage Difference:</td>
+            <td>[[web_visits_percentage_sum_diff]]</td>
+            <td>[[web_visits_percentage_mean_diff]]</td>
+            <td>[[web_visitors_percentage_sum_diff]]</td>
+            <td>[[web_visitors_percentage_mean_diff]]</td>
+            <td>[[web_views_percentage_sum_diff]]</td>
+            <td>[[web_views_percentage_mean_diff]]</td>
+        </tr>  
+        </tbody>      
+        </table>
+        <p><img src='cid:image0' alt='Embedded Image 1'></p>
+        <h2>ANDROID</h2>
+        <table class="table_component">
+        <thead>        
+        <tr>
+            <th></th>
+            <th>Visits (Sum)</th>
+            <th>Visits (Avg)</th>
+            <th>Visitors (Sum)</th>
+            <th>Visitors (Avg)</th>
+            <th>Page Views (Sum)</th>
+            <th>Page Views (Avg)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Adobe:</td>
+            <td>[[and_visits_aa_sum]]</td>
+            <td>[[and_visits_aa_mean]]</td>
+            <td>[[and_visitors_aa_sum]]</td>
+            <td>[[and_visitors_aa_mean]]</td>
+            <td>[[and_views_aa_sum]]</td>
+            <td>[[and_views_aa_mean]]</td>
+        </tr>
+        <tr>
+            <td>Google:</td>
+            <td>[[and_visits_ga_sum]]</td>
+            <td>[[and_visits_ga_mean]]</td>
+            <td>[[and_visitors_ga_sum]]</td>
+            <td>[[and_visitors_ga_mean]]</td>
+            <td>[[and_views_ga_sum]]</td>
+            <td>[[and_views_ga_mean]]</td>
+        </tr>
+        <tr>
+            <td>Percentage Difference:</td>
+            <td>[[and_visits_percentage_sum_diff]]</td>
+            <td>[[and_visits_percentage_mean_diff]]</td>
+            <td>[[and_visitors_percentage_sum_diff]]</td>
+            <td>[[and_visitors_percentage_mean_diff]]</td>
+            <td>[[and_views_percentage_sum_diff]]</td>
+            <td>[[and_views_percentage_mean_diff]]</td>
+        </tr>  
+        </tbody>      
+        </table>        
+        <p><img src='cid:image1' alt='Embedded Image 2'></p>
+        <h2>IOS</h2>
+        <table class="table_component">
+        <thead>        
+        <tr>
+            <th></th>
+            <th>Visits (Sum)</th>
+            <th>Visits (Avg)</th>
+            <th>Visitors (Sum)</th>
+            <th>Visitors (Avg)</th>
+            <th>Page Views (Sum)</th>
+            <th>Page Views (Avg)</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Adobe:</td>
+                <td>[[ios_visits_aa_sum]]</td>
+                <td>[[ios_visits_aa_mean]]</td>
+                <td>[[ios_visitors_aa_sum]]</td>
+                <td>[[ios_visitors_aa_mean]]</td>
+                <td>[[ios_views_aa_sum]]</td>
+                <td>[[ios_views_aa_mean]]</td>
+            </tr>
+            <tr>
+                <td>Google:</td>
+                <td>[[ios_visits_ga_sum]]</td>
+                <td>[[ios_visits_ga_mean]]</td>
+                <td>[[ios_visitors_ga_sum]]</td>
+                <td>[[ios_visitors_ga_mean]]</td>
+                <td>[[ios_views_ga_sum]]</td>
+                <td>[[ios_views_ga_mean]]</td>
+            </tr>
+            <tr>
+                <td>Percentage Difference:</td>
+                <td>[[ios_visits_percentage_sum_diff]]</td>
+                <td>[[ios_visits_percentage_mean_diff]]</td>
+                <td>[[ios_visitors_percentage_sum_diff]]</td>
+                <td>[[ios_visitors_percentage_mean_diff]]</td>
+                <td>[[ios_views_percentage_sum_diff]]</td>
+                <td>[[ios_views_percentage_mean_diff]]</td>
+            </tr>   
+        </tbody>      
+        </table>        
+        <p><img src='cid:image2' alt='Embedded Image 3'></p>
+    </body>
+</html>

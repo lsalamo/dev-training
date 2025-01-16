@@ -11,27 +11,27 @@
         {
             "id": "arg2",
             "type": "promptString",
-            "default": "web",
-            "description": "Platform (e.g., web, android, ios)"
-        },     
-        {
-            "id": "arg3",
-            "type": "promptString",
             "default": "7daysAgo",
             "description": "Date From (e.g., 2025-01-01, 7daysAgo)"
         },  
         {
+            "id": "arg3",
+            "type": "promptString",
+            "default": "yesterday",
+            "description": "Date To (e.g., 2025-01-01, yesterday, today)"
+        },  
+        {
             "id": "arg4",
             "type": "promptString",
-            "default": "today",
-            "description": "Date To (e.g., 2025-01-01, today)"
-        }               
+            "default": "None",
+            "description": "App Version (e.g., None|ios-11.113.0|and-6.64.0)"
+        }                   
     ],         
     "tasks": [  
         {
             "label": "Run All Benchmarks (Shell Script)",
             "type": "shell",
-            "command": "${workspaceFolder}/.vscode/tasks/shell_script/run_benchmark_tasks.sh",
+            "command": "${workspaceFolder}/.vscode/tasks/shell_script/task_benchmark.sh",
             "args": [
                 "${input:arg1}",
                 "${input:arg2}",

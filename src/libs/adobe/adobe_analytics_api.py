@@ -1,7 +1,9 @@
 import os
 import pandas as pd
+from datetime import datetime
+from typing import Dict
 
-from libs import api as f_api, datetime_formatter as f_dt, files as f_files
+from libs import api as f_api, datetime_formatter as df, files as f_files
 
 
 class AdobeAPI(f_api.API):
@@ -17,71 +19,74 @@ class AdobeAPI(f_api.API):
         "hab": {"str": "fc", "id": "schibstedspainrehabitacliaprod"},
     }
 
-    def __init__(self, file: str):
-        super().__init__(file)
+    def __init__(self, config: Dict[str, str]):
+        super().__init__()
 
         # configuration
-        self.config = self.load_config()
-        # self.config.update({"file": file})
+        self.config = config
 
         # authentication
         self.access_token = self.__authentication()
 
     def __authentication(self):
+        config = self.config["adobe"]["credentials"]
         url = "https://ims-na1.adobelogin.com/ims/token/v3"
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
         }
         post_body = {
             "grant_type": "client_credentials",
-            "client_id": self.config["credentials"]["apiKey"],
-            "client_secret": self.config["credentials"]["secret"],
+            "client_id": config["apiKey"],
+            "client_secret": config["secret"],
             "scope": "openid,AdobeID,read_organizations,additional_info.projectedProductContext",
         }
         response = self.request("POST", url, headers, payload=post_body)
         return response["access_token"]
 
-    def __process_site(self, site: str):
+    def _process_site(self, site: str) -> str:
         site_id = self.SITES[site]["id"]
-        self.log.print("AdobeAPI.__process_site", f"site_id: {site_id}")
+        self.log.print("AdobeAPI._process_site", f"site_id: {site_id}")
         return site_id
 
-    def __process_dates(self, from_date: str, to_date: str):
-        # from_date
-        if from_date == "7daysAgo":
-            from_date = f_dt.DatetimeFormatter.datetime_add_days(days=-7)
-        else:
-            from_date = f_dt.DatetimeFormatter.str_to_datetime(from_date, "%Y-%m-%d")
-        from_date = f_dt.DatetimeFormatter.datetime_to_str(from_date, "%Y-%m-%dT00:00:00.000")
+    def _process_dates(self, from_date: str, to_date: str) -> str:
+        def parse_date(date_str: str) -> datetime:
+            if date_str == "today":
+                return df.DatetimeFormatter.get_current_datetime()
+            elif date_str == "yesterday":
+                return df.DatetimeFormatter.datetime_add_days(days=-1)
+            elif date_str == "7daysAgo":
+                return df.DatetimeFormatter.datetime_add_days(days=-7)
+            else:
+                return df.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
 
-        # to_date
-        if to_date == "today":
-            to_date = f_dt.DatetimeFormatter.get_current_datetime()
-        else:
-            to_date = f_dt.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
-        to_date = f_dt.DatetimeFormatter.datetime_add_days(days=1)
-        to_date = f_dt.DatetimeFormatter.datetime_to_str(to_date, "%Y-%m-%dT00:00:00.000")
+        from_datetime = parse_date(from_date)
+        to_datetime = parse_date(to_date)
+        to_datetime = df.DatetimeFormatter.datetime_add_days(value=to_datetime, days=1)
 
-        date = f"{from_date}/{to_date}"
-        self.log.print("AdobeAPI.__process_dates", f"date: {date}")
-        return date
+        from_date = df.DatetimeFormatter.datetime_to_str(from_datetime, "%Y-%m-%dT00:00:00.000")
+        to_date = df.DatetimeFormatter.datetime_to_str(to_datetime, "%Y-%m-%dT00:00:00.000")
+
+        date_range = f"{from_date}/{to_date}"
+        self.log.print("AdobeAPI._process_dates", f"date: {date_range}")
+        return date_range
 
     def reports(self, file_request: str, site: str, from_date: str, to_date: str) -> pd.DataFrame:
+        config = self.config["adobe"]["credentials"]
         url = "https://analytics.adobe.io/api/schibs1/reports"
 
         # payload
-        url_request = f_files.Directory.get_directory(os.path.realpath(self.file))
+        url_request = f_files.Directory.get_directory(os.path.realpath(self.config["file"]))
         url_request = os.path.join(url_request, file_request)
         with open(url_request, "r") as file:
             payload = file.read()
-            payload = payload.replace("{{rs}}", self.__process_site(site))
-            payload = payload.replace("{{dt}}", self.__process_dates(from_date, to_date))
+            payload = payload.replace("{{rs}}", self._process_site(site))
+            payload = payload.replace("{{dt}}", self._process_dates(from_date, to_date))
 
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Authorization": "Bearer " + self.access_token,
-            "x-api-key": self.config["credentials"]["apiKey"],
+            "x-api-key": config["apiKey"],
         }
 
         df = pd.DataFrame()
@@ -93,8 +98,7 @@ class AdobeAPI(f_api.API):
                 df_values = pd.DataFrame(df["data"].tolist(), index=df.index)
                 df = pd.merge(left=df, right=df_values, left_index=True, right_index=True, how="inner")
 
-        # return dataframe
-        self.log.print("AdobeAPI.reports", "completed")
+        self.log.print("AdobeAPI.reports", "report requested successfully!")
         return df
 
 

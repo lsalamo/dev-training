@@ -21,6 +21,10 @@ class Dataframe:
         df = pd.concat(frames, axis=0, join=join)
         return df
 
+    def join_by_index_column(frames, join):
+        df = pd.concat(frames, axis=0, join=join)
+        return df
+
     class Cast:
         def __init__(self):
             pass
@@ -156,9 +160,17 @@ class Dataframe:
             return pd.merge(left=frame_left, right=frame_right, left_index=True, right_index=True, how=join)
 
         @staticmethod
-        def join_two_frames_by_columns(frame_left, frame_right, columns, join, suffix) -> pd.DataFrame:
+        def join_two_frames_by_columns(
+            frame_left: pd.DataFrame, frame_right: pd.DataFrame, columns, join, suffix=None
+        ) -> pd.DataFrame:
             """CALL > Dataframe.Columns.join_by_columns(fr1, fr2, ['a','b'], 'outer', ('-fr1', '-fr2'))"""
-            return pd.merge(left=frame_left, right=frame_right, on=columns, how=join, suffixes=suffix)
+            df = pd.DataFrame()
+            if frame_left.empty:
+                return frame_right
+            if suffix is None:
+                return pd.merge(left=frame_left, right=frame_right, on=columns, how=join)
+            else:
+                return pd.merge(left=frame_left, right=frame_right, on=columns, how=join, suffixes=suffix)
 
         @staticmethod
         def join_by_columns(frames, columns, join) -> pd.DataFrame:
@@ -175,12 +187,12 @@ class Dataframe:
             return df.drop(columns, axis=1)
 
         @staticmethod
-        def drop_from_index(df, index, inplace):
+        def drop_from_index(df, index, inplace=True):
             """CALL > Dataframe.Columns.drop_from_index(df, 4, True)"""
             return df.drop(df.iloc[:, index:], axis=1, inplace=inplace)
 
         @staticmethod
-        def drop_to_index(df, index, inplace):
+        def drop_to_index(df, index, inplace=True):
             """CALL > Dataframe.Columns.drop_columns_from_index(df, 4, True)"""
             return df.drop(df.iloc[:, :index], axis=1, inplace=inplace)
 

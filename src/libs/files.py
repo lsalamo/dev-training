@@ -40,5 +40,5 @@ class File:
                 result = f.read()
             f.close()
         else:
-            raise FileNotFoundError(f"CSV file not found: {file}")
+            raise FileNotFoundError(f"File not found: {file}")
         return result

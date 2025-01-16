@@ -18,9 +18,6 @@ class Log:
     def print_line(self):
         self.logger.info(f"\n{Fore.LIGHTBLUE_EX}{'='*50}\n")
 
-    def print_params(self, key, value):
-        self.logger.info(f"{Fore.LIGHTBLUE_EX}{key} {Fore.WHITE}{value}")
-
     def print(self, method, value):
         self.logger.info(f"{Fore.LIGHTBLUE_EX}{method}:{Fore.WHITE}{value}")
 

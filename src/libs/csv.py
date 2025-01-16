@@ -7,40 +7,32 @@ from libs import (
 
 
 class CSV:
-    def __init__(self, file: str):
-        csv_path = f_files.Directory.get_directory(os.path.realpath(file))
-        csv_path = os.path.join(csv_path, "csv")
-        f_files.Directory.create_directory(csv_path)
-        self.csv_path = csv_path
-        self.csv_name = os.path.basename(file).replace(".py", ".csv")
-
-    def csv_to_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame()
-        file = os.path.join(self.csv_path, self.csv_name)
-        if f_files.File.exists_file(file):
-            try:
-                df = pd.read_csv(file, header=0)
-            except Exception as e:
-                raise Exception(f"CSV.csv_to_dataframe:{str(e)}")
-        else:
-            raise FileNotFoundError(f"CSV file not found: {file}")
-        return df
+    def __init__(self):
+        pass
 
     @staticmethod
-    def csv_to_dataframe(file: str) -> pd.DataFrame:
-        df = pd.DataFrame()
-        if f_files.File.exists_file(file):
-            try:
-                df = pd.read_csv(file, header=0)
-            except Exception as e:
-                raise Exception(f"CSV.csv_to_dataframe:{str(e)}")
-        else:
-            raise FileNotFoundError(f"CSV file not found: {file}")
-        return df
+    def csv_to_dataframe(file_path: str) -> pd.DataFrame:
+        try:
+            df = pd.DataFrame()
+            if f_files.File.exists_file(file_path):
+                df = pd.read_csv(file_path, header=0)
+            return df
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"CSV.csv_to_dataframe:file not found: {file_path}")
+        except Exception as e:
+            raise Exception(f"CSV.csv_to_dataframe:{str(e)}")
 
-    def dataframe_to_csv(self, df: pd.DataFrame):
-        if f_files.Directory.exists_directory(self.csv_path):
-            file = os.path.join(self.csv_path, self.csv_name)
-            df.to_csv(file, index=False, header=True)
-        else:
-            raise Exception(f"CSV.dataframe_to_csv:Directory csv does not exist")
+    @staticmethod
+    def dataframe_to_csv(file_path: str, df: pd.DataFrame):
+        try:
+            file_directory = f_files.Directory.get_directory(os.path.realpath(file_path))
+            if os.path.basename(file_directory) == "csv":
+                f_files.Directory.create_directory(file_directory)
+                if f_files.Directory.exists_directory(file_directory):
+                    df.to_csv(file_path, index=False, header=True)
+                else:
+                    raise Exception(f"CSV.dataframe_to_csv:Directory csv does not exist")
+            else:
+                raise Exception(f"CSV.dataframe_to_csv:Parent directory is not csv")
+        except Exception as e:
+            raise Exception(f"CSV.dataframe_to_csv:{str(e)}")

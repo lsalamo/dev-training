@@ -1,3 +1,4 @@
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
@@ -7,8 +8,12 @@ from dateutil.relativedelta import relativedelta
 class DatetimeFormatter:
     @staticmethod
     def get_current_datetime() -> datetime:
-        # datetime.date.today()
+        # date.today()
         return datetime.now()
+
+    def today_to_str() -> datetime:
+        # date.today().strftime("%Y%m%d")
+        return datetime.now().strftime("%Y%m%d")
 
     @staticmethod
     def get_current_day():
