@@ -23,7 +23,7 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             // args[4] - platform: web|android|ios
-            "args":["cnet", "7daysAgo", "yesterday", "None"],
+            "args":["cnet", "3MonthsAgo", "yesterday", "None"],
             //"args":["cnet", "2024-12-01", "today", "ios-11.113.0|and-6.64.0"],
             "env": {
                 "PYTHONPATH":"${workspaceFolder}/src/"

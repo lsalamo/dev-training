@@ -11,8 +11,8 @@
         {
             "id": "arg2",
             "type": "promptString",
-            "default": "7daysAgo",
-            "description": "Date From (e.g., 2025-01-01, 7daysAgo)"
+            "default": "3MonthsAgo",
+            "description": "Date From (e.g., 2025-01-01, 7daysAgo, 3MonthsAgo)"
         },  
         {
             "id": "arg3",

@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from typing import Dict
 
-from libs import api as f_api, datetime_formatter as df, files as f_files
+from libs import api as f_api, datetime_formatter as dtf, files as f_files
 
 
 class AdobeAPI(f_api.API):
@@ -49,22 +49,12 @@ class AdobeAPI(f_api.API):
         return site_id
 
     def _process_dates(self, from_date: str, to_date: str) -> str:
-        def parse_date(date_str: str) -> datetime:
-            if date_str == "today":
-                return df.DatetimeFormatter.get_current_datetime()
-            elif date_str == "yesterday":
-                return df.DatetimeFormatter.datetime_add_days(days=-1)
-            elif date_str == "7daysAgo":
-                return df.DatetimeFormatter.datetime_add_days(days=-7)
-            else:
-                return df.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
+        from_datetime = dtf.DatetimeFormatter.str_to_datetime(from_date, "%Y-%m-%d")
+        to_datetime = dtf.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
+        to_datetime = dtf.DatetimeFormatter.datetime_add_days(value=to_datetime, days=1)
 
-        from_datetime = parse_date(from_date)
-        to_datetime = parse_date(to_date)
-        to_datetime = df.DatetimeFormatter.datetime_add_days(value=to_datetime, days=1)
-
-        from_date = df.DatetimeFormatter.datetime_to_str(from_datetime, "%Y-%m-%dT00:00:00.000")
-        to_date = df.DatetimeFormatter.datetime_to_str(to_datetime, "%Y-%m-%dT00:00:00.000")
+        from_date = dtf.DatetimeFormatter.datetime_to_str(from_datetime, "%Y-%m-%dT00:00:00.000")
+        to_date = dtf.DatetimeFormatter.datetime_to_str(to_datetime, "%Y-%m-%dT00:00:00.000")
 
         date_range = f"{from_date}/{to_date}"
         self.log.print("AdobeAPI._process_dates", f"date: {date_range}")

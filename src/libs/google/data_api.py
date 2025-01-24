@@ -6,7 +6,7 @@ from typing import List, Dict
 # adding libraries folder to the system path
 from libs import (
     api as f_api,
-    datetime_formatter as df,
+    datetime_formatter as dtf,
 )
 
 # importing GA4 API class
@@ -27,13 +27,14 @@ class DataAPI(f_api.API):
     SITES = {
         "mnet": {"str": "mnet", "id": "468831764"},
         "cnet": {"str": "cnet", "id": "468895087"},
-        "car_factory": {"str": "car_factory", "id": ""},
-        "ma": {"str": "ma", "id": "330577361"},
-        "ijes": {"str": "ijes", "id": "330615843"},
-        "ijit": {"str": "ijit", "id": "330589193"},
-        "ij_epreselec": {"str": "ij_epreselec", "id": ""},
-        "fc": {"str": "fc", "id": "296810976"},
-        "hab": {"str": "hab", "id": ""},
+        "cnet_pro": {"str": "cnet_pro", "id": "468862598"},
+        "ma": {"str": "ma", "id": "468813852"},
+        "ijes": {"str": "ijes", "id": "469909922"},
+        "ijit": {"str": "ijit", "id": "468741124"},
+        "ij_epreselec": {"str": "ij_epreselec", "id": "468833127"},
+        "fc": {"str": "fc", "id": "468839303"},
+        "hab": {"str": "hab", "id": "468883032"},
+        "fc_pro": {"str": "fc_pro", "id": "468820556"},
     }
 
     def __init__(self, config: Dict[str, str]):
@@ -59,21 +60,11 @@ class DataAPI(f_api.API):
         return site_id
 
     def _process_dates(self, from_date: str, to_date: str) -> str:
-        def parse_date(date_str: str) -> datetime:
-            if date_str == "today":
-                return df.DatetimeFormatter.get_current_datetime()
-            elif date_str == "yesterday":
-                return df.DatetimeFormatter.datetime_add_days(days=-1)
-            elif date_str == "7daysAgo":
-                return df.DatetimeFormatter.datetime_add_days(days=-7)
-            else:
-                return df.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
+        from_datetime = dtf.DatetimeFormatter.str_to_datetime(from_date, "%Y-%m-%d")
+        to_datetime = dtf.DatetimeFormatter.str_to_datetime(to_date, "%Y-%m-%d")
 
-        from_datetime = parse_date(from_date)
-        to_datetime = parse_date(to_date)
-
-        from_date = df.DatetimeFormatter.datetime_to_str(from_datetime, "%Y-%m-%d")
-        to_date = df.DatetimeFormatter.datetime_to_str(to_datetime, "%Y-%m-%d")
+        from_date = dtf.DatetimeFormatter.datetime_to_str(from_datetime, "%Y-%m-%d")
+        to_date = dtf.DatetimeFormatter.datetime_to_str(to_datetime, "%Y-%m-%d")
 
         date_range = f"{from_date}/{to_date}"
         self.log.print("DataAPI._process_dates", f"date: {date_range}")

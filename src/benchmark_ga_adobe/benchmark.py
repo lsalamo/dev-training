@@ -1,6 +1,8 @@
 import sys
 import os
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib.axes import Axes
 import pandas as pd
 from typing import Dict
 
@@ -10,7 +12,7 @@ from libs import (
     csv as f_csv,
     plot as f_plot,
     number_formatter as nf,
-    datetime_formatter as f_datetime_formatter,
+    datetime_formatter as dtf,
     files as f_files,
     libs_base,
 )
@@ -22,6 +24,31 @@ class App(libs_base.LibsBase):
     COLS = ["visits", "visitors", "views"]
 
     def __init__(self):
+        def get_site_name(site: str) -> str:
+            match site:
+                case "cnet":
+                    return "Coches.net"
+                case "mnet":
+                    return "Motos.net"
+                case "cnet_pro":
+                    return "Coches.net PRO"
+                case "ma":
+                    return "Milanuncios"
+                case "ijes":
+                    return "Infojobs ES"
+                case "ijit":
+                    return "Infojobs IT"
+                case "ij_epreselec":
+                    return "Infojobs Epreselec"
+                case "fc":
+                    return "Fotocasa"
+                case "hab":
+                    return "Habitaclia"
+                case "fc_pro":
+                    return "Fotocasa PRO"
+                case _:
+                    return "Unknown site"
+
         super().__init__(__file__)
 
         # arguments
@@ -29,6 +56,12 @@ class App(libs_base.LibsBase):
 
         # configuration
         self.config = self.load_config()
+
+        # properties
+        self.site_title = get_site_name(self.args["site"]).upper()
+        self.from_date = dtf.DatetimeFormatter.str_to_datetime(self.args["from_date"], "%Y-%m-%d")
+        self.to_date = dtf.DatetimeFormatter.str_to_datetime(self.args["to_date"], "%Y-%m-%d")
+        self.date_diff_days = dtf.DatetimeFormatter.diff_days(self.from_date, self.to_date)
 
         # logging
         self._log_init_info()
@@ -105,7 +138,7 @@ class App(libs_base.LibsBase):
     def save_spreadsheet(self, df):
         gsheet = gsheet_api.GsheetAPI(__file__)
         spreadsheet = gsheet.delete_and_create_spreadsheet(
-            f"Benchmark AdobeGA - {f_datetime_formatter.DatetimeFormatter.today_to_str()}"
+            f"Benchmark AdobeGA - {dtf.DatetimeFormatter.today_to_str()}"
         )
         gsheet.share_spreadsheet(spreadsheet, "lsalamo@gmail.com")
 
@@ -123,80 +156,122 @@ class App(libs_base.LibsBase):
             color_code = "#ffffff"  # Default to white if site is not recognized
         gsheet.update_worksheet(spreadsheet, df, site, color_code)
 
-    def get_kpis(self, df):
-        kpis = {}
+    def load_df_agg(self, df: pd.DataFrame) -> pd.DataFrame:
+        def aggregate_data(df: pd.DataFrame) -> pd.DataFrame:
+            df_combined = pd.DataFrame()
+            for platform in self.PLATFORMS:
+                for metric in self.COLS:
+                    col = f"{platform}_{metric}"
+                    aa_col, ga_col = f"{col}_aa", f"{col}_ga"
+                    df[f"{col}_diff"] = df[aa_col] - df[ga_col]
+                    df[f"{col}_percentage_diff"] = (df[aa_col] - df[ga_col]) / df[ga_col] * 100
+                    stats_summary = df[[aa_col, ga_col, f"{col}_diff", f"{col}_percentage_diff"]].agg(
+                        ["sum", "min", "max", "mean", "std"]
+                    )
+                    stats_traspose = stats_summary.T
+                    f_df.Dataframe.Columns.update_column_by_row_index(
+                        df=stats_traspose,
+                        row_index=f"{col}_percentage_diff",
+                        col_name="sum",
+                        value=(df[aa_col].sum() - df[ga_col].sum()) / df[ga_col].sum() * 100,
+                    )
+                    df_combined = f_df.Dataframe.Rows.concat_frames(
+                        frames=[df_combined, stats_traspose], ignore_index=False
+                    )
+            return df_combined
+
+        # full data
+        df_agg_full = aggregate_data(df)
+
+        # Filter last day
+        df_last_day = df[df["date"] == self.to_date]
+        df_agg_last_day = aggregate_data(df_last_day)
+
+        # filter last 7 days
+        df_last_7_days = df[df["date"] >= dtf.DatetimeFormatter.datetime_add_days(value=self.to_date, days=-7)]
+        df_agg_last_7_days = aggregate_data(df_last_7_days)
+
+        # filter last month
+        df_last_month = df[df["date"] >= dtf.DatetimeFormatter.datetime_add_months(value=self.to_date, months=-1)]
+        df_agg_last_month = aggregate_data(df_last_month)
+
+        return df_agg_full, df_agg_last_day, df_agg_last_7_days, df_agg_last_month
+
+    def save_plot(self):
         for platform in self.PLATFORMS:
-            for metric in self.COLS:
-                col = f"{platform}_{metric}"
-                aa_col, ga_col = f"{col}_aa", f"{col}_ga"
-
-                # update kpis
-                df[f"{col}_diff"] = df[aa_col] - df[ga_col]
-                df[f"{col}_percentage_diff"] = (df[aa_col] - df[ga_col]) / df[ga_col] * 100
-                stats_summary = df[[aa_col, ga_col, f"{col}_diff", f"{col}_percentage_diff"]].agg(
-                    ["sum", "min", "max", "mean", "std"]
-                )
-                print(stats_summary)
-                # stats_summary[f"{col}_diff"]["mean"]
-                kpis.update(
-                    {
-                        f"{col}_aa_sum": df[aa_col].sum(),  # stats_summary[aa_col]["sum"]
-                        f"{col}_ga_sum": df[ga_col].sum(),  # stats_summary[ga_col]["sum"]
-                        f"{col}_percentage_sum_diff": (df[aa_col].sum() - df[ga_col].sum()) / df[ga_col].sum() * 100,
-                        f"{col}_aa_mean": df[aa_col].mean(),
-                        f"{col}_ga_mean": df[ga_col].mean(),
-                        f"{col}_percentage_mean_diff": (df[aa_col].mean() - df[ga_col].mean())
-                        / df[ga_col].mean()
-                        * 100,
-                        f"{col}_aa_std": df[aa_col].std(),
-                        f"{col}_ga_std": df[ga_col].std(),
-                        f"{col}_percentage_diff_min": df[f"{col}_percentage_diff"].min(),
-                        f"{col}_percentage_diff_max": df[f"{col}_percentage_diff"].max(),
-                        f"{col}_mean_diff": df[f"{col}_diff"].mean(),
-                        f"{col}_median_diff": df[f"{col}_diff"].median(),
-                        f"{col}_std_diff": df[f"{col}_diff"].std(),
-                        f"{col}_threshold": df[f"{col}_diff"].mean() + 2 * df[f"{col}_diff"].std(),
-                    }
-                )
-
-                # log.print("\nApp.set_kpis", f"Day-to_Day Comparison {col}:")
-                # log.print(
-                #     "App.set_kpis",
-                #     f"The difference ranges from {formatter.format_percentage(kpis[f"{col}_percentage_diff_min"])} to {formatter.format_percentage(kpis[f"{col}_percentage_diff_max"])} higher for AA.",
-                # )
-                # self.log.print_line()
-        return kpis
-
-    def save_plot(self, df, kpis: Dict[str, str]):
-        for platform in self.PLATFORMS:
-            # fig, axes = plt.subplots(1, 3, figsize=(20, 15))
             fig, axes = plt.subplots(1, 3, figsize=(15, 5))
             for i, metric in enumerate(self.COLS):
                 # Visualizations
                 col = f"{platform}_{metric}"
-                axes[i].scatter(df["date"], df[f"{col}_aa"], color="blue", label=f"Adobe {metric.capitalize()}")
-                axes[i].plot(df["date"], df[f"{col}_aa"], color="blue")
-                axes[i].scatter(df["date"], df[f"{col}_ga"], color="red", label=f"GA {metric.capitalize()}")
-                axes[i].plot(df["date"], df[f"{col}_ga"], color="red")
+                ax: Axes = axes[i]
+                # axes[i].scatter(
+                #     df["date"], df[f"{col}_aa"], color="blue", label=f"Adobe {metric.capitalize()}", marker="o"
+                # )
+                ax.plot(
+                    df["date"],
+                    df[f"{col}_aa"],
+                    color="blue",
+                    linewidth=1,
+                    label=f"Adobe {metric.capitalize()}",
+                )
+                # axes[i].scatter(df["date"], df[f"{col}_ga"], color="red", label=f"GA {metric.capitalize()}", marker="x")
+                ax.plot(
+                    df["date"],
+                    df[f"{col}_ga"],
+                    color="red",
+                    linewidth=1,
+                    label=f"Google {metric.capitalize()}",
+                )
 
-                # Add lines for mean
-                mean = kpis[f"{col}_aa_mean"]
-                label = nf.NumberFormatter.format_number(mean)
-                axes[i].axhline(y=mean, color="green", linestyle="--", label=f"Mean AA: {label})")
+                mean_aa = f_df.Dataframe.Get.get_column_by_row_index(
+                    df=df_agg_full, row_index=f"{col}_aa", col_name="mean"
+                )
+                mean_ga = f_df.Dataframe.Get.get_column_by_row_index(
+                    df=df_agg_full, row_index=f"{col}_ga", col_name="mean"
+                )
+                label_aa = nf.NumberFormatter.format_number(value=mean_aa, large_number_formatter=True)
+                label_ga = nf.NumberFormatter.format_number(value=mean_ga, large_number_formatter=True)
+                ax.axhline(y=mean_aa, color="blue", linestyle="--")
+                ax.axhline(y=mean_ga, color="red", linestyle="--")
+
+                # Add mean values as text on the plot
+                ax.text(
+                    x=df["date"].iloc[-1],
+                    y=mean_aa,
+                    s=f"Mean: {label_aa}",
+                    color="white",
+                    va="top",
+                    bbox=dict(facecolor="blue", alpha=0.9),
+                )
+                ax.text(
+                    x=df["date"].iloc[-1],
+                    y=mean_ga,
+                    s=f"Mean: {label_ga}",
+                    color="white",
+                    va="top",
+                    bbox=dict(facecolor="red", alpha=0.9),
+                )
 
                 # Add lines for mean ± standard deviation
-                std = kpis[f"{col}_aa_std"]
-                label = nf.NumberFormatter.format_number(mean + std)
-                axes[i].axhline(mean + std, color="green", linestyle="--", label=f"Mean + Std Dev: {label}")
-                label = nf.NumberFormatter.format_number(mean - std)
-                axes[i].axhline(mean - std, color="green", linestyle="--", label=f"Mean - Std Dev: {label}")
+                # std = f_df.Dataframe.Get.get_column_by_row_index(df=df_agg, row_index=f"{col}_aa", col_name="std")
+                # label = nf.NumberFormatter.format_number(mean + std)
+                # axes[i].axhline(mean + std, color="green", linestyle="--", label=f"Mean + Std Dev: {label}")
+                # label = nf.NumberFormatter.format_number(mean - std)
+                # axes[i].axhline(mean - std, color="green", linestyle="--", label=f"Mean - Std Dev: {label}")
 
-                axes[i].set_title(f"Comparison of Daily {metric.capitalize()}")
-                axes[i].set_xlabel("Date")
-                axes[i].set_ylabel(f"Number of {metric.capitalize()}")
-                axes[i].legend()
-                axes[i].grid(True)
-                axes[i].tick_params(axis="x", rotation=45)
+                ax.set_title(f"Comparison of Daily {metric.capitalize()}")
+                ax.set_xlabel("Date")
+                ax.set_ylabel(f"Number of {metric.capitalize()}")
+                ax.legend()
+                ax.grid(True)
+                ax.tick_params(axis="x", rotation=45)
+
+                # Format the y-axis with human-readable numbers
+                ax.yaxis.set_major_formatter(
+                    ticker.FuncFormatter(
+                        lambda x, pos: nf.NumberFormatter.format_number(value=x, large_number_formatter=True)
+                    )
+                )
 
             plt.tight_layout()
             # plt.show()
@@ -206,10 +281,9 @@ class App(libs_base.LibsBase):
             f_plot.Plot.plot_to_file(file_path=file_path, plot=plt)
             self.log.print("App.save_plot", f"image saved to {file_path}")
 
-    def send_email(self, kpis: Dict[str, str]):
+    def send_email(self):
         email = gmail_smtplib_api.GmailSmtplibAPI(self.config)
-        subject = title
-
+        subject = f"{self.site_title} Comparison of Adobe vs Google - {dtf.DatetimeFormatter.today_to_str()}"
         image_paths = [
             os.path.join(self.file_directory, "img", "benchmark_web.png"),
             os.path.join(self.file_directory, "img", "benchmark_and.png"),
@@ -217,30 +291,29 @@ class App(libs_base.LibsBase):
         ]
         html_file_path = os.path.join(self.file_directory, "report/benchmark.html")
         html_body = f_files.File.read_file(html_file_path)
-
+        date_range = f"últimos {self.date_diff_days} días, del {dtf.DatetimeFormatter.datetime_to_day_month_year(self.from_date, locale="es_ES.UTF-8")} al {dtf.DatetimeFormatter.datetime_to_day_month_year(self.to_date, locale="es_ES.UTF-8")}"
+        html_body = html_body.replace("[[date_range]]", date_range)
         for platform in self.PLATFORMS:
             for metric in self.COLS:
                 col = f"{platform}_{metric}"
-                html_body = html_body.replace(
-                    f"[[{col}_aa_sum]]", nf.NumberFormatter.format_number(kpis[f"{col}_aa_sum"])
+                # gap last day
+                gap = f_df.Dataframe.Get.get_column_by_row_index(
+                    df=df_agg_last_day, row_index=f"{col}_percentage_diff", col_name="sum"
                 )
-                html_body = html_body.replace(
-                    f"[[{col}_ga_sum]]", nf.NumberFormatter.format_number(kpis[f"{col}_ga_sum"])
+                gap_str = f"{abs(gap):.2f}% a favor de {'Adobe' if gap > 0 else 'Google'}"
+                html_body = html_body.replace(f"[[{col}_percentage_sum_diff_last_day]]", gap_str)
+                # gap last 7 days
+                gap = f_df.Dataframe.Get.get_column_by_row_index(
+                    df=df_agg_last_7_days, row_index=f"{col}_percentage_diff", col_name="sum"
                 )
-                html_body = html_body.replace(
-                    f"[[{col}_percentage_sum_diff]]",
-                    nf.NumberFormatter.format_percentage(kpis[f"{col}_percentage_sum_diff"]),
+                gap_str = f"{abs(gap):.2f}% a favor de {'Adobe' if gap > 0 else 'Google'}"
+                html_body = html_body.replace(f"[[{col}_percentage_sum_diff_last_7_days]]", gap_str)
+                # gap last month
+                gap = f_df.Dataframe.Get.get_column_by_row_index(
+                    df=df_agg_last_month, row_index=f"{col}_percentage_diff", col_name="sum"
                 )
-                html_body = html_body.replace(
-                    f"[[{col}_aa_mean]]", nf.NumberFormatter.format_number(kpis[f"{col}_aa_mean"])
-                )
-                html_body = html_body.replace(
-                    f"[[{col}_ga_mean]]", nf.NumberFormatter.format_number(kpis[f"{col}_ga_mean"])
-                )
-                html_body = html_body.replace(
-                    f"[[{col}_percentage_mean_diff]]",
-                    nf.NumberFormatter.format_percentage(kpis[f"{col}_percentage_mean_diff"]),
-                )
+                gap_str = f"{abs(gap):.2f}% a favor de {'Adobe' if gap > 0 else 'Google'}"
+                html_body = html_body.replace(f"[[{col}_percentage_sum_diff_last_month]]", gap_str)
         email.send_email("lsalamo@gmail.com", subject, image_paths, html_body)
         # Print success message
         self.log.print("App.send_email", "email sent successfully!")
@@ -252,14 +325,13 @@ class App(libs_base.LibsBase):
 
 if __name__ == "__main__":
     try:
-        title = f"Benchmark AdobeGA - {f_datetime_formatter.DatetimeFormatter.today_to_str()}"
         app = App()
         df = app.merge_adobe_google()
         app.save_csv(df)
         # app.save_spreadsheet(df)
-        kpis = app.get_kpis(df)
-        app.save_plot(df, kpis)
-        app.send_email(kpis)
+        df_agg_full, df_agg_last_day, df_agg_last_7_days, df_agg_last_month = app.load_df_agg(df)
+        app.save_plot()
+        app.send_email()
         app.print_end()
     except Exception as e:
         print(f"App.main: An error occurred: {str(e)}")

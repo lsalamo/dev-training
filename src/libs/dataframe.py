@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import locale as lc
+from typing import Dict
 from functools import reduce
 
 
@@ -25,6 +27,20 @@ class Dataframe:
         df = pd.concat(frames, axis=0, join=join)
         return df
 
+    class Get:
+        @staticmethod
+        def get_by_row_index(df: pd.DataFrame, row_index: str):
+            return df.loc[row_index]
+
+        @staticmethod
+        def get_column_by_row_index(df: pd.DataFrame, row_index: str, col_name: str):
+            return df.loc[row_index][col_name]
+
+        @staticmethod
+        def select_columns_by_regex(df, regex) -> pd.DataFrame:
+            """CALL > Dataframe.Columns.select_columns_by_regex(df, '(-aa|-ga)$')"""
+            return df.filter(regex=regex, axis=1)
+
     class Cast:
         def __init__(self):
             pass
@@ -39,10 +55,11 @@ class Dataframe:
             return df
 
         @staticmethod
-        def columns_to_datetime(df, columns, pattern):
+        def columns_to_datetime(df, columns, pattern, locale="en_US"):
             """CALL >
             df_values = Dataframe.Cast.columns_to_datetime(df, ['col1', 'col2'], '%Y%m%d')
             """
+            lc.setlocale(lc.LC_TIME, locale)
             df[columns] = df[columns].apply(lambda x: pd.to_datetime(x, format=pattern))
 
         @staticmethod
@@ -50,7 +67,7 @@ class Dataframe:
             """CALL >
             df_values = Dataframe.Cast.columns_regex_to_int64(df, '(-aa|-ga)$')
             """
-            df_values = Dataframe.Columns.select_columns_by_regex(df, regex)
+            df_values = Dataframe.Get.select_columns_by_regex(df, regex)
             df_values = df_values.astype(np.int64)
             df[df_values.columns] = df_values
 
@@ -82,9 +99,9 @@ class Dataframe:
             return pd.concat(frames, ignore_index=True)
 
         @staticmethod
-        def concat_frames(frames) -> pd.DataFrame:
+        def concat_frames(frames, ignore_index: bool = True) -> pd.DataFrame:
             """CALL > Dataframe.Rows.concat_frames([fr1, fr2, ...])"""
-            return pd.concat(frames, ignore_index=True)
+            return pd.concat(frames, ignore_index=ignore_index)
 
         @staticmethod
         def reset_index(df) -> pd.DataFrame:
@@ -95,6 +112,11 @@ class Dataframe:
         def replace(df, val1: str, val2: str) -> pd.DataFrame:
             """CALL > Dataframe.Rows.replace([df, 'val1', 'val2')"""
             return df.replace(val1, val2)
+
+        @staticmethod
+        def add_row(df, row_index: str, row: Dict) -> pd.DataFrame:
+            """CALL > Dataframe.Rows.add_row([df, 'row1', '{"col1": "val1", "col2": "val2"}')"""
+            df.loc[row_index] = row
 
     class Columns:
         def __init__(self):
@@ -150,11 +172,6 @@ class Dataframe:
             return df.add_prefix(prefix)
 
         @staticmethod
-        def select_columns_by_regex(df, regex) -> pd.DataFrame:
-            """CALL > Dataframe.Columns.select_columns_by_regex(df, '(-aa|-ga)$')"""
-            return df.filter(regex=regex, axis=1)
-
-        @staticmethod
         def join_two_frames_by_index(frame_left, frame_right, join) -> pd.DataFrame:
             """CALL > Dataframe.Columns.join_two_frames_by_index(fr1, fr2, 'outer')"""
             return pd.merge(left=frame_left, right=frame_right, left_index=True, right_index=True, how=join)
@@ -180,31 +197,35 @@ class Dataframe:
             return df
 
         @staticmethod
-        def drop(df, columns):
+        def drop(df: pd.DataFrame, columns):
             """CALL > Dataframe.Columns.drop(df, ['col1','col2'])"""
             # df.loc[:, df.columns != 'b']
             # df[df.columns.difference(['b'])]
             return df.drop(columns, axis=1)
 
         @staticmethod
-        def drop_from_index(df, index, inplace=True):
+        def drop_from_index(df: pd.DataFrame, index: int, inplace=True):
             """CALL > Dataframe.Columns.drop_from_index(df, 4, True)"""
             return df.drop(df.iloc[:, index:], axis=1, inplace=inplace)
 
         @staticmethod
-        def drop_to_index(df, index, inplace=True):
+        def drop_to_index(df: pd.DataFrame, index: int, inplace=True):
             """CALL > Dataframe.Columns.drop_columns_from_index(df, 4, True)"""
             return df.drop(df.iloc[:, :index], axis=1, inplace=inplace)
 
         @staticmethod
-        def split_column_string_into_columns(df, column, char):
+        def split_column_string_into_columns(df: pd.DataFrame, column, char):
             """CALL > Dataframe.Columns.split_column_string_into_columns(df, 'column', ',')"""
             df_values = df[column].str.split(char, expand=True)
             return Dataframe.Columns.join_two_frames_by_index(df, df_values, "inner")
 
         @staticmethod
-        def split_column_array_into_columns(df, column):
+        def split_column_array_into_columns(df: pd.DataFrame, column):
             """CALL > Dataframe.Columns.split_column_array_into_columns(df, 'column', ',')"""
             df_values = pd.DataFrame(df[column].tolist(), index=df.index)
             df = Dataframe.Columns.join_two_frames_by_index(df, df_values, "inner")
             return df
+
+        def update_column_by_row_index(df: pd.DataFrame, row_index: str, col_name: str, value: str):
+            """CALL > Dataframe.Rows.add_row([df, 'row1', '{"col1": "val1", "col2": "val2"}')"""
+            df.loc[row_index][col_name] = value

@@ -3,13 +3,13 @@
         <style>
         .table_component {
             overflow: auto;
-            width: 100%;
+            /* width: 100%; */
         }
 
         .table_component table {
             border: 1px solid #dededf;
             height: 100%;
-            width: 100%;
+            /* width: 100%; */
             table-layout: fixed;
             border-collapse: collapse;
             border-spacing: 1px;
@@ -32,140 +32,112 @@
         </style>
     </head>    
     <body>
-        <h1>Benchmark Adobe-GA</h1>
-        hola mundo!
-        <p><a href="https://datascientest.com">mon_lien_incroyable</a></p>
+        <h1>GAP Adobe vs Google ([[date_range]])</h1>
+
         <h2>WEB</h2>
+        <h3>Tabla comparativa para el último día, los últimos 7 días y el último mes</h3>
         <table class="table_component">
         <thead>        
         <tr>
-            <th></th>
-            <th>Visits (Sum)</th>
-            <th>Visits (Avg)</th>
-            <th>Visitors (Sum)</th>
-            <th>Visitors (Avg)</th>
-            <th>Page Views (Sum)</th>
-            <th>Page Views (Avg)</th>
+            <th>TOTAL</th>
+            <th>Último día</th>
+            <th>Últimos 7 días</th>
+            <th>Último mes</th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>Adobe:</td>
-            <td>[[web_visits_aa_sum]]</td>
-            <td>[[web_visits_aa_mean]]</td>
-            <td>[[web_visitors_aa_sum]]</td>
-            <td>[[web_visitors_aa_mean]]</td>
-            <td>[[web_views_aa_sum]]</td>
-            <td>[[web_views_aa_mean]]</td>
-        </tr>
-        <tr>
-            <td>Google:</td>
-            <td>[[web_visits_ga_sum]]</td>
-            <td>[[web_visits_ga_mean]]</td>
-            <td>[[web_visitors_ga_sum]]</td>
-            <td>[[web_visitors_ga_mean]]</td>
-            <td>[[web_views_ga_sum]]</td>
-            <td>[[web_views_ga_mean]]</td>
-        </tr>
-        <tr>
-            <td>Percentage Difference:</td>
-            <td>[[web_visits_percentage_sum_diff]]</td>
-            <td>[[web_visits_percentage_mean_diff]]</td>
-            <td>[[web_visitors_percentage_sum_diff]]</td>
-            <td>[[web_visitors_percentage_mean_diff]]</td>
-            <td>[[web_views_percentage_sum_diff]]</td>
-            <td>[[web_views_percentage_mean_diff]]</td>
-        </tr>  
+            <tr>
+                <td><b>Visits</b></td>
+                <td>[[web_visits_percentage_sum_diff_last_day]]</td>
+                <td>[[web_visits_percentage_sum_diff_last_7_days]]</td>
+                <td>[[web_visits_percentage_sum_diff_last_month]]</td>
+            </tr>
+            <tr>
+                <td><b>Visitors</b></td>
+                <td>[[web_visitors_percentage_sum_diff_last_day]]</td>
+                <td>[[web_visitors_percentage_sum_diff_last_7_days]]</td>
+                <td>[[web_visitors_percentage_sum_diff_last_month]]</td>
+            </tr>
+            <tr>
+                <td><b>Page Views</b></td>
+                <td>[[web_views_percentage_sum_diff_last_day]]</td>
+                <td>[[web_views_percentage_sum_diff_last_7_days]]</td>
+                <td>[[web_views_percentage_sum_diff_last_month]]</td>
+            </tr>  
         </tbody>      
-        </table>
+        </table>      
+        <h3>Gráfico GAP últimos 3 meses</h3>
         <p><img src='cid:image0' alt='Embedded Image 1'></p>
+
         <h2>ANDROID</h2>
+        <h3>Tabla comparativa para el último día, los últimos 7 días y el último mes</h3>
         <table class="table_component">
         <thead>        
         <tr>
-            <th></th>
-            <th>Visits (Sum)</th>
-            <th>Visits (Avg)</th>
-            <th>Visitors (Sum)</th>
-            <th>Visitors (Avg)</th>
-            <th>Page Views (Sum)</th>
-            <th>Page Views (Avg)</th>
+            <th>TOTAL</th>
+            <th>Último día</th>
+            <th>Últimos 7 días</th>
+            <th>Último mes</th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>Adobe:</td>
-            <td>[[and_visits_aa_sum]]</td>
-            <td>[[and_visits_aa_mean]]</td>
-            <td>[[and_visitors_aa_sum]]</td>
-            <td>[[and_visitors_aa_mean]]</td>
-            <td>[[and_views_aa_sum]]</td>
-            <td>[[and_views_aa_mean]]</td>
-        </tr>
-        <tr>
-            <td>Google:</td>
-            <td>[[and_visits_ga_sum]]</td>
-            <td>[[and_visits_ga_mean]]</td>
-            <td>[[and_visitors_ga_sum]]</td>
-            <td>[[and_visitors_ga_mean]]</td>
-            <td>[[and_views_ga_sum]]</td>
-            <td>[[and_views_ga_mean]]</td>
-        </tr>
-        <tr>
-            <td>Percentage Difference:</td>
-            <td>[[and_visits_percentage_sum_diff]]</td>
-            <td>[[and_visits_percentage_mean_diff]]</td>
-            <td>[[and_visitors_percentage_sum_diff]]</td>
-            <td>[[and_visitors_percentage_mean_diff]]</td>
-            <td>[[and_views_percentage_sum_diff]]</td>
-            <td>[[and_views_percentage_mean_diff]]</td>
-        </tr>  
+            <tr>
+                <td><b>Visits</b></td>
+                <td>[[and_visits_percentage_sum_diff_last_day]]</td>
+                <td>[[and_visits_percentage_sum_diff_last_7_days]]</td>
+                <td>[[and_visits_percentage_sum_diff_last_month]]</td>
+            </tr>
+            <tr>
+                <td><b>Visitors</b></td>
+                <td>[[and_visitors_percentage_sum_diff_last_day]]</td>
+                <td>[[and_visitors_percentage_sum_diff_last_7_days]]</td>
+                <td>[[and_visitors_percentage_sum_diff_last_month]]</td>
+            </tr>
+            <tr>
+                <td><b>Page Views</b></td>
+                <td>[[and_views_percentage_sum_diff_last_day]]</td>
+                <td>[[and_views_percentage_sum_diff_last_7_days]]</td>
+                <td>[[and_views_percentage_sum_diff_last_month]]</td>
+            </tr>  
         </tbody>      
-        </table>        
+        </table>      
+        <h3>Gráfico GAP últimos 3 meses</h3>
         <p><img src='cid:image1' alt='Embedded Image 2'></p>
+
         <h2>IOS</h2>
+        <h3>Tabla comparativa para el último día, los últimos 7 días y el último mes</h3>
         <table class="table_component">
         <thead>        
         <tr>
-            <th></th>
-            <th>Visits (Sum)</th>
-            <th>Visits (Avg)</th>
-            <th>Visitors (Sum)</th>
-            <th>Visitors (Avg)</th>
-            <th>Page Views (Sum)</th>
-            <th>Page Views (Avg)</th>
+            <th>TOTAL</th>
+            <th>Último día</th>
+            <th>Últimos 7 días</th>
+            <th>Último mes</th>
         </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Adobe:</td>
-                <td>[[ios_visits_aa_sum]]</td>
-                <td>[[ios_visits_aa_mean]]</td>
-                <td>[[ios_visitors_aa_sum]]</td>
-                <td>[[ios_visitors_aa_mean]]</td>
-                <td>[[ios_views_aa_sum]]</td>
-                <td>[[ios_views_aa_mean]]</td>
+                <td><b>Visits</b></td>
+                <td>[[ios_visits_percentage_sum_diff_last_day]]</td>
+                <td>[[ios_visits_percentage_sum_diff_last_7_days]]</td>
+                <td>[[ios_visits_percentage_sum_diff_last_month]]</td>
             </tr>
             <tr>
-                <td>Google:</td>
-                <td>[[ios_visits_ga_sum]]</td>
-                <td>[[ios_visits_ga_mean]]</td>
-                <td>[[ios_visitors_ga_sum]]</td>
-                <td>[[ios_visitors_ga_mean]]</td>
-                <td>[[ios_views_ga_sum]]</td>
-                <td>[[ios_views_ga_mean]]</td>
+                <td><b>Visitors</b></td>
+                <td>[[ios_visitors_percentage_sum_diff_last_day]]</td>
+                <td>[[ios_visitors_percentage_sum_diff_last_7_days]]</td>
+                <td>[[ios_visitors_percentage_sum_diff_last_month]]</td>
             </tr>
             <tr>
-                <td>Percentage Difference:</td>
-                <td>[[ios_visits_percentage_sum_diff]]</td>
-                <td>[[ios_visits_percentage_mean_diff]]</td>
-                <td>[[ios_visitors_percentage_sum_diff]]</td>
-                <td>[[ios_visitors_percentage_mean_diff]]</td>
-                <td>[[ios_views_percentage_sum_diff]]</td>
-                <td>[[ios_views_percentage_mean_diff]]</td>
-            </tr>   
+                <td><b>Page Views</b></td>
+                <td>[[ios_views_percentage_sum_diff_last_day]]</td>
+                <td>[[ios_views_percentage_sum_diff_last_7_days]]</td>
+                <td>[[ios_views_percentage_sum_diff_last_month]]</td>
+            </tr>  
         </tbody>      
-        </table>        
-        <p><img src='cid:image2' alt='Embedded Image 3'></p>
+        </table>      
+        <h3>Gráfico GAP últimos 3 meses</h3>
+        <p><img src='cid:image2' alt='Embedded Image 3'></p>        
+
     </body>
 </html>

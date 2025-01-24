@@ -65,7 +65,7 @@ class App(libs_base.LibsBase):
     def request(self):
         df = self.adobe.reports("adobe/request.json", self.args["site"], self.args["from_date"], self.args["to_date"])
         if not f_df.Dataframe.is_empty(df):
-            f_df.Dataframe.Columns.drop_to_index(df, 2)
+            df = f_df.Dataframe.Columns.drop(df, ["data", "itemId"])
             self._set_columns(df)
             f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%b %d, %Y")
             f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web-|android-|ios-)")

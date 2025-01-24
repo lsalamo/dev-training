@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from typing import Dict
+import locale
 
 # adding libraries folder to the system path
 from libs import (
@@ -12,6 +13,9 @@ from libs import (
 
 class LibsBase:
     def __init__(self, file: str):
+        # Set the locale to Spanish
+        locale.setlocale(locale.LC_ALL, "es_ES.UTF-8")
+
         # file
         self._file = file
 
