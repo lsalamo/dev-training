@@ -63,21 +63,38 @@ class Dataframe:
             df[columns] = df[columns].apply(lambda x: pd.to_datetime(x, format=pattern))
 
         @staticmethod
-        def columns_regex_to_int64(df, regex):
-            """CALL >
-            df_values = Dataframe.Cast.columns_regex_to_int64(df, '(-aa|-ga)$')
-            """
-            df_values = Dataframe.Get.select_columns_by_regex(df, regex)
-            df_values = df_values.astype(np.int64)
-            df[df_values.columns] = df_values
-
-        @staticmethod
-        def columns_to_float64(df, columns, decimals):
+        def columns_to_float64(df, columns, decimals: int = 2):
             """CALL >
             Dataframe.Cast.columns_to_datetime(df, ['col1', 'col2'], 2)
             """
             # df[columns] = df[columns].apply(lambda x: round(x, decimals))
             df[columns] = df[columns].round(decimals)
+
+        @staticmethod
+        def columns_regex_to_int64(df, regex):
+            df_values = Dataframe.Get.select_columns_by_regex(df, regex)
+            df_values = df_values.astype(np.int64)
+            df[df_values.columns] = df_values
+
+        @staticmethod
+        def columns_regex_to_float64(df: pd.DataFrame, regex: str, decimals: int = 2):
+            df_values = Dataframe.Get.select_columns_by_regex(df, regex)
+            # df_values = df_values.astype(float).round(2)
+            # df_values = df_values.applymap(lambda x: f"{x:.2f}")
+            df_values = df_values.astype(np.float64).round(decimals)
+            df[df_values.columns] = df_values
+
+    class Fill:
+        def __init__(self):
+            pass
+
+        @staticmethod
+        def nan(df: pd.DataFrame, value=0):
+            return df.fillna(value)
+
+        @staticmethod
+        def infinity(df: pd.DataFrame, value=0):
+            return df.replace([np.inf, -np.inf], value)
 
     class Sort:
         def __init__(self):
@@ -228,4 +245,4 @@ class Dataframe:
 
         def update_column_by_row_index(df: pd.DataFrame, row_index: str, col_name: str, value: str):
             """CALL > Dataframe.Rows.add_row([df, 'row1', '{"col1": "val1", "col2": "val2"}')"""
-            df.loc[row_index][col_name] = value
+            df.loc[row_index, col_name] = value

@@ -2,7 +2,7 @@ import numpy as np
 
 
 class NumberFormatter:
-    def __init__(self, decimal_places=2):
+    def __init__(self):
         pass
 
     @staticmethod
@@ -11,7 +11,7 @@ class NumberFormatter:
 
     @staticmethod
     def to_float(value, decimal_places: int = 2) -> int:
-        return round(float(decimal_places), 2)
+        return round(float(value), decimal_places)
 
     @staticmethod
     def format_number(value, large_number_formatter: bool = False) -> str:
@@ -30,16 +30,16 @@ class NumberFormatter:
         return value.replace(",", ".")
 
     @staticmethod
-    def format_float(value, decimal_places=2) -> str:
+    def format_float(value, decimals: int = 2) -> str:
         if isinstance(value, (float, np.float64)):
             # return f"{value:,.{decimal_places}f}".replace(",", ".")
-            return f"{value:.{decimal_places}f}"
+            return f"{value:.{decimals}f}"
         else:
             return str(value)
 
     @staticmethod
-    def format_percentage(value, decimal_places=2) -> str:
-        return f"{value:.{decimal_places}f}%"
+    def format_percentage(value, decimals: int = 2) -> str:
+        return f"{value:.{decimals}f}%"
 
     @staticmethod
     def format_currency(value, currency_symbol="€") -> str:

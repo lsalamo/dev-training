@@ -50,8 +50,7 @@ class DataAPI(f_api.API):
         self.client = BetaAnalyticsDataClient()
 
     def __authentication(self):
-        config = self.config["google"]["credentials"]
-        file_creds = config["path_service_account"]
+        file_creds = self.config["google"]["credentials"]["path_service_account"]
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = file_creds
 
     def _process_site(self, site: str):
