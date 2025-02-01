@@ -27,14 +27,12 @@ class App(libs_base.LibsBase):
     def _parse_arguments(self) -> Dict[str, str]:
         if len(sys.argv) < 4:
             raise ValueError("Not enough arguments provided")
-
-        result = {
+        return {
             "site": sys.argv[1],
             "from_date": sys.argv[2],
             "to_date": sys.argv[3],
-            "app_version": sys.argv[4],
+            "app_version": sys.argv[4] if len(sys.argv) > 4 else "",
         }
-        return result
 
     def _log_init_info(self):
         # print header

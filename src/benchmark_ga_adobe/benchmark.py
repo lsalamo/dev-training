@@ -24,31 +24,6 @@ class App(libs_base.LibsBase):
     COLS = ["visits", "visitors", "views"]
 
     def __init__(self):
-        def get_site_name(site: str) -> str:
-            match site:
-                case "cnet":
-                    return "Coches"
-                case "mnet":
-                    return "Motos"
-                case "cnet_pro":
-                    return "Coches.net PRO"
-                case "ma":
-                    return "Milanuncios"
-                case "ijes":
-                    return "Infojobs ES"
-                case "ijit":
-                    return "Infojobs IT"
-                case "ij_epreselec":
-                    return "Infojobs Epreselec"
-                case "fc":
-                    return "Fotocasa"
-                case "hab":
-                    return "Habitaclia"
-                case "fc_pro":
-                    return "Fotocasa PRO"
-                case _:
-                    return "Unknown site"
-
         super().__init__(__file__)
 
         # arguments
@@ -58,12 +33,11 @@ class App(libs_base.LibsBase):
         self.config = self.load_config()
 
         # properties
-        self.site_title = get_site_name(self.args["site"]).upper()
+        self.site_title = self._get_site_name(self.args["site"]).upper()
         self.from_date = dtf.DatetimeFormatter.str_to_datetime(self.args["from_date"], "%Y-%m-%d")
         self.to_date = dtf.DatetimeFormatter.str_to_datetime(self.args["to_date"], "%Y-%m-%d")
         self.date_diff_days = dtf.DatetimeFormatter.diff_days(self.from_date, self.to_date)
         self.title = f"{self.site_title} Comparison of Adobe vs Google - {dtf.DatetimeFormatter.today_to_str()}"
-        # self.title = f"{self.site_title} Comparison of Adobe vs Google - {dtf.DatetimeFormatter.get_current_datetime()}"
 
         # logging
         self._log_init_info()
@@ -71,14 +45,27 @@ class App(libs_base.LibsBase):
     def _parse_arguments(self) -> Dict[str, str]:
         if len(sys.argv) < 4:
             raise ValueError("Not enough arguments provided")
-
-        result = {
+        return {
             "site": sys.argv[1],
             "from_date": sys.argv[2],
             "to_date": sys.argv[3],
-            "app_version": sys.argv[4],
+            "app_version": sys.argv[4] if len(sys.argv) > 4 else "",
         }
-        return result
+
+    def _get_site_name(self, site: str) -> str:
+        site_names = {
+            "cnet": "Coches",
+            "mnet": "Motos",
+            "cnet_pro": "Coches.net PRO",
+            "ma": "Milanuncios",
+            "ijes": "Infojobs ES",
+            "ijit": "Infojobs IT",
+            "ij_epreselec": "Infojobs Epreselec",
+            "fc": "Fotocasa",
+            "hab": "Habitaclia",
+            "fc_pro": "Fotocasa PRO",
+        }
+        return site_names.get(site, "Unknown site")
 
     def _log_init_info(self):
         # print header
@@ -104,7 +91,6 @@ class App(libs_base.LibsBase):
 
     def merge_adobe_google(self) -> pd.DataFrame:
         def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
-            # df.dtypes
             f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web_|and_|ios_)(?!.*_percentage_diff$)")
             f_df.Dataframe.Cast.columns_regex_to_float64(df, "^(web_|and_|ios_).*(?<=_percentage_diff)$")
             f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y-%m-%d")
@@ -234,18 +220,16 @@ class App(libs_base.LibsBase):
         columns_min = "date,visits_adobe,visits_google,visits_gap,visitor_adobe,visitor_google,visitor_gap,views_adobe,views_google,views_gap"
 
         # Create worksheets for each platform
-        for platform in ["web", "and", "ios"]:
+        for platform in self.PLATFORMS:
             platform_columns = columns.replace("{{platform}}", platform).split(",")
             df_platform = df[platform_columns]
             df_platform.columns = columns_min.split(",")
             df_platform["date"] = dtf.DatetimeFormatter.datetime_to_str(df["date"].dt, "%Y-%m-%d")
-
             gsheet.add_worksheet(gsheet.spreadsheet, df=df_platform, title=platform.upper(), tab_color=color_code)
             format_worksheet(gsheet=gsheet, rows=df_platform.shape[0] + 1, cols=df_platform.shape[1])
 
         self.log.print("App.save_spreadsheet", f"url: {gsheet.spreadsheet.url}")
         self.log.print("App.save_spreadsheet", "spreadsheet saved succesfully!")
-
         return gsheet.spreadsheet.url
 
     def load_df_agg(self) -> pd.DataFrame:
