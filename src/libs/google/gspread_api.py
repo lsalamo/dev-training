@@ -5,16 +5,20 @@ from libs import (
     api as f_api,
 )
 
-# importing Gsheet API class
-# gspread module -> https://docs.gspread.org/en/latest/user-guide.html
-# Cell format -> https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#CellFormat
 import gspread
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
 
 
-class GsheetAPI(f_api.API):
+class GspreadAPI(f_api.API):
+    """
+    A class to interact with Google Sheets using the gspread library.
+
+    Documentation:
+        - gspread: https://docs.gspread.org/en/latest/index.html
+        - batchUpdate: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/batchUpdate
+        - Cells Format: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#CellFormat
+    """
+
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     FOLDER_ID_SHARED_SERVICE_ACCOUNT = "1lPvmkAGl_u9zFcrXWZSTtag4vsaFUTDq"
 
@@ -35,9 +39,6 @@ class GsheetAPI(f_api.API):
         # client gsheet
         self.client: gspread.client.Client = gspread.authorize(creds)
 
-        # Initialize the Drive API client
-        self.drive_service = build("drive", "v3", credentials=creds)
-
     @property
     def spreadsheet(self) -> gspread.Spreadsheet:
         return self._spreadsheet
@@ -55,11 +56,16 @@ class GsheetAPI(f_api.API):
         creds = Credentials.from_service_account_file(file_creds, scopes=self.SCOPES)
         return creds
 
-    def create_spreadsheet(self, title: str, locale: str = "es_ES") -> gspread.Spreadsheet:
-        spreadsheet = self.client.create(title=title, folder_id=self.FOLDER_ID_SHARED_SERVICE_ACCOUNT)
-        spreadsheet.update_locale(locale)
-        self._spreadsheet = spreadsheet
-        return spreadsheet
+    # def create_spreadsheet(self, title: str, locale: str = "es_ES") -> gspread.Spreadsheet:
+    def create_spreadsheet(self, title: str, locale: str = "es_ES"):
+        try:
+            spreadsheet = self.client.create(title=title, folder_id=self.FOLDER_ID_SHARED_SERVICE_ACCOUNT)
+            spreadsheet.update_locale(locale)
+            self._spreadsheet = spreadsheet
+            return spreadsheet
+        except Exception as error:
+            print(f"An error occurred: {error}")
+        return error
 
     def open_spreadsheet_bytitle(self, title: str) -> gspread.Spreadsheet:
         try:

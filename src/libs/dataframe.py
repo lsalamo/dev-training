@@ -33,6 +33,10 @@ class Dataframe:
             return df.loc[row_index]
 
         @staticmethod
+        def get_by_col_index(df: pd.DataFrame, col_index: str):
+            return df.loc[:, col_index]
+
+        @staticmethod
         def get_column_by_row_index(df: pd.DataFrame, row_index: str, col_name: str):
             return df.loc[row_index][col_name]
 

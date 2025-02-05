@@ -12,7 +12,7 @@ from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
 
 
-class GsheetAPI(f_api.API):
+class GoogleDriveAPI(f_api.API):
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     FOLDER_ID_SHARED_SERVICE_ACCOUNT = "1qdctMBegkhxKjFgjeRBLiHhRVnDhKF7f"
     QUERY_FILES = "mimeType!='application/vnd.google-apps.folder' and trashed=false"
@@ -21,14 +21,15 @@ class GsheetAPI(f_api.API):
     QUERY_FILES_IN_FOLDER = "'{folder_id}' in parents and trashed=false"
     QUERY_FILES_WITH_NAME = "name='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
 
-    def __init__(self, config: Dict[str, str]):
+    def __init__(self, config: Dict[str, str], creds: Credentials = None):
         super().__init__()
 
         # configuration
         self.config = config
 
         # authentication
-        creds = self.__authentication()
+        if creds is None:
+            creds = self.__authentication()
 
         # client google drive
         self.client: Resource = build("drive", "v3", credentials=creds)
@@ -106,7 +107,7 @@ class GsheetAPI(f_api.API):
         except HttpError as error:
             print(f"An error occurred while listing or deleting files: {error}")
 
-    def update_folder(self, file_id: str, folder_id: List[str], parents: List[str]):
+    def move_file_to_folder(self, file_id: str, folder_id: List[str], parents: List[str]):
         try:
             parents = ",".join(parents)
             folder_id = ",".join(folder_id)

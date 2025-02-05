@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.axes import Axes
 import pandas as pd
-from typing import Dict
+from typing import List, Dict, Union
 
 # adding libraries folder to the system path
 from libs import (
@@ -16,7 +16,7 @@ from libs import (
     files as f_files,
     libs_base,
 )
-from libs.google import gmail_smtplib_api, gsheet_api
+from libs.google import gmail_smtplib_api, google_sheets_api as gsheet_api
 
 
 class App(libs_base.LibsBase):
@@ -171,14 +171,15 @@ class App(libs_base.LibsBase):
         self.log.print("App.save_csv", f"CSV file saved to {file_path}")
 
     def save_spreadsheet(self) -> str:
-        def format_worksheet(gsheet: gsheet_api.GsheetAPI, rows: int, cols: int):
+        def format_sheet(rows: int, cols: int) -> List:
             requests = []
 
             # headers
             requests.append(
                 gsheet.format_worksheet(
+                    sheet_id=sheet_id,
                     range="A1:J1",
-                    bg_color={"red": 0.8784, "green": 0.8784, "blue": 0.8784},
+                    bg_color="#BDBDBD",
                     fontsize=10,
                     bold=True,
                 )
@@ -188,6 +189,7 @@ class App(libs_base.LibsBase):
             for range in [f"B2:C{rows}", f"E2:F{rows}", f"H2:I{rows}"]:
                 requests.append(
                     gsheet.format_worksheet(
+                        sheet_id=sheet_id,
                         range=range,
                         number_pattern="#,##0",
                     )
@@ -195,15 +197,15 @@ class App(libs_base.LibsBase):
 
             # borders
             for range in [f"B1:D{rows}", f"E1:G{rows}", f"H1:J{rows}"]:
-                requests.append(gsheet.format_worksheet_borders(range=range))
+                requests.append(gsheet.format_worksheet_borders(sheet_id=sheet_id, range=range))
 
             # frozen
-            requests.append(gsheet.format_worksheet_frozen(rows=1, cols=1))
+            requests.append(gsheet.format_worksheet_frozen(sheet_id=sheet_id, rows=1, cols=1))
 
-            # Send the request to apply borders
-            gsheet.spreadsheet.batch_update({"requests": requests})
+            # add formatting
+            gsheet.batch_update(spreadsheet_id=gsheet.spreadsheet["id"], requests=requests)
 
-        gsheet = gsheet_api.GsheetAPI(self.config)
+        gsheet = gsheet_api.GoogleSheetsAPI(self.config)
         gsheet.create_spreadsheet(self.title)
 
         # Define color code based on site
@@ -220,17 +222,26 @@ class App(libs_base.LibsBase):
         columns_min = "date,visits_adobe,visits_google,visits_gap,visitor_adobe,visitor_google,visitor_gap,views_adobe,views_google,views_gap"
 
         # Create worksheets for each platform
+        date_str = dtf.DatetimeFormatter.datetime_to_str(df["date"].dt, "%Y-%m-%d")
         for platform in self.PLATFORMS:
             platform_columns = columns.replace("{{platform}}", platform).split(",")
-            df_platform = df[platform_columns]
+            # create a copy of the platform (df._is_view = False)
+            df_platform = df[platform_columns].copy()
             df_platform.columns = columns_min.split(",")
-            df_platform["date"] = dtf.DatetimeFormatter.datetime_to_str(df["date"].dt, "%Y-%m-%d")
-            gsheet.add_worksheet(gsheet.spreadsheet, df=df_platform, title=platform.upper(), tab_color=color_code)
-            format_worksheet(gsheet=gsheet, rows=df_platform.shape[0] + 1, cols=df_platform.shape[1])
+            df_platform["date"] = date_str
 
-        self.log.print("App.save_spreadsheet", f"url: {gsheet.spreadsheet.url}")
+            # add sheet to the spreadsheet
+            sheet_id = gsheet.add_sheet(
+                gsheet.spreadsheet["id"], df=df_platform, title=platform.upper(), tab_color=color_code
+            )
+            format_sheet(rows=df_platform.shape[0] + 1, cols=df_platform.shape[1])
+
+        # Delete sheet1
+        gsheet.delete_sheet1(gsheet.spreadsheet["id"])
+
+        self.log.print("App.save_spreadsheet", f"url: {gsheet.spreadsheet["url"]}")
         self.log.print("App.save_spreadsheet", "spreadsheet saved succesfully!")
-        return gsheet.spreadsheet.url
+        return gsheet.spreadsheet["url"]
 
     def load_df_agg(self) -> pd.DataFrame:
         def aggregate_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -254,22 +265,26 @@ class App(libs_base.LibsBase):
                     )
             return df_combined
 
-        # full data
-        df_agg_full = aggregate_data(df)
+        df_agg_last_day = df_agg_last_7_days = df_agg_last_month = None
 
         # Filter last day
         df_last_day = df[df["date"] == self.to_date]
-        df_agg_last_day = aggregate_data(df_last_day)
+        if not f_df.Dataframe.is_empty(df_last_day):
+            df_agg_last_day = aggregate_data(df_last_day)
 
         # filter last 7 days
         df_last_7_days = df[df["date"] >= dtf.DatetimeFormatter.datetime_add_days(value=self.to_date, days=-7)]
-        df_agg_last_7_days = aggregate_data(df_last_7_days)
+        if not f_df.Dataframe.is_empty(df_last_7_days):
+            df_agg_last_7_days = aggregate_data(df_last_7_days)
 
         # filter last month
         df_last_month = df[df["date"] >= dtf.DatetimeFormatter.datetime_add_months(value=self.to_date, months=-1)]
-        df_agg_last_month = aggregate_data(df_last_month)
+        if not f_df.Dataframe.is_empty(df_last_month):
+            df_agg_last_month = aggregate_data(df_last_month)
 
-        return df_agg_full, df_agg_last_day, df_agg_last_7_days, df_agg_last_month
+        if df_agg_last_day is None or df_agg_last_7_days is None or df_last_month is None:
+            self.log.print_error("App.load_df_agg", "Dataframe agrregation is empty")
+        return df_agg_last_day, df_agg_last_7_days, df_agg_last_month
 
     def save_plot(self):
         for platform in self.PLATFORMS:
@@ -405,9 +420,10 @@ if __name__ == "__main__":
         df = app.merge_adobe_google()
         app.save_csv()
         spreadsheet_url = app.save_spreadsheet()
-        df_agg_full, df_agg_last_day, df_agg_last_7_days, df_agg_last_month = app.load_df_agg()
-        app.save_plot()
-        app.send_email()
+        df_agg_last_day, df_agg_last_7_days, df_agg_last_month = app.load_df_agg()
+        if df_agg_last_day is not None and df_agg_last_day is not None and df_agg_last_month is not None:
+            app.save_plot()
+            app.send_email()
         app.print_end()
     except Exception as e:
         print(f"App.main: An error occurred: {str(e)}")
