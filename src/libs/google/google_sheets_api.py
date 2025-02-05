@@ -69,9 +69,7 @@ class GoogleSheetsAPI(f_api.API):
 
             # Move the spreadsheet to the shared folder
             gdrive = gdrive_api.GoogleDriveAPI(config=self.config, creds=self.client._http.credentials)
-            gdrive.move_file_to_folder(
-                file_id=self._spreadsheet["id"], folder_id=[self.FOLDER_ID_SHARED_SERVICE_ACCOUNT], parents=["root"]
-            )
+            gdrive.move_file_to_shared_folder(file_id=self._spreadsheet["id"])
         except HttpError as error:
             self.log.print_error("GoogleSheetAPI:create_spreadsheet", f"An error occurred: {str(error)}")
 
