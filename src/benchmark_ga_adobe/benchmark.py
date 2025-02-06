@@ -1,10 +1,11 @@
 import sys
 import os
+from typing import List, Dict
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.axes import Axes
-import pandas as pd
-from typing import List, Dict, Union
+
 
 # adding libraries folder to the system path
 from libs import (
@@ -26,20 +27,18 @@ class App(libs_base.LibsBase):
     def __init__(self):
         super().__init__(__file__)
 
-        # arguments
         self.args = self._parse_arguments()
-
-        # configuration
         self.config = self.load_config()
+        self.app_version = self._parse_app_version()
 
-        # properties
         self.site_title = self._get_site_name(self.args["site"]).upper()
         self.from_date = dtf.DatetimeFormatter.str_to_datetime(self.args["from_date"], "%Y-%m-%d")
         self.to_date = dtf.DatetimeFormatter.str_to_datetime(self.args["to_date"], "%Y-%m-%d")
         self.date_diff_days = dtf.DatetimeFormatter.diff_days(self.from_date, self.to_date)
-        self.title = f"{self.site_title} Comparison of Adobe vs Google - {dtf.DatetimeFormatter.today_to_str()}"
+        self.title = (
+            f"Comparison Adobe vs Google {self.site_title} - {dtf.DatetimeFormatter.today_to_str(pattern="%Y/%m/%d")}"
+        )
 
-        # logging
         self._log_init_info()
 
     def _parse_arguments(self) -> Dict[str, str]:
@@ -49,14 +48,25 @@ class App(libs_base.LibsBase):
             "site": sys.argv[1],
             "from_date": sys.argv[2],
             "to_date": sys.argv[3],
-            "app_version": sys.argv[4] if len(sys.argv) > 4 else "",
+            "app_version": sys.argv[4] if sys.argv[4] not in ("None", "") else None,
         }
+
+    def _parse_app_version(self) -> Dict[str, str]:
+        if not self.args.get("app_version"):
+            return None
+        result = {}
+        app_versions = self.args["app_version"].split(":")
+        for version in app_versions:
+            platform, ver = version.split("-", 1)
+            if platform in ("and", "ios"):
+                result[platform] = ver
+        return result
 
     def _get_site_name(self, site: str) -> str:
         site_names = {
             "cnet": "Coches",
             "mnet": "Motos",
-            "cnet_pro": "Coches.net PRO",
+            "cnet_pro": "Coches PRO",
             "ma": "Milanuncios",
             "ijes": "Infojobs ES",
             "ijit": "Infojobs IT",
@@ -90,23 +100,33 @@ class App(libs_base.LibsBase):
             self.log.print_error(f"No se proporcionaron parámetros.")
 
     def merge_adobe_google(self) -> pd.DataFrame:
+        def load_csv(filename: str) -> pd.DataFrame:
+            file_path = os.path.join(self.file_directory, "csv", filename)
+            df = f_csv.CSV.csv_to_dataframe(file_path)
+            self.log.print("App.merge_adobe_google", f"dataframe loaded from file {file_path}")
+            return df
+
         def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
             f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web_|and_|ios_)(?!.*_percentage_diff$)")
             f_df.Dataframe.Cast.columns_regex_to_float64(df, "^(web_|and_|ios_).*(?<=_percentage_diff)$")
             f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%Y-%m-%d")
             return df
 
-        # load csv files
-        df_ga = self._load_csv("benchmark_ga.csv")
-        df_aa = self._load_csv("benchmark_adobe.csv")
+        def get_columns() -> List[str]:
+            columns = ["date"]
+            for platform in App.PLATFORMS:
+                for metric in App.COLS:
+                    columns.extend(
+                        [f"{platform}_{metric}_aa", f"{platform}_{metric}_ga", f"{platform}_{metric}_percentage_diff"]
+                    )
+            return columns
 
-        # merge dataframes
+        df_ga = load_csv("benchmark_ga.csv")
+        df_aa = load_csv("benchmark_adobe.csv")
+
         df = f_df.Dataframe.Columns.join_two_frames_by_columns(df_aa, df_ga, "date", "outer", ("_aa", "_ga"))
-
-        # fill missing values and cast
         df = df.pipe(f_df.Dataframe.Fill.nan, value=0)
 
-        # add columns "{platform}_{metric}_diff" and "{platform}_{metric}_percentage_diff"
         for platform in self.PLATFORMS:
             for metric in self.COLS:
                 col = f"{platform}_{metric}"
@@ -114,56 +134,16 @@ class App(libs_base.LibsBase):
                 df[f"{col}_diff"] = df[aa_col] - df[ga_col]
                 df[f"{col}_percentage_diff"] = (df[aa_col] - df[ga_col]) / df[ga_col] * 100
 
-        # fill infinity values
-        df = df.pipe(f_df.Dataframe.Fill.infinity, value=100)
+        df = (
+            df.pipe(f_df.Dataframe.Fill.nan, value=0)
+            .pipe(f_df.Dataframe.Fill.infinity, value=100)
+            .pipe(cast_columns)
+            .pipe(f_df.Dataframe.Sort.sort_by_columns, columns="date", ascending=False)
+        )
 
-        # cast
-        df = df.pipe(cast_columns)
-
-        # sort by date
-        df = f_df.Dataframe.Sort.sort_by_columns(df, columns="date", ascending=False)
-
-        # log
         self.log.print("App.merge_adobe_google", "dataframes merged successfully!")
 
-        return df[
-            [
-                "date",
-                "web_visits_aa",
-                "web_visits_ga",
-                "web_visits_percentage_diff",
-                "web_visitors_aa",
-                "web_visitors_ga",
-                "web_visitors_percentage_diff",
-                "web_views_aa",
-                "web_views_ga",
-                "web_views_percentage_diff",
-                "and_visits_aa",
-                "and_visits_ga",
-                "and_visits_percentage_diff",
-                "and_visitors_aa",
-                "and_visitors_ga",
-                "and_visitors_percentage_diff",
-                "and_views_aa",
-                "and_views_ga",
-                "and_views_percentage_diff",
-                "ios_visits_aa",
-                "ios_visits_ga",
-                "ios_visits_percentage_diff",
-                "ios_visitors_aa",
-                "ios_visitors_ga",
-                "ios_visitors_percentage_diff",
-                "ios_views_aa",
-                "ios_views_ga",
-                "ios_views_percentage_diff",
-            ]
-        ]
-
-    def _load_csv(self, filename: str) -> pd.DataFrame:
-        file_path = os.path.join(self.file_directory, "csv", filename)
-        df = f_csv.CSV.csv_to_dataframe(file_path)
-        self.log.print("App.merge_adobe_google", f"dataframe loaded from file {file_path}")
-        return df
+        return df[get_columns()]
 
     def save_csv(self):
         file_path = os.path.join(self.file_directory, "csv", "benchmark.csv")
@@ -219,7 +199,7 @@ class App(libs_base.LibsBase):
 
         # Define column templates
         columns = "date,{{platform}}_visits_aa,{{platform}}_visits_ga,{{platform}}_visits_percentage_diff,{{platform}}_visitors_aa,{{platform}}_visitors_ga,{{platform}}_visitors_percentage_diff,{{platform}}_views_aa,{{platform}}_views_ga,{{platform}}_views_percentage_diff"
-        columns_min = "date,visits_adobe,visits_google,visits_gap,visitor_adobe,visitor_google,visitor_gap,views_adobe,views_google,views_gap"
+        columns_min = "date,visits_adobe,visits_google,visits_gap,visitors_adobe,visitors_google,visitors_gap,views_adobe,views_google,views_gap"
 
         # Create worksheets for each platform
         date_str = dtf.DatetimeFormatter.datetime_to_str(df["date"].dt, "%Y-%m-%d")
@@ -231,9 +211,9 @@ class App(libs_base.LibsBase):
             df_platform["date"] = date_str
 
             # add sheet to the spreadsheet
-            sheet_id = gsheet.add_sheet(
-                gsheet.spreadsheet["id"], df=df_platform, title=platform.upper(), tab_color=color_code
-            )
+            app_version = self.app_version.get(platform, None)
+            title = f"{platform.upper()} ({app_version})" if app_version else platform.upper()
+            sheet_id = gsheet.add_sheet(gsheet.spreadsheet["id"], df=df_platform, title=title, tab_color=color_code)
             format_sheet(rows=df_platform.shape[0] + 1, cols=df_platform.shape[1])
 
         # Delete sheet1
@@ -379,12 +359,17 @@ class App(libs_base.LibsBase):
         ]
         html_file_path = os.path.join(self.file_directory, "report/benchmark.html")
         html_body = f_files.File.read_file(html_file_path)
-        title = f"{self.site_title} - GAP Adobe vs Google"
-        html_body = html_body.replace("[[title]]", title)
+        html_body = html_body.replace("[[title]]", self.title)
         data_range = f"(últimos {self.date_diff_days} días, del {dtf.DatetimeFormatter.datetime_to_day_month_year(self.from_date, locale="es_ES.UTF-8")} al {dtf.DatetimeFormatter.datetime_to_day_month_year(self.to_date, locale="es_ES.UTF-8")})"
         html_body = html_body.replace("[[data_range]]", data_range)
         html_body = html_body.replace("[[spreadsheet_url]]", spreadsheet_url)
         for platform in self.PLATFORMS:
+            if platform in ("and", "ios"):
+                app_version = self.app_version.get(platform, None)
+                if app_version:
+                    html_body = html_body.replace(f"[[{platform}_app_version]]", f" ({app_version})")
+                else:
+                    html_body = html_body.replace(f"[[{platform}_app_version]]", "")
             for metric in self.COLS:
                 col = f"{platform}_{metric}"
                 # gap last day

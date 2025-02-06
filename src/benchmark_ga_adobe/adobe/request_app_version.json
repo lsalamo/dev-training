@@ -11,22 +11,26 @@
             {
                 "columnId": "1",
                 "id": "metrics/visits",
+                "sort": "desc",
                 "filters": [
-                    "0"
+                    "0",
+                    "1"
                 ]
             },
             {
                 "columnId": "2",
                 "id": "metrics/visitors",
                 "filters": [
-                    "1"
+                    "2",
+                    "3"
                 ]
             },
             {
                 "columnId": "3",
                 "id": "metrics/pageviews",
                 "filters": [
-                    "2"
+                    "4",
+                    "5"
                 ]
             }
         ],
@@ -39,12 +43,27 @@
             {
                 "id": "1",
                 "type": "segment",
-                "segmentId": "{{filter_platform}}"
+                "segmentId": "{{filter_app_version}}"
             },
             {
                 "id": "2",
                 "type": "segment",
                 "segmentId": "{{filter_platform}}"
+            },
+            {
+                "id": "3",
+                "type": "segment",
+                "segmentId": "{{filter_app_version}}"
+            },
+            {
+                "id": "4",
+                "type": "segment",
+                "segmentId": "{{filter_platform}}"
+            },
+            {
+                "id": "5",
+                "type": "segment",
+                "segmentId": "{{filter_app_version}}"
             }
         ]
     },

@@ -9,19 +9,33 @@ from libs.adobe import adobe_analytics_api as api_adobe
 
 
 class App(libs_base.LibsBase):
+    """
+    A class to manage Adobe Analytics
+
+    Documentation:
+        - QA Adobe: https://experience.adobe.com/#/@schibstedspain/so:schibs1/analytics/spa/#/workspace/edit/67a49b4e195ca75a9ca8ff96
+    """
+
+    PLATFORMS = ["web", "and", "ios"]
+    FILTER_PLATFORM = {
+        "web": "s2165_5ce2aa77c0fdcb1990ad2326",
+        "and": "s2165_5ce2a951f0f34a6c7c320948",
+        "ios": "s2165_5ce2a75f5d3c0b0671203160",
+    }
+
+    FILTER_APP_VERSION = {
+        "and": "s2165_67a49c827d7e5d1e9a5a3130",
+        "ios": "s2165_67a49d17c707a75937ca3bae",
+    }
+
     def __init__(self):
         super().__init__(__file__)
 
-        # arguments
         self.args = self._parse_arguments()
-
-        # configuration
         self.config = self.load_config()
-
-        # logging
+        self.app_version = self._parse_app_version()
         self._log_init_info()
 
-        # client
         self.adobe = api_adobe.AdobeAPI(self.config)
 
     def _parse_arguments(self) -> Dict[str, str]:
@@ -31,8 +45,19 @@ class App(libs_base.LibsBase):
             "site": sys.argv[1],
             "from_date": sys.argv[2],
             "to_date": sys.argv[3],
-            "app_version": sys.argv[4] if len(sys.argv) > 4 else "",
+            "app_version": sys.argv[4] if sys.argv[4] not in ("None", "") else None,
         }
+
+    def _parse_app_version(self) -> Dict[str, str]:
+        if not self.args.get("app_version"):
+            return None
+        result = {}
+        app_versions = self.args["app_version"].split(":")
+        for version in app_versions:
+            platform, ver = version.split("-", 1)
+            if platform in ("and", "ios"):
+                result[platform] = ver
+        return result
 
     def _log_init_info(self):
         # print header
@@ -56,22 +81,42 @@ class App(libs_base.LibsBase):
         else:
             self.log.print_error(f"No se proporcionaron parámetros.")
 
-    def _set_columns(self, df):
-        columns = f"date,web_visits,web_visitors,web_views,and_visits,and_visitors,and_views,ios_visits,ios_visitors,ios_views"
+    def _set_columns(self, df: pd.DataFrame, platform: str):
+        columns = f"date,{platform}_visits,{platform}_visitors,{platform}_views"
         df.columns = columns.split(",")
 
     def request(self):
-        df = self.adobe.reports("adobe/request.json", self.args["site"], self.args["from_date"], self.args["to_date"])
-        if not f_df.Dataframe.is_empty(df):
-            df = f_df.Dataframe.Columns.drop(df, ["data", "itemId"])
-            self._set_columns(df)
+        def cast_columns(df: pd.DataFrame) -> pd.DataFrame:
             f_df.Dataframe.Cast.columns_to_datetime(df, "date", "%b %d, %Y")
-            f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web-|android-|ios-)")
-            df = f_df.Dataframe.Sort.sort_by_columns(df, columns="date", ascending=False)
+            f_df.Dataframe.Cast.columns_regex_to_int64(df, "^(web_|android_|ios_)")
+            return df
+
+        df_combined = pd.DataFrame()
+        for platform in self.PLATFORMS:
+            app_version = self.app_version.get(platform, None)
+            file_request = "adobe/request_app_version.json" if app_version else "adobe/request.json"
+            # payload
+            payload = self.adobe.get_payload(
+                file_request, self.args["site"], self.args["from_date"], self.args["to_date"]
+            )
+            payload = payload.replace("{{filter_platform}}", self.FILTER_PLATFORM.get(platform))
+            if app_version:
+                payload = payload.replace("{{filter_app_version}}", self.FILTER_APP_VERSION.get(platform))
+            df = self.adobe.reports(payload)
+            if not f_df.Dataframe.is_empty(df):
+                df = f_df.Dataframe.Columns.drop(df, ["data", "itemId"])
+                self._set_columns(df, platform)
+                df_combined = f_df.Dataframe.Columns.join_two_frames_by_columns(df_combined, df, "date", "outer")
+
+        # cast
+        df_combined = df_combined.pipe(cast_columns)
+
+        # sort by date
+        df_combined = f_df.Dataframe.Sort.sort_by_columns(df_combined, columns="date", ascending=False)
 
         # log
         self.log.print("App.request", "request completed!")
-        return df
+        return df_combined
 
     def save_csv(self, df: pd.DataFrame):
         file_path = os.path.join(self.file_directory, f"csv/benchmark_adobe.csv")

@@ -20,7 +20,8 @@ class DatetimeFormatter:
         return datetime.now()
 
     @staticmethod
-    def today_to_str(pattern: str = "%Y%m%d") -> datetime:
+    def today_to_str(pattern: str = "%Y%m%d", locale="en_US") -> str:
+        lc.setlocale(lc.LC_TIME, locale)
         return datetime.now().strftime(pattern)
 
     @staticmethod
@@ -55,6 +56,8 @@ class DatetimeFormatter:
             return DatetimeFormatter.datetime_add_days(days=-1)
         elif value == "7daysAgo":
             return DatetimeFormatter.datetime_add_days(days=-7)
+        elif value == "1MonthAgo":
+            return DatetimeFormatter.datetime_add_months(months=-1)
         elif value == "3MonthsAgo":
             return DatetimeFormatter.datetime_add_months(months=-3)
         else:

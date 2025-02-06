@@ -11,8 +11,8 @@
         {
             "id": "arg2",
             "type": "promptString",
-            "default": "3MonthsAgo",
-            "description": "Date From (e.g., 2025-01-01, 7daysAgo, 3MonthsAgo)"
+            "default": "1MonthAgo",
+            "description": "Date From (e.g., 2025-01-01, 7daysAgo, 1MonthAgo, 3MonthsAgo)"
         },  
         {
             "id": "arg3",
@@ -24,7 +24,7 @@
             "id": "arg4",
             "type": "promptString",
             "default": "None",
-            "description": "App Version (e.g., None|ios-11.113.0|and-6.64.0)"
+            "description": "App Version (e.g., None|and-7.48.0:ios-11.132.1)"
         }                   
     ],         
     "tasks": [  

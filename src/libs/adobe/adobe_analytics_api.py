@@ -60,17 +60,18 @@ class AdobeAPI(f_api.API):
         self.log.print("AdobeAPI._process_dates", f"date: {date_range}")
         return date_range
 
-    def reports(self, file_request: str, site: str, from_date: str, to_date: str) -> pd.DataFrame:
-        config = self.config["adobe"]["credentials"]
-        url = "https://analytics.adobe.io/api/schibs1/reports"
-
-        # payload
+    def get_payload(self, file_request: str, site: str, from_date: str, to_date: str) -> str:
         url_request = f_files.Directory.get_directory(os.path.realpath(self.config["file"]))
         url_request = os.path.join(url_request, file_request)
         with open(url_request, "r") as file:
             payload = file.read()
             payload = payload.replace("{{rs}}", self._process_site(site))
-            payload = payload.replace("{{dt}}", self._process_dates(from_date, to_date))
+            payload = payload.replace("{{date_range}}", self._process_dates(from_date, to_date))
+        return payload
+
+    def reports(self, payload: str) -> pd.DataFrame:
+        config = self.config["adobe"]["credentials"]
+        url = "https://analytics.adobe.io/api/schibs1/reports"
 
         headers = {
             "Accept": "application/json",
