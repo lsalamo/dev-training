@@ -92,22 +92,22 @@ class App(libs_base.LibsBase):
             if app_version:
                 dimesion_filter.append({"dimension": "appVersion", "value": app_version})
 
+            platform_str = f"{platform.upper()} ({app_version})" if app_version else platform.upper()
             df = self.google.reports(self.args["site"], dimensions, metrics, date_ranges, dimesion_filter, order_bys)
             if not f_df.Dataframe.is_empty(df):
                 self._set_columns(df, platform)
                 df_combined = f_df.Dataframe.Columns.join_two_frames_by_columns(df_combined, df, "date", "outer")
+            else:
+                self.log.print_error("App.request", f"No data found for platform: {platform_str})", exit=True)
 
-        # fill missing values and cast
-        df_combined = df_combined.pipe(f_df.Dataframe.Fill.nan, value=0)
+            self.log.print("App.request", f"report requested for platform: {platform_str}")
 
-        # cast
-        df_combined = df_combined.pipe(cast_columns)
+        df_combined = (
+            df_combined.pipe(f_df.Dataframe.Fill.nan, value=0)
+            .pipe(cast_columns)
+            .pipe(f_df.Dataframe.Sort.sort_by_columns, columns="date", ascending=False)
+        )
 
-        # sort by date
-        df_combined = f_df.Dataframe.Sort.sort_by_columns(df_combined, columns="date", ascending=False)
-
-        # log
-        self.log.print("App.request", "request completed!")
         return df_combined
 
     def save_csv(self, df: pd.DataFrame):
@@ -128,4 +128,4 @@ if __name__ == "__main__":
         app.print_end()
     except Exception as e:
         print(f"App.main: An error occurred: {str(e)}")
-        sys.exit(1)
+        sys.exit()

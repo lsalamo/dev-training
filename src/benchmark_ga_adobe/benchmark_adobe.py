@@ -94,28 +94,32 @@ class App(libs_base.LibsBase):
         df_combined = pd.DataFrame()
         for platform in self.PLATFORMS:
             app_version = self.app_version.get(platform, None)
-            file_request = "adobe/request_app_version.json" if app_version else "adobe/request.json"
-            # payload
+            file_request = "request/request_app_version.json" if app_version else "request/request.json"
+
             payload = self.adobe.get_payload(
                 file_request, self.args["site"], self.args["from_date"], self.args["to_date"]
             )
             payload = payload.replace("{{filter_platform}}", self.FILTER_PLATFORM.get(platform))
             if app_version:
                 payload = payload.replace("{{filter_app_version}}", self.FILTER_APP_VERSION.get(platform))
+
+            platform_str = f"{platform.upper()} ({app_version})" if app_version else platform.upper()
             df = self.adobe.reports(payload)
             if not f_df.Dataframe.is_empty(df):
                 df = f_df.Dataframe.Columns.drop(df, ["data", "itemId"])
                 self._set_columns(df, platform)
                 df_combined = f_df.Dataframe.Columns.join_two_frames_by_columns(df_combined, df, "date", "outer")
+            else:
+                self.log.print_error("App.request", f"No data found for platform: {platform_str})", exit=True)
 
-        # cast
-        df_combined = df_combined.pipe(cast_columns)
+            self.log.print("App.request", f"report requested for platform: {platform_str}")
 
-        # sort by date
-        df_combined = f_df.Dataframe.Sort.sort_by_columns(df_combined, columns="date", ascending=False)
+        df_combined = (
+            df_combined.pipe(f_df.Dataframe.Fill.nan, value=0)
+            .pipe(cast_columns)
+            .pipe(f_df.Dataframe.Sort.sort_by_columns, columns="date", ascending=False)
+        )
 
-        # log
-        self.log.print("App.request", "request completed!")
         return df_combined
 
     def save_csv(self, df: pd.DataFrame):

@@ -1,3 +1,4 @@
+import sys
 import logging
 from colorama import init, Fore, Style  # https://patorjk.com/software/taag/#p=display&f=RubiFont&t=Adobe
 
@@ -29,10 +30,7 @@ class Log:
     def print(self, method, value):
         self.logger.info(f"{Fore.LIGHTBLUE_EX}{method}:{Fore.WHITE}{value}")
 
-    def print_error(self, method, value):
+    def print_error(self, method, value, exit: bool = False):
         self.logger.error(f"{Fore.RED}{method}:{Fore.WHITE}{value}")
-
-    @staticmethod
-    def print_and_exit(method, info):
-        # sys.exit("> ERROR - " + method + "() - " + info)
-        pass
+        if exit:
+            raise Exception(value)
