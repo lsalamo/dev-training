@@ -38,7 +38,7 @@ class AdobeAPI(f_api.API):
             "grant_type": "client_credentials",
             "client_id": config["apiKey"],
             "client_secret": config["secret"],
-            "scope": "openid,AdobeID,read_organizations,additional_info.projectedProductContext",
+            "scope": config["scopes"],
         }
         response = self.request("POST", url, headers, payload=post_body)
         return response["access_token"]
